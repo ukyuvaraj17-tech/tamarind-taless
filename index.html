@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tamarind Taless — All 40 Premium Palettes</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080604;font-family:'Cormorant Garamond',Georgia,serif}
+.page-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:rgba(255,248,220,.3);text-align:center;padding:28px 0 8px}
+.page-sub{font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:rgba(255,248,220,.2);text-align:center;padding-bottom:20px}
+.section-title{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.4em;text-transform:uppercase;color:rgba(200,160,60,.4);padding:14px 16px 10px;border-top:1px solid rgba(255,255,255,.05)}
+.grid{display:flex;flex-direction:column;gap:2px;padding:0 2px 2px}
+.opt{overflow:hidden;cursor:pointer;transition:filter .15s}
+.opt:hover{filter:brightness(1.06)}
+.ohdr{display:flex;align-items:center;gap:8px;padding:13px 16px}
+.onum{font-family:'Cinzel',serif;font-size:7.5px;letter-spacing:.28em;text-transform:uppercase;opacity:.35;min-width:22px;flex-shrink:0}
+.oname{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;flex:1;min-width:0}
+.osub{font-family:'Cormorant Garamond',serif;font-size:11px;font-style:italic;opacity:.42;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.osw{display:flex;gap:3px;flex-shrink:0}
+.sw{width:16px;height:16px;border-radius:50%;flex-shrink:0}
+.prev{display:none;padding-bottom:16px}
+.prev.open{display:block}
+.mnav{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid}
+.mlogo{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400}
+.mtag{font-family:'Cinzel',serif;font-size:5.5px;letter-spacing:.32em;text-transform:uppercase;margin-top:1px}
+.mlinks{display:flex;gap:12px}
+.mlink{font-family:'Cinzel',serif;font-size:6px;letter-spacing:.16em;text-transform:uppercase;opacity:.45}
+.mhero{padding:26px 14px 20px;text-align:center}
+.mlbl{font-family:'Cinzel',serif;font-size:6px;letter-spacing:.32em;text-transform:uppercase;margin-bottom:9px;opacity:.6}
+.mh1{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;line-height:.93;margin-bottom:9px}
+.msub{font-family:'Cormorant Garamond',serif;font-size:11px;font-style:italic;opacity:.38;margin-bottom:14px}
+.mbtns{display:flex;gap:6px;justify-content:center}
+.mbtn{font-family:'Cinzel',serif;font-size:6px;letter-spacing:.15em;text-transform:uppercase;padding:7px 14px;border:none;cursor:pointer}
+.mdiv{width:26px;height:1px;margin:0 auto 10px;opacity:.38}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:12px 14px}
+.card{overflow:hidden}
+.cimg{height:80px;display:flex;align-items:flex-end;padding:7px;position:relative}
+.cimg::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.82) 0%,transparent 55%)}
+.ccat{font-family:'Cinzel',serif;font-size:5px;letter-spacing:.13em;text-transform:uppercase;opacity:.48;position:relative;z-index:2;display:block}
+.cname{font-family:'Cormorant Garamond',serif;font-size:11px;position:relative;z-index:2;line-height:1.1;display:block;margin-top:1px}
+.cbody{padding:7px 8px}
+.cprice{font-family:'Cormorant Garamond',serif;font-size:12px}
+.badge{font-family:'Cinzel',serif;font-size:5px;letter-spacing:.09em;padding:2px 5px;text-transform:uppercase;position:absolute;top:5px;left:5px;z-index:3}
+.cbtns{display:flex;gap:4px;margin-top:5px}
+.cbtn{font-family:'Cinzel',serif;font-size:5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 6px;border:none;cursor:pointer}
+.strip{padding:7px 14px;overflow:hidden}
+.striptxt{font-family:'Cinzel',serif;font-size:5px;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap;opacity:.68}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);padding:10px 14px}
+.stat{text-align:center;padding:7px 0}
+.statnum{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;line-height:1}
+.statlbl{font-family:'Cinzel',serif;font-size:5px;letter-spacing:.14em;text-transform:uppercase;opacity:.38;margin-top:2px}
+.pal{display:flex;gap:4px;padding:9px 14px;flex-wrap:wrap;align-items:center}
+.pi{display:flex;flex-direction:column;align-items:center;gap:2px}
+.pb{width:36px;height:22px;border-radius:2px}
+.pn{font-family:'Cinzel',serif;font-size:4.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.35}
+.ph{font-size:6.5px;font-family:monospace;opacity:.22}
+.qstrip{padding:9px 14px;text-align:center}
+.qt{font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;font-weight:300;opacity:.55;line-height:1.5}
+.sel-btn{background:transparent;font-family:'Cinzel',serif;font-size:6px;letter-spacing:.18em;text-transform:uppercase;padding:6px 12px;cursor:pointer;margin-left:auto;border:none}
+.selected-bar{display:none;position:fixed;bottom:0;left:0;right:0;padding:14px 24px;display:none;align-items:center;justify-content:space-between;z-index:9999;border-top:1px solid rgba(255,255,255,.1)}
+.selected-bar.show{display:flex}
+</style>
+</head>
+<body>
+
+<div class="page-title">Tamarind Taless — 40 Premium Palettes</div>
+<div class="page-sub">Click any palette to expand — then click "Select This" to choose</div>
+
+<div class="section-title">Group 1 — Dark Maroon + Gold (Original Options)</div>
+<div class="grid" id="g1"></div>
+
+<div class="section-title">Group 2 — Deep Red + Bronze + Copper</div>
+<div class="grid" id="g2"></div>
+
+<div class="section-title">Group 3 — Black + Pure Gold (Different Tones)</div>
+<div class="grid" id="g3"></div>
+
+<div class="section-title">Group 4 — Special &amp; Unique — Beyond Boundaries</div>
+<div class="grid" id="g4"></div>
+
+<div class="selected-bar" id="sel-bar">
+  <div id="sel-info" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.2em;text-transform:uppercase"></div>
+  <button onclick="copySelected()" style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:.2em;text-transform:uppercase;padding:8px 18px;border:none;cursor:pointer">Copy Code &amp; Tell Claude</button>
+</div>
+
+<script>
+const g1 = [
+  {id:'01',name:'Obsidian Temple',sub:'Black stone · warm amber',bg:'#0A0A08',surf:'#1A1814',card:'#222018',acc1:'#5A4828',acc2:'#D4B896',acc3:'#F0E8D8',text:'#F0E8D8',stripbg:'#5A4828'},
+  {id:'04',name:'Bronze Age',sub:'Pitch black · pure bronze mono',bg:'#0C0A06',surf:'#1C1608',card:'#261E0A',acc1:'#5A4010',acc2:'#A87840',acc3:'#E8C890',text:'#E8C890',stripbg:'#5A4010'},
+  {id:'07',name:'Ivory Palace',sub:'Charcoal · ivory · gold',bg:'#1A1410',surf:'#2A2018',card:'#322818',acc1:'#4A3820',acc2:'#C8A060',acc3:'#F5F0E8',text:'#F5F0E8',stripbg:'#4A3820'},
+  {id:'10',name:'Saffron Dusk',sub:'Pitch black · pure saffron',bg:'#0C0804',surf:'#181008',card:'#201408',acc1:'#604008',acc2:'#D08020',acc3:'#F8E0A0',text:'#F8E0A0',stripbg:'#604008'},
+  {id:'A',name:'Blood Royal',sub:'Deepest maroon · 22K gold',bg:'#0D0306',surf:'#180610',card:'#2A0810',acc1:'#6B1020',acc2:'#C9922A',acc3:'#E8C870',text:'#F2E4C4',stripbg:'#6B1020'},
+  {id:'B',name:'Mughal Court',sub:'Warm black · rose gold',bg:'#0E0808',surf:'#1A0C0C',card:'#221010',acc1:'#8B3018',acc2:'#D4956A',acc3:'#EEC890',text:'#F5DEC8',stripbg:'#8B3018'},
+  {id:'C',name:'Rajput Gold',sub:'Rich maroon · pure gold',bg:'#100508',surf:'#1E0810',card:'#300C18',acc1:'#780E28',acc2:'#D4A030',acc3:'#EED880',text:'#FFF8E8',stripbg:'#780E28'},
+  {id:'P3',name:'Dark Dynasty',sub:'Blackened maroon · dynasty gold',bg:'#0A0608',surf:'#160A12',card:'#1A0C14',acc1:'#580C20',acc2:'#C89840',acc3:'#F0D890',text:'#F8ECD8',stripbg:'#580C20'},
+];
+
+const g2 = [
+  {id:'08',name:'Red Earth',sub:'Terracotta · bone white',bg:'#0E0604',surf:'#1E0C08',card:'#280E08',acc1:'#6A1808',acc2:'#C04830',acc3:'#F0D0B8',text:'#F0D0B8',stripbg:'#6A1808'},
+  {id:'P1',name:'Ancient Copper',sub:'Pitch black · oxidised copper',bg:'#0A0704',surf:'#16100A',card:'#1C1008',acc1:'#7A4820',acc2:'#B87040',acc3:'#E8C088',text:'#E8C088',stripbg:'#7A4820'},
+  {id:'P2',name:'Crimson Vault',sub:'Near black · deep crimson',bg:'#080406',surf:'#140810',card:'#180810',acc1:'#7A1828',acc2:'#C84858',acc3:'#F0D898',text:'#F0C8B0',stripbg:'#7A1828'},
+  {id:'P4',name:'Lacquer Red',sub:'Coal black · Chinese lacquer',bg:'#090404',surf:'#160A08',card:'#1C0808',acc1:'#8C1808',acc2:'#E05030',acc3:'#F0C060',text:'#F8D8C0',stripbg:'#8C1808'},
+  {id:'P5',name:'Ember and Ash',sub:'Dark ash · glowing ember',bg:'#0C0806',surf:'#1A1008',card:'#1E1208',acc1:'#7A3010',acc2:'#D06828',acc3:'#F4E0A0',text:'#F4DCC0',stripbg:'#7A3010'},
+  {id:'N1',name:'Kali Night',sub:'Void black · blood red · gold dust',bg:'#060406',surf:'#120608',card:'#1C0608',acc1:'#6E0818',acc2:'#CC2038',acc3:'#E8C060',text:'#F8E8D0',stripbg:'#6E0818'},
+  {id:'Q1',name:'Theyyam Night',sub:'Void · vermilion · gold leaf',bg:'#060404',surf:'#120606',card:'#1C0806',acc1:'#882010',acc2:'#E04020',acc3:'#D4A828',text:'#FFF0D8',stripbg:'#882010'},
+  {id:'Q6',name:'Carnelian',sub:'Black · carnelian orange · bone',bg:'#080604',surf:'#160A06',card:'#1E1008',acc1:'#7A2808',acc2:'#C85020',acc3:'#F0D890',text:'#F8E8D0',stripbg:'#7A2808'},
+  {id:'N5',name:'Burnt Sienna',sub:'Dark earth · burnt sienna · sand',bg:'#0C0806',surf:'#1A1008',card:'#241408',acc1:'#803010',acc2:'#C85820',acc3:'#F0C880',text:'#F8E0C0',stripbg:'#803010'},
+  {id:'R1',name:'Midnight Maroon',sub:'Coolest black · midnight maroon',bg:'#060408',surf:'#100810',card:'#180A14',acc1:'#500C20',acc2:'#980E30',acc3:'#D4A038',text:'#F8ECD8',stripbg:'#500C20'},
+];
+
+const g3 = [
+  {id:'P6',name:'Golden Temple',sub:'Pure black · temple gold · maroon flash',bg:'#080608',surf:'#120A10',card:'#160A12',acc1:'#6A1020',acc2:'#D4A828',acc3:'#FFF4D8',text:'#FFF4D8',stripbg:'#6A1020'},
+  {id:'Q5',name:'Darkest Gold',sub:'Absolute black · 24K gold · white',bg:'#040404',surf:'#0C0C0A',card:'#141410',acc1:'#585018',acc2:'#C8A028',acc3:'#F8E878',text:'#FFFFF0',stripbg:'#585018'},
+  {id:'N3',name:'Temple Brass',sub:'Dark charcoal · aged brass · ivory',bg:'#0C0C08',surf:'#181808',card:'#222010',acc1:'#5A4808',acc2:'#B89838',acc3:'#E8D880',text:'#F8F0D8',stripbg:'#5A4808'},
+  {id:'N7',name:'Sacred Flame',sub:'Carbon black · sacred flame · gold',bg:'#080604',surf:'#141008',card:'#1C1408',acc1:'#784018',acc2:'#D07828',acc3:'#F0D060',text:'#F8ECD8',stripbg:'#784018'},
+  {id:'N8',name:'Panchaloha',sub:'Black stone · five metals · ivory',bg:'#0A0A08',surf:'#161408',card:'#201E10',acc1:'#604808',acc2:'#A88030',acc3:'#D8C070',text:'#F8F0D8',stripbg:'#604808'},
+  {id:'Q8',name:'Chola Bronze',sub:'Ancient earth · Chola bronze · dawn',bg:'#0C0A06',surf:'#1A1408',card:'#241C0A',acc1:'#704818',acc2:'#B88030',acc3:'#E8C870',text:'#F8ECD8',stripbg:'#704818'},
+  {id:'R2',name:'Amber Temple',sub:'Rich black · deep amber · pearl',bg:'#080604',surf:'#140E06',card:'#1C1408',acc1:'#6A4008',acc2:'#C88028',acc3:'#F0D880',text:'#F8F0D8',stripbg:'#6A4008'},
+  {id:'R3',name:'Garnet Throne',sub:'Darkest black · garnet · antique gold',bg:'#060408',surf:'#100810',card:'#180C14',acc1:'#6C0C28',acc2:'#A82040',acc3:'#D4A038',text:'#F8ECD8',stripbg:'#6C0C28'},
+  {id:'N2',name:'Sandalwood Fire',sub:'Deep brown · sandalwood · ember',bg:'#0A0604',surf:'#181008',card:'#221408',acc1:'#6A3808',acc2:'#C07830',acc3:'#E8C880',text:'#F4E0C0',stripbg:'#6A3808'},
+  {id:'Q7',name:'Navaratna',sub:'Jewel black · nine-gem gold · silk',bg:'#080608',surf:'#120A10',card:'#1A0C16',acc1:'#6A1828',acc2:'#C89040',acc3:'#F0D880',text:'#F8ECD8',stripbg:'#6A1828'},
+];
+
+const g4 = [
+  {id:'02',name:'Midnight Indigo',sub:'Deep navy · cold steel blue',bg:'#07080F',surf:'#0E1220',card:'#141830',acc1:'#1E2848',acc2:'#8BA8D4',acc3:'#C8D8F4',text:'#C8D8F4',stripbg:'#1E2848'},
+  {id:'05',name:'Jade Emperor',sub:'Deep jade · sacred forest',bg:'#060E0A',surf:'#0A1810',card:'#0E2014',acc1:'#183820',acc2:'#4A9870',acc3:'#D4C890',text:'#D4C890',stripbg:'#183820'},
+  {id:'06',name:'Temple Smoke',sub:'Deep violet · incense gold',bg:'#0E0C10',surf:'#18141E',card:'#201828',acc1:'#3A2860',acc2:'#9878C8',acc3:'#E8D890',text:'#D8C8F0',stripbg:'#3A2860'},
+  {id:'09',name:'Silver Temple',sub:'Slate black · platinum silver',bg:'#080A0C',surf:'#101418',card:'#181E24',acc1:'#304050',acc2:'#8098B0',acc3:'#D0DDE8',text:'#D0DDE8',stripbg:'#304050'},
+  {id:'03',name:'Sacred Ash',sub:'Pure cream · raw earth (Light)',bg:'#F8F5F0',surf:'#EDE8E0',card:'#FFFFFF',acc1:'#8B6040',acc2:'#8B6040',acc3:'#C8A050',text:'#1A0F08',stripbg:'#8B6040'},
+  {id:'Q4',name:'Ivory Blood',sub:'Ivory light · blood red accent',bg:'#F5F0E8',surf:'#EDE5D8',card:'#FFFFFF',acc1:'#8B1020',acc2:'#C02030',acc3:'#C89040',text:'#180810',stripbg:'#8B1020'},
+  {id:'N4',name:'Maharaja',sub:'Regal black · deep ruby · champagne',bg:'#080608',surf:'#140A12',card:'#1E0C18',acc1:'#701828',acc2:'#C03050',acc3:'#F0D890',text:'#F8E8D0',stripbg:'#701828'},
+  {id:'Q9',name:'Nagas Red',sub:'Forest black · serpent red · gold',bg:'#060806',surf:'#0E1008',card:'#160E0A',acc1:'#6A1410',acc2:'#B82018',acc3:'#D4A028',text:'#F8E8D0',stripbg:'#6A1410'},
+  {id:'N9',name:'Bhuta Kola',sub:'Ritual black · spirit red · gold',bg:'#080408',surf:'#140810',card:'#1E0C14',acc1:'#6C1420',acc2:'#B82030',acc3:'#D4A030',text:'#F8E8D0',stripbg:'#6C1420'},
+  {id:'Q3',name:'Malabar Night',sub:'Ocean black · spice red · gold',bg:'#060808',surf:'#0E1010',card:'#160E0A',acc1:'#701808',acc2:'#C84020',acc3:'#D4A030',text:'#F8E8D0',stripbg:'#701808'},
+  {id:'N6',name:'Obsidian Maroon',sub:'Obsidian black · deep maroon',bg:'#080408',surf:'#140810',card:'#1C0C14',acc1:'#601020',acc2:'#B02840',acc3:'#D4A040',text:'#F8ECD8',stripbg:'#601020'},
+  {id:'Q2',name:'Kerala Bronze',sub:'Black soil · Kerala bronze',bg:'#080806',surf:'#141208',card:'#1E1A08',acc1:'#686018',acc2:'#B89828',acc3:'#E8D070',text:'#F8F0D0',stripbg:'#686018'},
+];
+
+function makeCard(p){
+  const lightText = p.bg.startsWith('#F') ? '#180810' : p.text;
+  const btnColor = p.bg.startsWith('#F') ? p.acc1 : p.acc2;
+  return `
+<div class="opt" style="background:${p.bg}" onclick="tog('${p.id}')">
+  <div class="ohdr" style="color:${p.acc2}">
+    <span class="onum">${p.id}</span>
+    <span class="oname" style="color:${lightText}">${p.name}</span>
+    <span class="osub" style="color:${p.acc2}">${p.sub}</span>
+    <div class="osw">
+      <div class="sw" style="background:${p.bg};border:1px solid rgba(128,128,128,.25)"></div>
+      <div class="sw" style="background:${p.surf}"></div>
+      <div class="sw" style="background:${p.acc1}"></div>
+      <div class="sw" style="background:${p.acc2}"></div>
+      <div class="sw" style="background:${p.text}"></div>
+    </div>
+  </div>
+  <div class="prev" id="${p.id}">
+    <div class="mnav" style="background:${p.bg};border-color:rgba(128,128,128,.1);color:${lightText}">
+      <div><div class="mlogo" style="color:${lightText}">Tamarind Taless</div><div class="mtag" style="color:${p.acc2}">Heritage Curators</div></div>
+      <div class="mlinks"><span class="mlink" style="color:${lightText}">Collections</span><span class="mlink" style="color:${lightText}">About</span><span class="mlink" style="color:${lightText}">Enquire</span></div>
+      <div style="display:flex;gap:9px">
+        <span style="color:${p.acc2};font-size:13px">♡</span>
+        <span style="color:${p.acc2};font-size:13px">⌁</span>
+        <span style="color:${p.acc2};font-size:13px">⊙</span>
+      </div>
+    </div>
+    <div class="mhero" style="background:${p.bg}">
+      <div class="mdiv" style="background:${p.acc2}"></div>
+      <div class="mlbl" style="color:${p.acc2}">Rare Artefacts — Living Heritage</div>
+      <h1 class="mh1" style="color:${lightText}">Objects that<br><em style="color:${p.acc2};font-style:italic">carry centuries</em></h1>
+      <p class="msub" style="color:${lightText}">Bronze, wood, pigment and devotion</p>
+      <div class="mbtns">
+        <button class="mbtn" style="background:${p.acc2};color:${p.bg.startsWith('#F')?'#FFF':p.bg}">${p.bg.startsWith('#F')?'Explore':'Explore Collection'}</button>
+        <button class="mbtn" style="background:transparent;color:${lightText};border:1px solid ${p.acc2}40">Our Story</button>
+      </div>
+    </div>
+    <div class="strip" style="background:${p.stripbg}"><div class="striptxt" style="color:${p.acc3}">Bronze Artefacts — Theyyam Heritage — Kerala Murals — Bhuta Kola — Panchaloha Bronzes — Made in India — Women-Led Curation —</div></div>
+    <div class="cards" style="background:${p.surf}">
+      <div class="card" style="background:${p.card};border:1px solid ${p.acc2}18">
+        <div class="cimg" style="background:linear-gradient(145deg,${p.acc1},${p.surf})"><span class="badge" style="background:${p.acc2};color:${p.bg.startsWith('#F')?'#fff':p.bg}">Featured</span><span class="ccat" style="color:${p.text}">Bronze</span><span class="cname" style="color:${p.text}">Naranbil Bhagavathy</span></div>
+        <div class="cbody" style="background:${p.card}"><div class="cprice" style="color:${p.acc2}">Rs. 45,000</div><div class="cbtns"><button class="cbtn" style="background:${p.acc2};color:${p.bg.startsWith('#F')?'#fff':p.bg}">Add</button><button class="cbtn" style="background:transparent;color:${p.acc2};border:1px solid ${p.acc2}40">Details</button></div></div>
+      </div>
+      <div class="card" style="background:${p.card};border:1px solid ${p.acc2}18">
+        <div class="cimg" style="background:linear-gradient(145deg,${p.surf},${p.acc1})"><span class="badge" style="background:${p.acc1};color:${p.acc3}">Rare</span><span class="ccat" style="color:${p.text}">Wooden Art</span><span class="cname" style="color:${p.text}">Chikku Bhuta</span></div>
+        <div class="cbody" style="background:${p.card}"><div class="cprice" style="color:${p.acc2}">Rs. 28,000</div><div class="cbtns"><button class="cbtn" style="background:${p.acc2};color:${p.bg.startsWith('#F')?'#fff':p.bg}">Add</button><button class="cbtn" style="background:transparent;color:${p.acc2};border:1px solid ${p.acc2}40">Details</button></div></div>
+      </div>
+      <div class="card" style="background:${p.card};border:1px solid ${p.acc1}30">
+        <div class="cimg" style="background:linear-gradient(145deg,${p.bg},${p.surf})"><span class="badge" style="background:${p.acc1}CC;color:${p.acc3}">Enquiry</span><span class="ccat" style="color:${p.text}">Paintings</span><span class="cname" style="color:${p.text}">Kerala Mural</span></div>
+        <div class="cbody" style="background:${p.card}"><div style="font-family:'Cormorant Garamond',serif;font-size:10px;font-style:italic;color:${p.acc2}80">Price on Enquiry</div><button style="background:#25D366;color:#fff;font-family:'Cinzel',serif;font-size:5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:none;margin-top:4px;cursor:pointer">WhatsApp</button></div>
+      </div>
+    </div>
+    <div class="stats" style="background:${p.bg}">
+      <div class="stat" style="border-right:1px solid ${p.acc2}18"><div class="statnum" style="color:${p.acc2}">228</div><div class="statlbl" style="color:${lightText}80">Pieces</div></div>
+      <div class="stat" style="border-right:1px solid ${p.acc2}18"><div class="statnum" style="color:${p.acc2}">27K</div><div class="statlbl" style="color:${lightText}80">Community</div></div>
+      <div class="stat" style="border-right:1px solid ${p.acc2}18"><div class="statnum" style="color:${p.acc2}">5+</div><div class="statlbl" style="color:${lightText}80">Traditions</div></div>
+      <div class="stat"><div class="statnum" style="color:${p.acc2}">100%</div><div class="statlbl" style="color:${lightText}80">India</div></div>
+    </div>
+    <div style="background:${p.stripbg};padding:9px 14px;text-align:center"><div style="font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;color:${p.text};opacity:.88">Objects that carry centuries — curated for those who understand.</div></div>
+    <div class="pal" style="background:${p.bg}">
+      <div class="pi"><div class="pb" style="background:${p.bg};border:1px solid rgba(128,128,128,.2)"></div><div class="pn" style="color:${p.acc2}">Base</div><div class="ph" style="color:${p.acc2}">${p.bg}</div></div>
+      <div class="pi"><div class="pb" style="background:${p.surf}"></div><div class="pn" style="color:${p.acc2}">Surface</div><div class="ph" style="color:${p.acc2}">${p.surf}</div></div>
+      <div class="pi"><div class="pb" style="background:${p.acc1}"></div><div class="pn" style="color:${p.acc2}">Accent Dark</div><div class="ph" style="color:${p.acc2}">${p.acc1}</div></div>
+      <div class="pi"><div class="pb" style="background:${p.acc2}"></div><div class="pn" style="color:${p.acc2}">Accent</div><div class="ph" style="color:${p.acc2}">${p.acc2}</div></div>
+      <div class="pi"><div class="pb" style="background:${p.acc3}"></div><div class="pn" style="color:${p.acc2}">Light</div><div class="ph" style="color:${p.acc2}">${p.acc3}</div></div>
+      <div class="pi"><div class="pb" style="background:${p.text}"></div><div class="pn" style="color:${p.acc2}">Text</div><div class="ph" style="color:${p.acc2}">${p.text}</div></div>
+      <button onclick="event.stopPropagation();selectP('${p.id}','${p.name}','${p.acc2}','${p.bg}')" style="background:${p.acc2};color:${p.bg.startsWith('#F')?'#FFF':p.bg};font-family:'Cinzel',serif;font-size:6px;letter-spacing:.16em;text-transform:uppercase;padding:6px 11px;border:none;cursor:pointer;margin-left:auto">Select This</button>
+    </div>
+  </div>
+</div>`;
+}
+
+['g1','g2','g3','g4'].forEach((gid,gi)=>{
+  const data=[g1,g2,g3,g4][gi];
+  const el=document.getElementById(gid);
+  data.forEach(p=>{el.innerHTML+=makeCard(p)});
+});
+
+function tog(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var isOpen=el.classList.contains('open');
+  document.querySelectorAll('.prev').forEach(p=>p.classList.remove('open'));
+  if(!isOpen){el.classList.add('open');setTimeout(()=>el.parentElement.scrollIntoView({behavior:'smooth',block:'start'}),50);}
+}
+
+var selId='',selName='',selAcc='',selBg='';
+function selectP(id,name,acc,bg){
+  selId=id;selName=name;selAcc=acc;selBg=bg;
+  var bar=document.getElementById('sel-bar');
+  bar.style.background=bg;
+  bar.style.color=acc;
+  bar.querySelector('button').style.background=acc;
+  bar.querySelector('button').style.color=bg.startsWith('#F')?'#fff':bg;
+  document.getElementById('sel-info').style.color=acc;
+  document.getElementById('sel-info').textContent='Selected: '+id+' — '+name+' (Tell Claude this code to build)';
+  bar.classList.add('show');
+}
+function copySelected(){
+  var txt='Build the full Tamarind Taless website using palette '+selId+' — '+selName;
+  try{navigator.clipboard.writeText(txt);}catch(e){}
+  alert('Copied to clipboard:\n\n'+txt+'\n\nPaste this in Claude to start building.');
+}
+</script>
+</body>
+</html>
