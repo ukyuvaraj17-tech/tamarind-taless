@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── USERS ────────────────────────────────────────────────────────────
+    // Users can read and write only their own document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── PRODUCTS ─────────────────────────────────────────────────────────
+    // Anyone can read products (public catalogue)
+    // Only admin can create, update, delete
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null
+        && request.auth.token.email == 'pc1@uktex.net';
+    }
+
+    // ── ORDERS ───────────────────────────────────────────────────────────
+    // Authenticated users can create orders
+    // Users can read only their own orders
+    // Admin can read and update all orders
+    match /orders/{orderId} {
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid
+          || request.auth.token.email == 'pc1@uktex.net');
+      allow update: if request.auth != null
+        && request.auth.token.email == 'pc1@uktex.net';
+    }
+
+    // ── ENQUIRIES ─────────────────────────────────────────────────────────
+    // Anyone (including guests) can create enquiries
+    // Authenticated users can read their own
+    // Admin can read all
+    match /enquiries/{enquiryId} {
+      allow create: if true;
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid
+          || request.auth.token.email == 'pc1@uktex.net');
+      allow update: if request.auth != null
+        && request.auth.token.email == 'pc1@uktex.net';
+    }
+  }
+}
