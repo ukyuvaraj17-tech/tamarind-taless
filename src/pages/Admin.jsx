@@ -11,7 +11,27 @@ const CATS = ['bronze', 'wooden', 'paintings', 'brass', 'miniatures'];
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 const EMPTY = { name: '', cat: 'bronze', subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, bg: 'linear-gradient(145deg,#2a1f18,#4a3020)', images: [] };
 
-// ── NAV ITEMS ─────────────────────────────────────────────
+// Rajput palette constants
+const M = {
+  bg:          'linear-gradient(160deg,#0E0205 0%,#1A0509 55%,#1E080D 100%)',
+  sidebar:     'linear-gradient(180deg,#080103 0%,#0D0305 55%,#110406 100%)',
+  sidebarBdr:  'rgba(210,145,45,0.22)',
+  topbar:      'rgba(5,1,2,0.92)',
+  card:        'rgba(90,10,25,0.18)',
+  cardBdr:     'rgba(210,145,45,0.15)',
+  rowHover:    'rgba(110,14,32,0.16)',
+  navActive:   'rgba(120,20,40,0.34)',
+  navHover:    'rgba(80,12,28,0.24)',
+  gold:        '#C89430',
+  goldFaint:   'rgba(200,148,48,0.18)',
+  goldLine:    'linear-gradient(90deg,transparent,rgba(200,148,48,0.55),transparent)',
+  maroon:      '#8B1828',
+  maroonFaint: 'rgba(139,24,40,0.14)',
+  dividerH:    '1px solid rgba(200,145,45,0.14)',
+  selectBg:    'rgba(20,5,10,0.96)',
+};
+
+// ── NAV ITEMS ──────────────────────────────────────────────
 const NAV_ITEMS = [
   { id: 0, label: 'Dashboard', icon: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -54,6 +74,17 @@ const NAV_ITEMS = [
     </svg>
   )},
 ];
+
+// Decorative gold divider
+const GoldDivider = () => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 22px', margin: '4px 0' }}>
+    <div style={{ flex: 1, height: 1, background: M.goldLine }} />
+    <svg width="7" height="7" viewBox="0 0 10 10" fill={M.gold} opacity="0.6">
+      <polygon points="5,0 6.5,3.5 10,5 6.5,6.5 5,10 3.5,6.5 0,5 3.5,3.5"/>
+    </svg>
+    <div style={{ flex: 1, height: 1, background: M.goldLine }} />
+  </div>
+);
 
 // ── STORIES MANAGER ────────────────────────────────────────
 const EMPTY_STORY = { title: '', subtitle: '', category: 'Heritage Notes', author: 'Tamarind Taless', story: '', images: [], published: true };
@@ -110,37 +141,37 @@ function StoriesManager() {
     fetchStories();
   }
 
-  const lbl = { fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(200,169,110,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: 'var(--gd)' };
+  const lbl = { fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.5)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: M.card, border: `1px solid ${M.cardBdr}`, color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: M.gold };
 
   if (view === 'list') {
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>Stories &amp; Blog ({stories.length})</div>
-          <button onClick={startNew} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Story</button>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, textTransform: 'uppercase' }}>Stories &amp; Blog ({stories.length})</div>
+          <button onClick={startNew} className="adm-btn-gold">Add New Story</button>
         </div>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40 }}><span className="spinner"></span></div>
         ) : stories.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(245,237,216,0.5)', fontStyle: 'italic' }}>No stories yet. Click "Add New Story" to publish your first one.</div>
+          <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(245,237,216,0.4)', fontStyle: 'italic' }}>No stories yet. Click "Add New Story" to publish your first one.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {stories.map(s => (
-              <div key={s.id} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(200,169,110,0.15)', padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center' }}>
-                {s.images?.[0] && <img src={s.images[0]} alt="" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(200,169,110,0.2)' }} />}
+              <div key={s.id} style={{ background: M.card, border: `1px solid ${M.cardBdr}`, padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center' }}>
+                {s.images?.[0] && <img src={s.images[0]} alt="" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: `1px solid ${M.cardBdr}` }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gd)', background: 'rgba(212,160,64,.12)', padding: '2px 8px' }}>{s.category}</span>
+                    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: M.gold, background: M.goldFaint, padding: '2px 8px' }}>{s.category}</span>
                     <span style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: s.published ? '#6AD08A' : 'rgba(245,237,216,0.4)' }}>{s.published ? 'Published' : 'Draft'}</span>
                   </div>
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', marginBottom: 2 }}>{s.title}</div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.5)', fontStyle: 'italic' }}>{s.author} · {new Date(s.created_at).toLocaleDateString()}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.45)', fontStyle: 'italic' }}>{s.author} · {new Date(s.created_at).toLocaleDateString()}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                  <button onClick={() => togglePublish(s)} style={{ background: 'none', border: '1px solid rgba(200,169,110,0.3)', color: 'rgba(245,237,216,0.6)', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>{s.published ? 'Unpublish' : 'Publish'}</button>
-                  <button onClick={() => startEdit(s)} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Edit</button>
-                  <button onClick={() => deleteStory(s.id)} style={{ background: 'none', border: '1px solid rgba(176,40,64,.4)', color: '#E07070', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Delete</button>
+                  <button onClick={() => togglePublish(s)} className="adm-btn-outline">{s.published ? 'Unpublish' : 'Publish'}</button>
+                  <button onClick={() => startEdit(s)} className="adm-btn-gold" style={{ padding: '7px 12px' }}>Edit</button>
+                  <button onClick={() => deleteStory(s.id)} className="adm-btn-danger">Delete</button>
                 </div>
               </div>
             ))}
@@ -153,35 +184,35 @@ function StoriesManager() {
   return (
     <div style={{ maxWidth: 680 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>{editId ? 'Edit Story' : 'New Story'}</div>
-        <button onClick={() => setView('list')} style={{ background: 'transparent', border: '1px solid rgba(245,237,216,0.25)', color: 'rgba(245,237,216,0.6)', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 16px', cursor: 'pointer' }}>Back to List</button>
+        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, textTransform: 'uppercase' }}>{editId ? 'Edit Story' : 'New Story'}</div>
+        <button onClick={() => setView('list')} className="adm-btn-outline">Back to List</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div><label style={lbl}>Title *</label><input style={inp} value={form.title} onChange={e => setF('title', e.target.value)} placeholder="e.g. The Last Bell-Maker of Palakkad" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'} /></div>
-        <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="One-line summary shown under the title" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'} /></div>
+        <div><label style={lbl}>Title *</label><input style={inp} value={form.title} onChange={e => setF('title', e.target.value)} placeholder="e.g. The Last Bell-Maker of Palakkad" className="adm-input" /></div>
+        <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="One-line summary shown under the title" className="adm-input" /></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div>
             <label style={lbl}>Category</label>
-            <select style={{ ...inp, cursor: 'pointer' }} value={form.category} onChange={e => setF('category', e.target.value)}>
-              {STORY_CATS.map(c => <option key={c} value={c} style={{ background: '#1C0C14' }}>{c}</option>)}
+            <select style={{ ...inp, cursor: 'pointer' }} value={form.category} onChange={e => setF('category', e.target.value)} className="adm-input">
+              {STORY_CATS.map(c => <option key={c} value={c} style={{ background: '#1A0408' }}>{c}</option>)}
             </select>
           </div>
-          <div><label style={lbl}>Author</label><input style={inp} value={form.author} onChange={e => setF('author', e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'} /></div>
+          <div><label style={lbl}>Author</label><input style={inp} value={form.author} onChange={e => setF('author', e.target.value)} className="adm-input" /></div>
         </div>
         <div>
           <label style={lbl}>Story Text</label>
-          <textarea style={{ ...inp, minHeight: 180, resize: 'vertical', lineHeight: 1.7 }} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="Write the full story here..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'} />
+          <textarea style={{ ...inp, minHeight: 180, resize: 'vertical', lineHeight: 1.7 }} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="Write the full story here..." className="adm-input" />
         </div>
         <ImageUploader images={form.images} onChange={imgs => setF('images', imgs)} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <input type="checkbox" checked={form.published} onChange={e => setF('published', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--gd)' }} />
+          <input type="checkbox" checked={form.published} onChange={e => setF('published', e.target.checked)} style={{ width: 16, height: 16, accentColor: M.gold }} />
           <label style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--iv)' }}>Published — visible on the public Stories page</label>
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-          <button onClick={saveStory} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+          <button onClick={saveStory} disabled={saving} className="adm-btn-gold" style={{ padding: '13px 28px', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Saving...' : editId ? 'Update Story' : 'Publish Story'}
           </button>
-          {editId && <button onClick={() => { setForm({ ...EMPTY_STORY }); setEditId(null); setView('list'); }} style={{ background: 'transparent', border: '1px solid rgba(245,237,216,0.25)', color: 'rgba(245,237,216,0.6)', fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
+          {editId && <button onClick={() => { setForm({ ...EMPTY_STORY }); setEditId(null); setView('list'); }} className="adm-btn-outline" style={{ padding: '13px 28px' }}>Cancel</button>}
         </div>
       </div>
     </div>
@@ -198,11 +229,11 @@ function BrandSettings() {
     hero_image: '', hero_shop: '', hero_about: '', hero_services: '', hero_stories: '', hero_care: '', about_image: '',
   });
 
-  const lbl = { fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(200,169,110,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: 'var(--gd)' };
-  const section = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(200,169,110,0.15)', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 16 };
-  const secHead = { fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(212,160,64,.7)', marginBottom: 4 };
-  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 12.5, fontStyle: 'italic', color: 'rgba(248,236,216,.6)' };
+  const lbl = { fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.5)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: M.card, border: `1px solid ${M.cardBdr}`, color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: M.gold };
+  const section = { background: M.card, border: `1px solid ${M.cardBdr}`, padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 16, boxShadow: 'inset 0 0 40px rgba(80,8,20,0.12)' };
+  const secHead = { fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '.25em', textTransform: 'uppercase', color: M.gold, opacity: 0.85, marginBottom: 4 };
+  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 12.5, fontStyle: 'italic', color: 'rgba(248,236,216,.55)' };
 
   async function saveLogoUrl() {
     if (!logoUrl.trim()) return;
@@ -243,67 +274,57 @@ function BrandSettings() {
         <div style={secHead}>{title}</div>
         <div style={helpText}>{description}</div>
         {brand[field] && (
-          <div style={{ position: 'relative', height: 130, overflow: 'hidden', border: '1px solid rgba(212,160,64,.25)' }}>
-            <img src={brand[field]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: .75 }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,4,8,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '.2em', textTransform: 'uppercase', color: 'rgba(212,160,64,.85)' }}>Current Image</span>
+          <div style={{ position: 'relative', height: 130, overflow: 'hidden', border: `1px solid ${M.cardBdr}` }}>
+            <img src={brand[field]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: .7 }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,2,5,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '.2em', textTransform: 'uppercase', color: `${M.gold}cc` }}>Current Image</span>
             </div>
           </div>
         )}
         <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            value={heroUrls[field]}
-            onChange={e => setHeroUrls(h => ({ ...h, [field]: e.target.value }))}
-            placeholder="Paste Cloudinary image URL..."
-            style={{ ...inp, flex: 1 }}
-            onFocus={e => e.target.style.borderColor = 'var(--gd)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'}
-          />
-          <button onClick={() => saveHeroField(field)} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save</button>
+          <input value={heroUrls[field]} onChange={e => setHeroUrls(h => ({ ...h, [field]: e.target.value }))} placeholder="Paste Cloudinary image URL..." style={{ ...inp, flex: 1 }} className="adm-input" />
+          <button onClick={() => saveHeroField(field)} className="adm-btn-gold" style={{ whiteSpace: 'nowrap' }}>Save</button>
         </div>
-        {brand[field] && <button onClick={() => removeHeroField(field)} style={{ background: 'none', border: '1px solid rgba(176,40,64,.4)', color: '#E07070', fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Image</button>}
+        {brand[field] && <button onClick={() => removeHeroField(field)} className="adm-btn-danger" style={{ alignSelf: 'flex-start' }}>Remove Image</button>}
       </div>
     );
   }
 
   return (
     <div style={{ maxWidth: 620 }}>
-      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>Brand Settings</div>
+      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, marginBottom: 20, textTransform: 'uppercase' }}>Brand Settings</div>
 
-      {/* LOGO */}
       <div style={section}>
         <div style={secHead}>Logo Image</div>
-        {brand.logo_url && <img src={brand.logo_url} alt="Logo" style={{ height: 48, objectFit: 'contain', maxWidth: 200, marginBottom: 4, display: 'block', border: '1px solid rgba(212,160,64,.15)', padding: 6 }} />}
+        {brand.logo_url && <img src={brand.logo_url} alt="Logo" style={{ height: 48, objectFit: 'contain', maxWidth: 200, marginBottom: 4, display: 'block', border: `1px solid ${M.cardBdr}`, padding: 6 }} />}
         <div style={{ display: 'flex', gap: 8 }}>
-          <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="Paste Cloudinary logo URL..." style={{ ...inp, flex: 1 }} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'} />
-          <button onClick={saveLogoUrl} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save Logo</button>
+          <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="Paste Cloudinary logo URL..." style={{ ...inp, flex: 1 }} className="adm-input" />
+          <button onClick={saveLogoUrl} className="adm-btn-gold" style={{ whiteSpace: 'nowrap' }}>Save Logo</button>
         </div>
-        {brand.logo_url && <button onClick={() => updateBrand({ logo_url: '' })} style={{ background: 'none', border: '1px solid rgba(176,40,64,.4)', color: '#E07070', fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Logo</button>}
+        {brand.logo_url && <button onClick={() => updateBrand({ logo_url: '' })} className="adm-btn-danger" style={{ alignSelf: 'flex-start' }}>Remove Logo</button>}
       </div>
 
-      {/* BRAND TEXT */}
       <div style={section}>
         <div style={secHead}>Brand Text</div>
-        <div><label style={lbl}>Brand Name</label><input style={inp} value={form.brand_name} onChange={e => setForm(f => ({ ...f, brand_name: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'} /></div>
-        <div><label style={lbl}>Tagline</label><input style={inp} value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.25)'} /></div>
-        <button onClick={saveBrand} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: saving ? 0.6 : 1 }}>
+        <div><label style={lbl}>Brand Name</label><input style={inp} value={form.brand_name} onChange={e => setForm(f => ({ ...f, brand_name: e.target.value }))} className="adm-input" /></div>
+        <div><label style={lbl}>Tagline</label><input style={inp} value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} className="adm-input" /></div>
+        <button onClick={saveBrand} disabled={saving} className="adm-btn-gold" style={{ alignSelf: 'flex-start', padding: '13px 28px', opacity: saving ? 0.6 : 1 }}>
           {saving ? 'Saving...' : 'Save Brand Text'}
         </button>
       </div>
 
-      {/* HOME SHOWCASE */}
       <div style={section}>
         <div style={secHead}>Home Page Product Showcase</div>
         <div style={helpText}>Choose how many products appear in the "Featured Acquisitions" section on the homepage.</div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <select value={brand.featured_count || 3} onChange={e => saveFeaturedCount(Number(e.target.value))} style={{ ...inp, width: 120, cursor: 'pointer' }}>
-            {[2,3,4,5,6].map(n => <option key={n} value={n} style={{ background: '#1C0C14' }}>{n} products</option>)}
+          <select value={brand.featured_count || 3} onChange={e => saveFeaturedCount(Number(e.target.value))} style={{ ...inp, width: 120, cursor: 'pointer' }} className="adm-input">
+            {[2,3,4,5,6].map(n => <option key={n} value={n} style={{ background: '#1A0408' }}>{n} products</option>)}
           </select>
           <span style={helpText}>currently showing {brand.featured_count || 3}</span>
         </div>
       </div>
 
-      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
+      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
       <HeroImageField field="hero_image"    title="Home Page Hero"           description="Full-screen background behind the main homepage headline." />
       <HeroImageField field="hero_shop"     title="Shop Page Hero"           description="Background banner at the top of the Shop / Collection page." />
       <HeroImageField field="hero_about"    title="About Page Hero"          description="Background banner at the top of the About page." />
@@ -401,52 +422,56 @@ export default function Admin() {
   }
 
   const lbl = { fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.4)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(200,169,110,0.2)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, outline: 'none', transition: 'border-color 0.25s' };
+  const inp = { width: '100%', padding: '10px 12px', background: M.card, border: `1px solid ${M.cardBdr}`, color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, outline: 'none', transition: 'border-color 0.25s' };
 
   const lowStock = products.filter(p => p.stock === 1 && p.available);
 
-  const statusColor = (s) => s === 'Delivered' ? '#6AD08A' : s === 'Cancelled' ? '#E07070' : s === 'Pending' ? '#E8A040' : s === 'Shipped' ? '#8090E0' : 'var(--iv)';
-  const statusBg   = (s) => s === 'Delivered' ? 'rgba(106,208,138,0.12)' : s === 'Cancelled' ? 'rgba(224,112,112,0.12)' : s === 'Pending' ? 'rgba(232,160,64,0.12)' : s === 'Shipped' ? 'rgba(128,144,224,0.12)' : 'rgba(255,255,255,0.06)';
+  const statusColor = s => s === 'Delivered' ? '#6AD08A' : s === 'Cancelled' ? '#E07070' : s === 'Pending' ? '#E8A040' : s === 'Shipped' ? '#8090E0' : 'var(--iv)';
+  const statusBg   = s => s === 'Delivered' ? 'rgba(106,208,138,0.12)' : s === 'Cancelled' ? 'rgba(224,112,112,0.12)' : s === 'Pending' ? 'rgba(232,160,64,0.12)' : s === 'Shipped' ? 'rgba(128,144,224,0.12)' : M.goldFaint;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(160deg,#09050a 0%,#07030a 60%,#080308 100%)', color: 'var(--iv)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: M.bg, color: 'var(--iv)' }}>
 
       {/* ══ SIDEBAR ══════════════════════════════════════ */}
       <aside style={{
-        width: 232, flexShrink: 0,
-        background: 'rgba(4,2,6,0.92)',
-        borderRight: '1px solid rgba(212,160,64,0.14)',
+        width: 234, flexShrink: 0,
+        background: M.sidebar,
+        borderRight: `1px solid ${M.sidebarBdr}`,
+        boxShadow: '4px 0 40px rgba(0,0,0,0.7), inset -1px 0 0 rgba(200,148,48,0.06)',
         display: 'flex', flexDirection: 'column',
         position: 'fixed', top: 0, left: 0, bottom: 0,
         zIndex: 200, overflowY: 'auto',
-        backdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(18px)',
       }}>
 
         {/* LOGO / BRAND */}
-        <div style={{ padding: '26px 22px 20px', borderBottom: '1px solid rgba(212,160,64,0.1)' }}>
+        <div style={{ padding: '26px 22px 18px' }}>
+          {/* decorative top corner accent */}
+          <div style={{ position: 'absolute', top: 0, left: 0, width: 60, height: 60, background: `radial-gradient(circle at 0 0, ${M.goldFaint}, transparent 70%)`, pointerEvents: 'none' }} />
+
           {brand.logo_url ? (
-            <img
-              src={brand.logo_url}
-              alt={brand.brand_name || 'Logo'}
-              style={{ height: 46, objectFit: 'contain', maxWidth: 170, display: 'block', marginBottom: 10 }}
+            <img src={brand.logo_url} alt={brand.brand_name || 'Logo'}
+              style={{ height: 48, objectFit: 'contain', maxWidth: 172, display: 'block', marginBottom: 12, filter: 'drop-shadow(0 2px 8px rgba(200,148,48,0.25))' }}
             />
           ) : (
-            <div style={{ width: 42, height: 42, background: 'rgba(212,160,64,0.12)', border: '1px solid rgba(212,160,64,0.3)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5">
+            <div style={{ width: 44, height: 44, background: M.goldFaint, border: `1px solid rgba(200,148,48,0.35)`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={M.gold} strokeWidth="1.5">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
               </svg>
             </div>
           )}
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', lineHeight: 1.1, letterSpacing: '.03em' }}>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 18, color: 'var(--iv)', lineHeight: 1.1, letterSpacing: '.03em', fontWeight: 400 }}>
             {brand.brand_name || 'Tamarind Taless'}
           </div>
-          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.38em', color: 'var(--gd)', textTransform: 'uppercase', marginTop: 4, opacity: 0.8 }}>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 6.5, letterSpacing: '0.42em', color: M.gold, textTransform: 'uppercase', marginTop: 5, opacity: 0.85 }}>
             Admin Panel
           </div>
         </div>
 
+        <GoldDivider />
+
         {/* NAV ITEMS */}
-        <nav style={{ flex: 1, padding: '10px 0' }}>
+        <nav style={{ flex: 1, padding: '6px 0' }}>
           {NAV_ITEMS.map(({ id, label, icon }) => {
             const active = tab === id;
             return (
@@ -455,28 +480,28 @@ export default function Admin() {
                 onClick={() => setTab(id)}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '11px 22px',
-                  background: active ? 'rgba(212,160,64,0.09)' : 'transparent',
+                  padding: '12px 22px',
+                  background: active ? M.navActive : 'transparent',
                   border: 'none',
-                  borderLeft: `3px solid ${active ? 'var(--gd)' : 'transparent'}`,
-                  color: active ? 'var(--gd)' : 'rgba(248,236,216,0.42)',
+                  borderLeft: `3px solid ${active ? M.gold : 'transparent'}`,
+                  color: active ? M.gold : 'rgba(245,237,216,0.38)',
                   fontFamily: "'Cinzel',serif", fontSize: 8.5, letterSpacing: '0.13em',
                   textTransform: 'uppercase', cursor: 'pointer', textAlign: 'left',
                   transition: 'all 0.18s',
+                  boxShadow: active ? `inset 0 0 24px rgba(120,18,35,0.25)` : 'none',
                 }}
-                onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(248,236,216,0.72)'; } }}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,236,216,0.42)'; } }}
+                onMouseEnter={e => { if (!active) { e.currentTarget.style.background = M.navHover; e.currentTarget.style.color = 'rgba(245,237,216,0.68)'; } }}
+                onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(245,237,216,0.38)'; } }}
               >
-                <span style={{ flexShrink: 0, opacity: active ? 1 : 0.55 }}>{icon}</span>
+                <span style={{ flexShrink: 0, opacity: active ? 1 : 0.5 }}>{icon}</span>
                 {label}
-                {/* badges */}
                 {id === 3 && orders.filter(o => o.status === 'Pending').length > 0 && (
-                  <span style={{ marginLeft: 'auto', background: '#E8A040', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 7, padding: '1px 6px', borderRadius: 99 }}>
+                  <span style={{ marginLeft: 'auto', background: '#C8421A', color: '#fff', fontFamily: "'Cinzel',serif", fontSize: 7, padding: '1px 6px', borderRadius: 99 }}>
                     {orders.filter(o => o.status === 'Pending').length}
                   </span>
                 )}
                 {id === 4 && enquiries.length > 0 && (
-                  <span style={{ marginLeft: 'auto', background: 'rgba(212,160,64,0.2)', color: 'var(--gd)', fontFamily: "'Cinzel',serif", fontSize: 7, padding: '1px 6px', borderRadius: 99 }}>
+                  <span style={{ marginLeft: 'auto', background: M.goldFaint, color: M.gold, fontFamily: "'Cinzel',serif", fontSize: 7, padding: '1px 6px', borderRadius: 99 }}>
                     {enquiries.length}
                   </span>
                 )}
@@ -485,51 +510,57 @@ export default function Admin() {
           })}
         </nav>
 
+        <GoldDivider />
+
         {/* BOTTOM: USER + ACTIONS */}
-        <div style={{ padding: '14px 18px 20px', borderTop: '1px solid rgba(212,160,64,0.1)' }}>
+        <div style={{ padding: '14px 18px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
-            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(212,160,64,0.15)', border: '1px solid rgba(212,160,64,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5">
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: M.maroonFaint, border: `1px solid rgba(200,148,48,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={M.gold} strokeWidth="1.5">
                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
               </svg>
             </div>
             <div style={{ overflow: 'hidden', minWidth: 0 }}>
-              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', color: 'rgba(212,160,64,0.7)', textTransform: 'uppercase', marginBottom: 1 }}>Admin</div>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(248,236,216,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', color: `${M.gold}bb`, textTransform: 'uppercase', marginBottom: 1 }}>Admin</div>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.38)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 7 }}>
-            <button
-              onClick={() => navigate('/')}
-              style={{ flex: 1, background: 'transparent', border: '1px solid rgba(212,160,64,0.2)', fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(248,236,216,0.4)', padding: '8px 4px', cursor: 'pointer', transition: 'all 0.2s', borderRadius: 2 }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(212,160,64,0.5)'; e.currentTarget.style.color = 'var(--gd)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(212,160,64,0.2)'; e.currentTarget.style.color = 'rgba(248,236,216,0.4)'; }}
-            >View Site</button>
-            <button
-              onClick={() => { logout(); navigate('/admin/login'); }}
-              style={{ flex: 1, background: 'transparent', border: '1px solid rgba(176,40,64,0.3)', fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(224,112,112,0.65)', padding: '8px 4px', cursor: 'pointer', transition: 'all 0.2s', borderRadius: 2 }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(176,40,64,0.6)'; e.currentTarget.style.color = '#E07070'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(176,40,64,0.3)'; e.currentTarget.style.color = 'rgba(224,112,112,0.65)'; }}
-            >Sign Out</button>
+            <button onClick={() => navigate('/')} className="adm-btn-side" style={{ flex: 1 }}>View Site</button>
+            <button onClick={() => { logout(); navigate('/admin/login'); }} className="adm-btn-side-danger" style={{ flex: 1 }}>Sign Out</button>
           </div>
         </div>
       </aside>
 
       {/* ══ MAIN AREA ═════════════════════════════════════ */}
-      <div style={{ marginLeft: 232, flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: '100vh' }}>
+      <div style={{ marginLeft: 234, flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: '100vh' }}>
 
         {/* TOP BAR */}
-        <div style={{ background: 'rgba(4,2,6,0.7)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(212,160,64,0.1)', padding: '14px 36px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{
+          background: M.topbar,
+          backdropFilter: 'blur(18px)',
+          borderBottom: `1px solid ${M.sidebarBdr}`,
+          boxShadow: `0 1px 0 rgba(200,148,48,0.06), 0 4px 24px rgba(0,0,0,0.5)`,
+          padding: '14px 36px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          position: 'sticky', top: 0, zIndex: 100,
+        }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.32em', color: 'rgba(212,160,64,0.5)', textTransform: 'uppercase', marginBottom: 2 }}>
+            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.34em', color: `${M.gold}80`, textTransform: 'uppercase', marginBottom: 3 }}>
               {['Dashboard','Products','Add Product','Orders','Enquiries','Stories','Brand Settings'][tab]}
             </div>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: 'var(--iv)', lineHeight: 1, fontWeight: 300 }}>
+            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 21, color: 'var(--iv)', lineHeight: 1, fontWeight: 300, letterSpacing: '.02em' }}>
               {tab === 2 && editId ? 'Edit Product' : ['Overview','All Products','Add New Product','All Orders','All Enquiries','Stories & Blog','Brand Settings'][tab]}
             </div>
           </div>
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(248,236,216,0.3)', fontStyle: 'italic' }}>
-            {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* decorative gem */}
+            <svg width="6" height="6" viewBox="0 0 10 10" fill={M.gold} opacity="0.4">
+              <polygon points="5,0 6.5,3.5 10,5 6.5,6.5 5,10 3.5,6.5 0,5 3.5,3.5"/>
+            </svg>
+            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.28)', fontStyle: 'italic' }}>
+              {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+            </div>
           </div>
         </div>
 
@@ -542,54 +573,53 @@ export default function Admin() {
               {/* STAT CARDS */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 28 }}>
                 {[
-                  { label: 'Total Products', value: products.length, color: 'var(--gd)',    bg: 'rgba(212,160,64,0.06)',    sub: 'In catalogue' },
-                  { label: 'Total Orders',   value: orders.length,   color: '#6AD08A',       bg: 'rgba(106,208,138,0.06)',   sub: 'All time' },
-                  { label: 'Pending Orders', value: orders.filter(o => o.status === 'Pending').length, color: '#E8A040', bg: 'rgba(232,160,64,0.06)', sub: 'Need attention' },
-                  { label: 'Enquiries',      value: enquiries.length, color: 'var(--crimson)', bg: 'rgba(176,40,64,0.06)',  sub: 'Total received' },
-                ].map(({ label, value, color, bg, sub }) => (
-                  <div key={label} style={{ background: bg, border: `1px solid ${color}28`, borderTop: `3px solid ${color}`, padding: '22px 20px' }}>
+                  { label: 'Total Products', value: products.length, color: M.gold,    bg: M.goldFaint,              sub: 'In catalogue',   border: M.gold },
+                  { label: 'Total Orders',   value: orders.length,   color: '#6AD08A', bg: 'rgba(106,208,138,0.07)', sub: 'All time',        border: '#6AD08A' },
+                  { label: 'Pending Orders', value: orders.filter(o => o.status === 'Pending').length, color: '#E8A040', bg: 'rgba(232,160,64,0.07)', sub: 'Need attention', border: '#E8A040' },
+                  { label: 'Enquiries',      value: enquiries.length, color: '#C06080', bg: M.maroonFaint,            sub: 'Total received',  border: M.maroon },
+                ].map(({ label, value, color, bg, sub, border }) => (
+                  <div key={label} style={{ background: bg, border: `1px solid ${border}28`, borderTop: `3px solid ${border}`, padding: '22px 20px', boxShadow: `inset 0 0 30px rgba(80,6,18,0.1), 0 2px 16px rgba(0,0,0,0.3)` }}>
                     <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color, fontWeight: 300, lineHeight: 1, marginBottom: 10 }}>{value}</div>
                     <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.18em', color: 'var(--iv)', textTransform: 'uppercase' }}>{label}</div>
-                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(248,236,216,0.32)', marginTop: 3, fontStyle: 'italic' }}>{sub}</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.3)', marginTop: 3, fontStyle: 'italic' }}>{sub}</div>
                   </div>
                 ))}
               </div>
 
-              {/* RECENT ORDERS + QUICK ACTIONS */}
+              {/* RECENT ORDERS + SIDE PANEL */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, marginBottom: 24 }}>
 
                 {/* RECENT ORDERS TABLE */}
-                <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212,160,64,0.13)', overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid rgba(212,160,64,0.1)' }}>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.22em', color: 'var(--gd)', textTransform: 'uppercase' }}>Recent Orders</div>
-                    <button onClick={() => setTab(3)} style={{ background: 'none', border: 'none', fontFamily: "'Cinzel',serif", fontSize: 7.5, color: 'rgba(212,160,64,0.55)', cursor: 'pointer', letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.color = 'var(--gd)'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(212,160,64,0.55)'}
+                <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, overflow: 'hidden', boxShadow: `inset 0 0 40px rgba(60,5,15,0.12)` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: M.dividerH, background: 'rgba(60,5,15,0.3)' }}>
+                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.22em', color: M.gold, textTransform: 'uppercase' }}>Recent Orders</div>
+                    <button onClick={() => setTab(3)} style={{ background: 'none', border: 'none', fontFamily: "'Cinzel',serif", fontSize: 7.5, color: `${M.gold}88`, cursor: 'pointer', letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'color 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = M.gold}
+                      onMouseLeave={e => e.currentTarget.style.color = `${M.gold}88`}
                     >View All →</button>
                   </div>
                   {orders.length === 0 ? (
-                    <div style={{ padding: '44px 20px', textAlign: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(248,236,216,0.25)', fontStyle: 'italic' }}>No orders yet</div>
+                    <div style={{ padding: '44px 20px', textAlign: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(245,237,216,0.22)', fontStyle: 'italic' }}>No orders yet</div>
                   ) : (
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr>
+                        <tr style={{ background: 'rgba(50,5,14,0.4)' }}>
                           {['Order ID','Customer','Items','Total','Status'].map(h => (
-                            <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '9px 14px', textAlign: 'left', color: 'rgba(248,236,216,0.28)', borderBottom: '1px solid rgba(212,160,64,0.08)', fontWeight: 400 }}>{h}</th>
+                            <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '9px 14px', textAlign: 'left', color: `${M.gold}60`, borderBottom: M.dividerH, fontWeight: 400 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {orders.slice(0, 7).map(o => (
-                          <tr key={o.id}
-                            style={{ transition: 'background 0.15s', cursor: 'default' }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
+                          <tr key={o.id} style={{ transition: 'background 0.15s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = M.rowHover}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cinzel',serif", fontSize: 8.5, color: 'var(--gd)', borderBottom: '1px solid rgba(255,255,255,0.03)', whiteSpace: 'nowrap' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</td>
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--iv)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>{o.user_name || '—'}</td>
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(248,236,216,0.45)', borderBottom: '1px solid rgba(255,255,255,0.03)', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.items?.map(i => i.name).join(', ') || '—'}</td>
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.03)', whiteSpace: 'nowrap' }}>{fmt(o.total)}</td>
-                            <td style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                            <td style={{ padding: '10px 14px', fontFamily: "'Cinzel',serif", fontSize: 8.5, color: M.gold, borderBottom: `1px solid rgba(80,5,18,0.25)`, whiteSpace: 'nowrap' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</td>
+                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--iv)', borderBottom: `1px solid rgba(80,5,18,0.25)` }}>{o.user_name || '—'}</td>
+                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.4)', borderBottom: `1px solid rgba(80,5,18,0.25)`, maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.items?.map(i => i.name).join(', ') || '—'}</td>
+                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', fontWeight: 500, borderBottom: `1px solid rgba(80,5,18,0.25)`, whiteSpace: 'nowrap' }}>{fmt(o.total)}</td>
+                            <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(80,5,18,0.25)` }}>
                               <span style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', color: statusColor(o.status), background: statusBg(o.status) }}>
                                 {o.status || 'Pending'}
                               </span>
@@ -604,8 +634,9 @@ export default function Admin() {
                 {/* QUICK PANEL */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* QUICK ACTIONS */}
-                  <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212,160,64,0.13)', padding: '18px 18px 14px' }}>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.22em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 14 }}>Quick Actions</div>
+                  <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, padding: '18px 18px 14px', boxShadow: `inset 0 0 30px rgba(60,5,15,0.12)` }}>
+                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.22em', color: M.gold, textTransform: 'uppercase', marginBottom: 6 }}>Quick Actions</div>
+                    <div style={{ height: 1, background: M.goldLine, marginBottom: 14 }} />
                     {[
                       { label: 'Add New Product', action: () => { setForm({...EMPTY}); setEditId(null); setTab(2); }, primary: true },
                       { label: 'View All Orders',  action: () => setTab(3), primary: false },
@@ -614,47 +645,49 @@ export default function Admin() {
                     ].map(({ label, action, primary }) => (
                       <button key={label} onClick={action} style={{
                         width: '100%', display: 'block', padding: '10px 14px', marginBottom: 8,
-                        background: primary ? 'var(--gd)' : 'rgba(255,255,255,0.04)',
-                        border: primary ? 'none' : '1px solid rgba(212,160,64,0.2)',
+                        background: primary ? `linear-gradient(135deg,${M.gold},#A87020)` : M.maroonFaint,
+                        border: primary ? 'none' : `1px solid ${M.cardBdr}`,
                         fontFamily: "'Cinzel',serif", fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase',
-                        color: primary ? '#080408' : 'rgba(248,236,216,0.55)',
+                        color: primary ? '#0E0205' : 'rgba(245,237,216,0.5)',
                         cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
+                        boxShadow: primary ? '0 4px 14px rgba(180,120,20,0.3)' : 'none',
                       }}
-                        onMouseEnter={e => { if (primary) { e.currentTarget.style.background='var(--gl)'; } else { e.currentTarget.style.background='rgba(212,160,64,0.08)'; e.currentTarget.style.borderColor='rgba(212,160,64,0.4)'; e.currentTarget.style.color='var(--gd)'; } }}
-                        onMouseLeave={e => { if (primary) { e.currentTarget.style.background='var(--gd)'; } else { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor='rgba(212,160,64,0.2)'; e.currentTarget.style.color='rgba(248,236,216,0.55)'; } }}
+                        onMouseEnter={e => { if (primary) { e.currentTarget.style.boxShadow='0 4px 20px rgba(200,148,48,0.5)'; } else { e.currentTarget.style.background=`rgba(130,18,40,0.25)`; e.currentTarget.style.borderColor=`rgba(200,148,48,0.35)`; e.currentTarget.style.color=M.gold; } }}
+                        onMouseLeave={e => { if (primary) { e.currentTarget.style.boxShadow='0 4px 14px rgba(180,120,20,0.3)'; } else { e.currentTarget.style.background=M.maroonFaint; e.currentTarget.style.borderColor=M.cardBdr; e.currentTarget.style.color='rgba(245,237,216,0.5)'; } }}
                       >{label}</button>
                     ))}
                   </div>
 
                   {/* LOW STOCK ALERT */}
                   {lowStock.length > 0 && (
-                    <div style={{ background: 'rgba(232,160,64,0.07)', border: '1px solid rgba(232,160,64,0.28)', padding: '14px 16px' }}>
+                    <div style={{ background: 'rgba(200,80,20,0.08)', border: '1px solid rgba(232,140,40,0.28)', padding: '14px 16px' }}>
                       <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.18em', color: '#E8A040', textTransform: 'uppercase', marginBottom: 10 }}>⚠ Low Stock</div>
                       {lowStock.slice(0, 4).map(p => (
                         <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(248,236,216,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{p.name}</span>
+                          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.55)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{p.name}</span>
                           <span style={{ fontFamily: "'Cinzel',serif", fontSize: 7, color: '#E8A040', marginLeft: 8, flexShrink: 0, letterSpacing: '0.1em' }}>LAST 1</span>
                         </div>
                       ))}
-                      {lowStock.length > 4 && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(248,236,216,0.3)', fontStyle: 'italic', marginTop: 4 }}>+{lowStock.length - 4} more</div>}
+                      {lowStock.length > 4 && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.28)', fontStyle: 'italic', marginTop: 4 }}>+{lowStock.length - 4} more</div>}
                     </div>
                   )}
 
-                  {/* CATALOGUE BREAKDOWN */}
+                  {/* CATEGORY BREAKDOWN */}
                   {products.length > 0 && (
-                    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212,160,64,0.13)', padding: '14px 16px' }}>
-                      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 12 }}>By Category</div>
+                    <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, padding: '14px 16px' }}>
+                      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.2em', color: M.gold, textTransform: 'uppercase', marginBottom: 6 }}>By Category</div>
+                      <div style={{ height: 1, background: M.goldLine, marginBottom: 12 }} />
                       {CATS.map(cat => {
                         const count = products.filter(p => p.cat === cat).length;
                         if (!count) return null;
                         return (
-                          <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
-                            <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(248,236,216,0.55)', textTransform: 'capitalize' }}>{cat}</span>
+                          <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.5)', textTransform: 'capitalize' }}>{cat}</span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <div style={{ width: 60, height: 3, background: 'rgba(212,160,64,0.12)', borderRadius: 2, overflow: 'hidden' }}>
-                                <div style={{ width: `${(count / products.length) * 100}%`, height: '100%', background: 'var(--gd)' }} />
+                              <div style={{ width: 60, height: 3, background: 'rgba(200,148,48,0.1)', borderRadius: 2, overflow: 'hidden' }}>
+                                <div style={{ width: `${(count / products.length) * 100}%`, height: '100%', background: `linear-gradient(90deg,${M.maroon},${M.gold})` }} />
                               </div>
-                              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 9, color: 'var(--gd)', minWidth: 16, textAlign: 'right' }}>{count}</span>
+                              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 9, color: M.gold, minWidth: 16, textAlign: 'right' }}>{count}</span>
                             </div>
                           </div>
                         );
@@ -670,63 +703,56 @@ export default function Admin() {
           {tab === 1 && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>All Products ({products.length})</div>
-                <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(2); }} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Product</button>
+                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, textTransform: 'uppercase' }}>All Products ({products.length})</div>
+                <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(2); }} className="adm-btn-gold">Add New Product</button>
               </div>
-              {loading ? <div style={{ textAlign: 'center', padding: 60, color: 'rgba(245,237,216,0.3)' }}>Loading...</div> : (
-                <div style={{ overflowX: 'auto' }}>
+              {loading ? <div style={{ textAlign: 'center', padding: 60, color: 'rgba(245,237,216,0.25)' }}>Loading...</div> : (
+                <div style={{ overflowX: 'auto', background: M.card, border: `1px solid ${M.cardBdr}` }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
                     <thead>
-                      <tr>
+                      <tr style={{ background: 'rgba(60,5,15,0.5)' }}>
                         {['Image','Name','Category','Price','Stock','Visible','Actions'].map(h => (
-                          <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(200,169,110,0.12)', color: 'rgba(245,237,216,0.4)' }}>{h}</th>
+                          <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '11px 14px', textAlign: 'left', borderBottom: M.dividerH, color: `${M.gold}70`, fontWeight: 400 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {products.map(p => (
-                        <tr key={p.id}
-                          style={{ transition: 'background 0.15s' }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
+                        <tr key={p.id} style={{ transition: 'background 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.background = M.rowHover}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
-                          <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>
+                          <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>
                             <div style={{ width: 52, height: 52, background: p.bg, overflow: 'hidden' }}>
                               {p.images?.[0] && <img src={p.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                             </div>
                           </td>
-                          <td style={{ padding: '10px 12px', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, borderBottom: '1px solid rgba(200,169,110,0.06)' }}>{p.name}</td>
-                          <td style={{ padding: '10px 12px', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', color: 'var(--gd)', textTransform: 'uppercase', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>{p.cat}</td>
-                          <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', fontWeight: 500, borderBottom: '1px solid rgba(200,169,110,0.06)' }}>
-                            {p.enquiry_only ? <span style={{ fontStyle: 'italic', fontSize: 13, color: 'rgba(245,237,216,0.5)' }}>Enquiry</span> : fmt(p.price)}
+                          <td style={{ padding: '10px 14px', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, borderBottom: `1px solid rgba(80,5,18,0.18)` }}>{p.name}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', color: M.gold, textTransform: 'uppercase', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>{p.cat}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', fontWeight: 500, borderBottom: `1px solid rgba(80,5,18,0.18)` }}>
+                            {p.enquiry_only ? <span style={{ fontStyle: 'italic', fontSize: 13, color: 'rgba(245,237,216,0.45)' }}>Enquiry</span> : fmt(p.price)}
                           </td>
-                          <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>
+                          <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>
                             {p.stock === 0
-                              ? <span style={{ background: '#444', color: '#999', padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>Sold</span>
+                              ? <span style={{ background: 'rgba(80,80,80,0.25)', color: '#888', padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>Sold</span>
                               : p.stock === 1
-                              ? <span style={{ background: 'var(--tr)', color: '#fff', padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>Last 1</span>
-                              : <span style={{ color: 'rgba(245,237,216,0.6)', fontSize: 13, fontFamily: "'Cormorant Garamond',serif" }}>{p.stock}</span>
+                              ? <span style={{ background: M.maroonFaint, color: '#E07070', padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase', border: '1px solid rgba(200,80,80,0.3)' }}>Last 1</span>
+                              : <span style={{ color: 'rgba(245,237,216,0.55)', fontSize: 13, fontFamily: "'Cormorant Garamond',serif" }}>{p.stock}</span>
                             }
                           </td>
-                          <td style={{ padding: '10px 12px', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: p.available ? '#5AA85A' : '#C07070', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>
+                          <td style={{ padding: '10px 14px', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: p.available ? '#5AA85A' : '#C07070', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>
                             {p.available ? 'Live' : 'Hidden'}
                           </td>
-                          <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>
+                          <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>
                             <div style={{ display: 'flex', gap: 8 }}>
-                              <button onClick={() => editProduct(p)} style={{ background: 'none', border: '1px solid rgba(200,169,110,0.25)', fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.12em', color: 'var(--gd)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase', transition: 'background 0.2s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(200,169,110,0.1)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                              >Edit</button>
-                              <button onClick={() => deleteProduct(p.id, p.name)} style={{ background: 'none', border: '1px solid rgba(192,57,43,0.4)', fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.12em', color: '#C0392B', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase', transition: 'background 0.2s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(192,57,43,0.15)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                              >Delete</button>
+                              <button onClick={() => editProduct(p)} className="adm-btn-outline" style={{ padding: '5px 10px', fontSize: 7 }}>Edit</button>
+                              <button onClick={() => deleteProduct(p.id, p.name)} className="adm-btn-danger" style={{ padding: '5px 10px', fontSize: 7 }}>Delete</button>
                             </div>
                           </td>
                         </tr>
                       ))}
                       {products.length === 0 && (
-                        <tr><td colSpan={7} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(245,237,216,0.2)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16 }}>No products yet — click "Add New Product" to get started</td></tr>
+                        <tr><td colSpan={7} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(245,237,216,0.18)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16 }}>No products yet — click "Add New Product" to get started</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -738,41 +764,39 @@ export default function Admin() {
           {/* ── ADD / EDIT PRODUCT ── */}
           {tab === 2 && (
             <div style={{ maxWidth: 740 }}>
-              <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(212,160,64,0.18)', padding: '34px 32px' }}>
+              <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, padding: '34px 32px', boxShadow: `inset 0 0 60px rgba(60,5,15,0.14)` }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Product Name *</label><input style={inp} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Naranbil Bhagavathy" onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="e.g. Guardian of Justice" onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div><label style={lbl}>Category</label><select style={{ ...inp, cursor: 'pointer' }} value={form.cat} onChange={e => setF('cat', e.target.value)}>{CATS.map(c => <option key={c} value={c} style={{ background: '#2D1A0E' }}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>)}</select></div>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Origin</label><input style={inp} value={form.origin} onChange={e => setF('origin', e.target.value)} placeholder="e.g. North Malabar, Kerala" onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div><label style={lbl}>Material</label><input style={inp} value={form.material} onChange={e => setF('material', e.target.value)} placeholder="e.g. Bronze" onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div><label style={lbl}>Dimensions</label><input style={inp} value={form.dimensions} onChange={e => setF('dimensions', e.target.value)} placeholder='10" H x 4" W' onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div><label style={lbl}>Weight</label><input style={inp} value={form.weight} onChange={e => setF('weight', e.target.value)} placeholder="e.g. 1.2 kg" onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div><label style={lbl}>Stock (0 = Sold Out)</label><input style={inp} type="number" min="0" value={form.stock} onChange={e => setF('stock', e.target.value)} onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
+                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Product Name *</label><input style={inp} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Naranbil Bhagavathy" className="adm-input" /></div>
+                  <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="e.g. Guardian of Justice" className="adm-input" /></div>
+                  <div><label style={lbl}>Category</label><select style={{ ...inp, cursor: 'pointer' }} value={form.cat} onChange={e => setF('cat', e.target.value)} className="adm-input">{CATS.map(c => <option key={c} value={c} style={{ background: '#1A0408' }}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>)}</select></div>
+                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Origin</label><input style={inp} value={form.origin} onChange={e => setF('origin', e.target.value)} placeholder="e.g. North Malabar, Kerala" className="adm-input" /></div>
+                  <div><label style={lbl}>Material</label><input style={inp} value={form.material} onChange={e => setF('material', e.target.value)} placeholder="e.g. Bronze" className="adm-input" /></div>
+                  <div><label style={lbl}>Dimensions</label><input style={inp} value={form.dimensions} onChange={e => setF('dimensions', e.target.value)} placeholder='10" H x 4" W' className="adm-input" /></div>
+                  <div><label style={lbl}>Weight</label><input style={inp} value={form.weight} onChange={e => setF('weight', e.target.value)} placeholder="e.g. 1.2 kg" className="adm-input" /></div>
+                  <div><label style={lbl}>Stock (0 = Sold Out)</label><input style={inp} type="number" min="0" value={form.stock} onChange={e => setF('stock', e.target.value)} className="adm-input" /></div>
                   <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <input type="checkbox" id="eq" checked={form.enquiry_only} onChange={e => setF('enquiry_only', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+                    <input type="checkbox" id="eq" checked={form.enquiry_only} onChange={e => setF('enquiry_only', e.target.checked)} style={{ accentColor: M.gold, width: 16, height: 16, cursor: 'pointer' }} />
                     <label htmlFor="eq" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Enquiry Only — hide price, show WhatsApp button</label>
                   </div>
                   {!form.enquiry_only && (
-                    <div><label style={lbl}>Price (Rs.)</label><input style={inp} type="number" value={form.price} onChange={e => setF('price', e.target.value)} placeholder="e.g. 45000" onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
+                    <div><label style={lbl}>Price (Rs.)</label><input style={inp} type="number" value={form.price} onChange={e => setF('price', e.target.value)} placeholder="e.g. 45000" className="adm-input" /></div>
                   )}
-                  <div><label style={lbl}>Badge</label><input style={inp} value={form.badge} onChange={e => setF('badge', e.target.value)} placeholder="Featured / Rare / Collector" onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
+                  <div><label style={lbl}>Badge</label><input style={inp} value={form.badge} onChange={e => setF('badge', e.target.value)} placeholder="Featured / Rare / Collector" className="adm-input" /></div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <input type="checkbox" id="av" checked={form.available} onChange={e => setF('available', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+                    <input type="checkbox" id="av" checked={form.available} onChange={e => setF('available', e.target.checked)} style={{ accentColor: M.gold, width: 16, height: 16, cursor: 'pointer' }} />
                     <label htmlFor="av" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Visible on website</label>
                   </div>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Story</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={4} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="The story behind this piece..." onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Collection Note</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={3} value={form.together} onChange={e => setF('together', e.target.value)} placeholder="Context..." onFocus={e => e.target.style.borderColor='var(--gd)'} onBlur={e => e.target.style.borderColor='rgba(200,169,110,0.2)'} /></div>
-                  <div style={{ gridColumn: '1/-1' }}>
-                    <ImageUploader images={form.images || []} onChange={imgs => setF('images', imgs)} />
-                  </div>
+                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Story</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={4} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="The story behind this piece..." className="adm-input" /></div>
+                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Collection Note</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={3} value={form.together} onChange={e => setF('together', e.target.value)} placeholder="Context..." className="adm-input" /></div>
+                  <div style={{ gridColumn: '1/-1' }}><ImageUploader images={form.images || []} onChange={imgs => setF('images', imgs)} /></div>
                 </div>
                 <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
-                  <button onClick={saveProduct} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {saving && <span style={{ width: 14, height: 14, border: '2px solid rgba(26,15,8,0.3)', borderTopColor: '#080408', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />}
+                  <button onClick={saveProduct} disabled={saving} className="adm-btn-gold" style={{ padding: '13px 28px', opacity: saving ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {saving && <span style={{ width: 14, height: 14, border: '2px solid rgba(14,2,5,0.3)', borderTopColor: '#0E0205', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />}
                     {editId ? 'Update Product' : 'Add Product'}
                   </button>
                   {editId && (
-                    <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(1); }} style={{ background: 'transparent', border: '1px solid rgba(245,237,216,0.25)', color: 'rgba(245,237,216,0.6)', fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(1); }} className="adm-btn-outline" style={{ padding: '13px 28px' }}>Cancel</button>
                   )}
                 </div>
               </div>
@@ -782,49 +806,49 @@ export default function Admin() {
           {/* ── ORDERS ── */}
           {tab === 3 && (
             <div>
-              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
               {loading ? <div style={{ textAlign: 'center', padding: 60 }}><span className="spinner"></span></div> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {orders.map(o => (
-                    <div key={o.id} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(212,160,64,0.15)', padding: '24px 26px' }}>
+                    <div key={o.id} style={{ background: M.card, border: `1px solid ${M.cardBdr}`, padding: '24px 26px', boxShadow: `inset 0 0 30px rgba(60,5,15,0.1)` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
                         <div>
-                          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.2em', color: 'var(--gd)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
-                          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(245,237,216,0.7)', marginTop: 3 }}>{o.user_name} — {o.user_email}</div>
-                          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.4)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '—'}</div>
+                          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.2em', color: M.gold }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
+                          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(245,237,216,0.65)', marginTop: 3 }}>{o.user_name} — {o.user_email}</div>
+                          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.35)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '—'}</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}>{fmt(o.total)}</div>
-                          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, color: o.payment_method === 'razorpay' ? '#5AA85A' : 'var(--gd)', textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
+                          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, color: o.payment_method === 'razorpay' ? '#5AA85A' : M.gold, textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
                         </div>
                       </div>
-                      <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(200,169,110,0.08)' }}>
-                        {o.items?.map((item, i) => <span key={i} style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.5)', marginRight: 12 }}>{item.name} ×{item.qty}</span>)}
+                      <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: M.dividerH }}>
+                        {o.items?.map((item, i) => <span key={i} style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.45)', marginRight: 12 }}>{item.name} ×{item.qty}</span>)}
                       </div>
                       {o.address && (
-                        <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.4)', lineHeight: 1.6 }}>
+                        <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.35)', lineHeight: 1.6 }}>
                           {o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state} — {o.address.pincode}
                         </div>
                       )}
                       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                         <div>
                           <label style={{ ...lbl, marginBottom: 6 }}>Status</label>
-                          <select value={o.status || 'Pending'} onChange={e => updateStatus(o.id, e.target.value)} style={{ background: 'rgba(45,26,14,0.95)', border: '1px solid rgba(200,169,110,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.1em', outline: 'none', cursor: 'pointer' }}>
-                            {STATUSES.map(s => <option key={s} value={s} style={{ background: '#2D1A0E' }}>{s}</option>)}
+                          <select value={o.status || 'Pending'} onChange={e => updateStatus(o.id, e.target.value)} style={{ background: M.selectBg, border: `1px solid ${M.cardBdr}`, color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.1em', outline: 'none', cursor: 'pointer' }}>
+                            {STATUSES.map(s => <option key={s} value={s} style={{ background: '#1A0408' }}>{s}</option>)}
                           </select>
                         </div>
                         <div>
                           <label style={{ ...lbl, marginBottom: 6 }}>Delivery Date</label>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            <input type="date" id={`dd-${o.id}`} defaultValue={o.estimated_delivery ? new Date(o.estimated_delivery).toISOString?.().split('T')[0] : ''} style={{ background: 'rgba(45,26,14,0.95)', border: '1px solid rgba(200,169,110,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, outline: 'none', colorScheme: 'dark' }} />
-                            <button onClick={() => { const v = document.getElementById(`dd-${o.id}`)?.value; if (v) { const d = new Date(v); updateDelivery(o.id, d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })); } }} style={{ background: 'var(--gd)', border: 'none', color: '#080408', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 14px', cursor: 'pointer' }}>Set</button>
+                            <input type="date" id={`dd-${o.id}`} defaultValue={o.estimated_delivery ? new Date(o.estimated_delivery).toISOString?.().split('T')[0] : ''} style={{ background: M.selectBg, border: `1px solid ${M.cardBdr}`, color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, outline: 'none', colorScheme: 'dark' }} />
+                            <button onClick={() => { const v = document.getElementById(`dd-${o.id}`)?.value; if (v) { const d = new Date(v); updateDelivery(o.id, d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })); } }} className="adm-btn-gold" style={{ padding: '8px 14px', fontSize: 8 }}>Set</button>
                           </div>
-                          {o.estimated_delivery && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'var(--gd)', marginTop: 5, fontStyle: 'italic' }}>Set: {o.estimated_delivery}</div>}
+                          {o.estimated_delivery && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: M.gold, marginTop: 5, fontStyle: 'italic' }}>Set: {o.estimated_delivery}</div>}
                         </div>
                       </div>
                     </div>
                   ))}
-                  {orders.length === 0 && <div style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(245,237,216,0.2)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16 }}>No orders yet</div>}
+                  {orders.length === 0 && <div style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(245,237,216,0.18)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16 }}>No orders yet</div>}
                 </div>
               )}
             </div>
@@ -832,30 +856,33 @@ export default function Admin() {
 
           {/* ── ENQUIRIES ── */}
           {tab === 4 && (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
                 <thead>
-                  <tr>
+                  <tr style={{ background: 'rgba(60,5,15,0.5)' }}>
                     {['Product','Customer','Message','Date','Type','Status'].map(h => (
-                      <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(200,169,110,0.12)', color: 'rgba(245,237,216,0.4)' }}>{h}</th>
+                      <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '11px 14px', textAlign: 'left', borderBottom: M.dividerH, color: `${M.gold}70`, fontWeight: 400 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {enquiries.map(e => (
-                    <tr key={e.id}>
-                      <td style={{ padding: '12px', color: 'rgba(245,237,216,0.7)', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, borderBottom: '1px solid rgba(200,169,110,0.06)' }}>{e.product || '—'}</td>
-                      <td style={{ padding: '12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.6)', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>
-                        {e.user_name}<br /><span style={{ opacity: 0.5, fontSize: 11 }}>{e.user_email}</span>
+                    <tr key={e.id} style={{ transition: 'background 0.15s' }}
+                      onMouseEnter={ev => ev.currentTarget.style.background = M.rowHover}
+                      onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={{ padding: '12px 14px', color: 'rgba(245,237,216,0.65)', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, borderBottom: `1px solid rgba(80,5,18,0.18)` }}>{e.product || '—'}</td>
+                      <td style={{ padding: '12px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.55)', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>
+                        {e.user_name}<br /><span style={{ opacity: 0.45, fontSize: 11 }}>{e.user_email}</span>
                       </td>
-                      <td style={{ padding: '12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.5)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>{e.message || '—'}</td>
-                      <td style={{ padding: '12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.4)', borderBottom: '1px solid rgba(200,169,110,0.06)' }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—'}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(200,169,110,0.06)' }}><span style={{ background: 'rgba(70,130,80,0.1)', color: '#5AA85A', padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>{e.type || 'Email'}</span></td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid rgba(200,169,110,0.06)' }}><span style={{ background: 'rgba(200,169,110,0.1)', color: 'var(--gd)', padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>{e.status || 'Received'}</span></td>
+                      <td style={{ padding: '12px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.45)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>{e.message || '—'}</td>
+                      <td style={{ padding: '12px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.35)', borderBottom: `1px solid rgba(80,5,18,0.18)` }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—'}</td>
+                      <td style={{ padding: '12px 14px', borderBottom: `1px solid rgba(80,5,18,0.18)` }}><span style={{ background: 'rgba(60,120,70,0.12)', color: '#5AA85A', padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>{e.type || 'Email'}</span></td>
+                      <td style={{ padding: '12px 14px', borderBottom: `1px solid rgba(80,5,18,0.18)` }}><span style={{ background: M.goldFaint, color: M.gold, padding: '2px 8px', fontSize: 7, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>{e.status || 'Received'}</span></td>
                     </tr>
                   ))}
                   {enquiries.length === 0 && (
-                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(245,237,216,0.2)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16 }}>No enquiries yet</td></tr>
+                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(245,237,216,0.18)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16 }}>No enquiries yet</td></tr>
                   )}
                 </tbody>
               </table>
@@ -873,10 +900,89 @@ export default function Admin() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 900px) {
-          .admin-sidebar { width: 200px !important; }
-          .admin-main { margin-left: 200px !important; }
+
+        /* ── BUTTON CLASSES ── */
+        .adm-btn-gold {
+          background: linear-gradient(135deg,#C89430,#A07020);
+          border: none;
+          color: #0E0205;
+          font-family: 'Cinzel',serif;
+          font-size: 9px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          padding: 9px 18px;
+          cursor: pointer;
+          box-shadow: 0 3px 12px rgba(180,120,20,0.28);
+          transition: box-shadow 0.2s, filter 0.2s;
         }
+        .adm-btn-gold:hover { box-shadow: 0 4px 20px rgba(200,148,48,0.5); filter: brightness(1.08); }
+
+        .adm-btn-outline {
+          background: rgba(200,148,48,0.06);
+          border: 1px solid rgba(200,148,48,0.28);
+          color: rgba(245,237,216,0.55);
+          font-family: 'Cinzel',serif;
+          font-size: 8px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          padding: 7px 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .adm-btn-outline:hover { background: rgba(200,148,48,0.12); border-color: rgba(200,148,48,0.5); color: #C89430; }
+
+        .adm-btn-danger {
+          background: rgba(180,40,40,0.1);
+          border: 1px solid rgba(200,60,60,0.3);
+          color: #D07070;
+          font-family: 'Cinzel',serif;
+          font-size: 8px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          padding: 7px 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .adm-btn-danger:hover { background: rgba(180,40,40,0.22); border-color: rgba(200,60,60,0.6); color: #E08080; }
+
+        .adm-btn-side {
+          background: rgba(200,148,48,0.06);
+          border: 1px solid rgba(200,148,48,0.18);
+          font-family: 'Cinzel',serif;
+          font-size: 7px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(245,237,216,0.38);
+          padding: 8px 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          border-radius: 2px;
+        }
+        .adm-btn-side:hover { border-color: rgba(200,148,48,0.45); color: #C89430; }
+
+        .adm-btn-side-danger {
+          background: rgba(160,30,40,0.1);
+          border: 1px solid rgba(180,50,50,0.25);
+          font-family: 'Cinzel',serif;
+          font-size: 7px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(210,100,100,0.6);
+          padding: 8px 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          border-radius: 2px;
+        }
+        .adm-btn-side-danger:hover { border-color: rgba(200,60,60,0.5); color: #D07070; }
+
+        /* ── INPUT FOCUS ── */
+        .adm-input:focus { border-color: #C89430 !important; box-shadow: 0 0 0 1px rgba(200,148,48,0.15); }
+
+        /* ── SCROLLBAR ── */
+        aside::-webkit-scrollbar { width: 4px; }
+        aside::-webkit-scrollbar-track { background: rgba(20,4,8,0.5); }
+        aside::-webkit-scrollbar-thumb { background: rgba(200,148,48,0.2); border-radius: 2px; }
+        aside::-webkit-scrollbar-thumb:hover { background: rgba(200,148,48,0.4); }
       `}</style>
     </div>
   );
