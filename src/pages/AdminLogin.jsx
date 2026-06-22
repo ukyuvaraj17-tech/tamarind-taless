@@ -38,23 +38,23 @@ export default function AdminLogin() {
   }
 
   const inp = {
-    width: '100%', padding: '11px 0', background: 'transparent',
-    border: 'none', borderBottom: '1px solid rgba(200,169,110,0.3)',
+    width: '100%', padding: '12px 0', background: 'rgba(255,255,255,0.08)',
+    border: 'none', borderBottom: '1px solid rgba(212,160,64,0.35)',
     color: 'var(--iv)', fontFamily: "'Cormorant Garamond', serif",
-    fontSize: 15, outline: 'none', transition: 'border-color 0.3s'
+    fontSize: 15, outline: 'none', transition: 'border-color 0.3s, background 0.3s'
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--br)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(200,169,110,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ maxWidth: 400, width: '100%', position: 'relative', zIndex: 1 }}>
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: 'var(--iv)', fontWeight: 300 }}>Tamarind Tales</div>
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 8, color: 'var(--gd)', letterSpacing: '0.4em', marginTop: 6, textTransform: 'uppercase' }}>Admin Portal</div>
-          <div style={{ width: 40, height: 1, background: 'var(--gd)', margin: '16px auto 0', opacity: 0.5 }} />
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0f0a0f 0%, #070406 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 15%, rgba(212,160,64,0.16), transparent 26%), linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 38%)', pointerEvents: 'none' }} />
+      <div style={{ maxWidth: 420, width: '100%', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, color: 'var(--iv)', fontWeight: 300, textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}>Tamarind Taless</div>
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 9, color: 'var(--gd)', letterSpacing: '0.42em', marginTop: 8, textTransform: 'uppercase' }}>Admin Portal</div>
+          <div style={{ width: 52, height: 1, background: 'var(--gd)', margin: '18px auto 0', opacity: 0.7 }} />
         </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(200,169,110,0.2)', padding: '36px 32px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(212,160,64,0.24)', padding: '42px 36px', borderRadius: 24, boxShadow: '0 40px 90px rgba(0,0,0,0.25)', backdropFilter: 'blur(16px)' }}>
           {error && (
             <div style={{ background: 'rgba(139,61,42,0.2)', borderLeft: '3px solid var(--tr)', padding: '10px 14px', marginBottom: 20, fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: '#E8A0A0', lineHeight: 1.5 }}>
               {error}
@@ -90,7 +90,7 @@ export default function AdminLogin() {
             </div>
             <button
               type="submit" disabled={loading}
-              style={{ width: '100%', padding: 14, background: loading ? 'rgba(200,169,110,0.5)' : 'var(--gd)', border: 'none', color: 'var(--iv)', fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+              style={{ width: '100%', padding: 16, background: loading ? 'rgba(212,160,64,0.55)' : 'var(--gd)', border: 'none', color: 'var(--bg)', fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 999, boxShadow: loading ? 'none' : '0 18px 38px rgba(212,160,64,0.24)'}}
             >
               {loading
                 ? <span style={{ width: 18, height: 18, border: '2px solid rgba(26,15,8,0.3)', borderTopColor: 'var(--br)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
@@ -101,9 +101,9 @@ export default function AdminLogin() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <a href="/" style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.2em', color: 'rgba(200,169,110,0.4)', textDecoration: 'none', textTransform: 'uppercase' }}
-            onMouseEnter={e => e.target.style.color = 'var(--gd)'}
-            onMouseLeave={e => e.target.style.color = 'rgba(200,169,110,0.4)'}
+          <a href="/" style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.2em', color: 'rgba(212,160,64,0.75)', textDecoration: 'none', textTransform: 'uppercase', transition: 'color 0.25s' }}
+            onMouseEnter={e => e.target.style.color = 'var(--gl)'}
+            onMouseLeave={e => e.target.style.color = 'rgba(212,160,64,0.75)'}
           >
             Return to Website
           </a>

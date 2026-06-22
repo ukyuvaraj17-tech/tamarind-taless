@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,17 @@ export default function Checkout() {
 
   const hasExisting = (userProfile?.addresses?.length || 0) > 0;
   const shipping = cartSubtotal > 50000 ? 0 : 500;
+
+  // Sync form and useExisting when userProfile loads asynchronously after render
+  useEffect(() => {
+    if (!userProfile) return;
+    if ((userProfile.addresses?.length || 0) > 0) setUseExisting(true);
+    setForm(f => ({
+      ...f,
+      name: f.name || userProfile.name || '',
+      phone: f.phone || userProfile.phone || '',
+    }));
+  }, [userProfile]);
   const total = cartSubtotal + shipping;
 
   function setF(k, v) { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); }

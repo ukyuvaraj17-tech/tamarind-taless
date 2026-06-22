@@ -29,7 +29,7 @@ export default function Footer() {
           {/* SHOP */}
           <div>
             <div style={{ fontFamily: "'Cinzel', serif", fontSize: '6.5px', letterSpacing: '.28em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 14 }}>Shop</div>
-            {[['Shop All', '/shop'], ['Bronze', '/shop'], ['Wooden Art', '/shop'], ['Paintings', '/shop'], ['Brass', '/shop'], ['Miniatures', '/shop']].map(([l, p]) => (
+            {[['Shop All', '/shop'], ['Bronze', '/shop?cat=bronze'], ['Wooden Art', '/shop?cat=wooden'], ['Paintings', '/shop?cat=paintings'], ['Brass', '/shop?cat=brass'], ['Miniatures', '/shop?cat=miniatures']].map(([l, p]) => (
               <Link key={l} to={p} style={{ display: 'block', fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(248,236,216,.88)', marginBottom: 7, textDecoration: 'none', transition: 'color .2s', cursor: 'none' }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--iv)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--iv50)'}

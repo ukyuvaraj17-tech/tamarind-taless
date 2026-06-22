@@ -382,9 +382,9 @@ export default function Admin() {
   const stats = [['Products', products.length], ['Orders', orders.length], ['Pending', orders.filter(o => o.status === 'Pending').length], ['Enquiries', enquiries.length]];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--br)', color: 'var(--iv)' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #09050a 0%, #080308 100%)', color: 'var(--iv)' }}>
       {/* NAV */}
-      <div style={{ background: 'rgba(0,0,0,0.25)', borderBottom: '1px solid rgba(200,169,110,0.1)', padding: '15px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, position: 'sticky', top: 0, zIndex: 100 }}>
+      <div style={{ background: 'rgba(0,0,0,0.34)', borderBottom: '1px solid rgba(212,160,64,0.18)', padding: '18px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 6px 30px rgba(0,0,0,0.25)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: 'var(--iv)' }}>Tamarind Taless</div>
           <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.28em', color: 'var(--gd)' }}>ADMIN</div>
@@ -392,18 +392,18 @@ export default function Admin() {
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.35)' }}>{currentUser?.email}</span>
           <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.4)', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.color = 'var(--gd)'} onMouseLeave={e => e.target.style.color = 'rgba(245,237,216,0.4)'}>View Site</button>
-          <button onClick={() => { logout(); navigate('/admin/login'); }} style={{ background: 'none', border: '1px solid rgba(200,169,110,0.2)', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.45)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => { e.target.style.borderColor = 'var(--gd)'; e.target.style.color = 'var(--gd)'; }} onMouseLeave={e => { e.target.style.borderColor = 'rgba(200,169,110,0.2)'; e.target.style.color = 'rgba(245,237,216,0.45)'; }}>Sign Out</button>
+          <button onClick={() => { logout(); navigate('/admin/login'); }} style={{ background: 'none', border: '1px solid rgba(212,160,64,0.22)', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.14em', color: 'rgba(245,237,216,0.55)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase', transition: 'border-color 0.2s, color 0.2s' }} onMouseEnter={e => { e.target.style.borderColor = 'var(--gd)'; e.target.style.color = 'var(--gd)'; }} onMouseLeave={e => { e.target.style.borderColor = 'rgba(212,160,64,0.22)'; e.target.style.color = 'rgba(245,237,216,0.55)'; }}>Sign Out</button>
         </div>
       </div>
 
       <div style={{ padding: '28px 30px 60px' }}>
         {/* TABS */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(200,169,110,0.1)', marginBottom: 28, overflowX: 'auto' }}>
-          {TABS.map((t, i) => <button key={i} onClick={() => setTab(i)} style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '12px 18px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === i ? 'var(--gd)' : 'transparent'}`, color: tab === i ? 'var(--cr)' : 'rgba(245,237,216,0.38)', cursor: 'pointer', marginBottom: -1, whiteSpace: 'nowrap' }}>{t}</button>)}
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(212,160,64,0.18)', marginBottom: 28, overflowX: 'auto' }}>
+          {TABS.map((t, i) => <button key={i} onClick={() => setTab(i)} style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '12px 18px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === i ? 'var(--gd)' : 'transparent'}`, color: tab === i ? 'var(--gd)' : 'rgba(245,237,216,0.55)', cursor: 'pointer', marginBottom: -1, whiteSpace: 'nowrap', transition: 'color 0.2s' }}>{t}</button>)}
         </div>
 
         {/* DASHBOARD */}
-        {tab === 0 && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>{stats.map(([l, v]) => <div key={l} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(200,169,110,0.13)', padding: 24 }}><div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color: 'var(--gd)', fontWeight: 300, lineHeight: 1 }}>{v}</div><div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.18em', color: 'rgba(245,237,216,0.55)', textTransform: 'uppercase', marginTop: 6 }}>{l}</div></div>)}</div>}
+        {tab === 0 && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>{stats.map(([l, v]) => <div key={l} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(212,160,64,0.22)', padding: 30, borderRadius: 22, boxShadow: '0 32px 74px rgba(0,0,0,0.18)' }}><div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color: 'var(--gd)', fontWeight: 300, lineHeight: 1 }}>{v}</div><div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.18em', color: 'rgba(245,237,216,0.75)', textTransform: 'uppercase', marginTop: 6 }}>{l}</div></div>)}</div>}
 
         {/* PRODUCTS LIST */}
         {tab === 1 && (
@@ -445,7 +445,7 @@ export default function Admin() {
         {tab === 2 && (
           <div style={{ maxWidth: 720 }}>
             <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 24, textTransform: 'uppercase' }}>{editId ? 'Edit Product' : 'Add New Product'}</div>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(200,169,110,0.13)', padding: '30px 28px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(212,160,64,0.18)', padding: '34px 32px', borderRadius: 24, boxShadow: '0 28px 60px rgba(0,0,0,0.18)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Product Name *</label><input style={inp} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Naranbil Bhagavathy" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.2)'} /></div>
                 <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="e.g. Guardian of Justice" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.2)'} /></div>
@@ -489,7 +489,7 @@ export default function Admin() {
             {loading ? <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {orders.map(o => (
-                  <div key={o.id} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(200,169,110,0.13)', padding: '22px 24px' }}>
+                  <div key={o.id} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(212,160,64,0.18)', padding: '24px 26px', borderRadius: 20, boxShadow: '0 18px 34px rgba(0,0,0,0.14)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
                       <div>
                         <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.2em', color: 'var(--gd)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
@@ -551,8 +551,10 @@ export default function Admin() {
           </div>
         )}
 
-        {/* BRAND SETTINGS */}
+        {/* STORIES */}
         {tab === 5 && <StoriesManager />}
+
+        {/* BRAND SETTINGS */}
         {tab === 6 && <BrandSettings />}
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

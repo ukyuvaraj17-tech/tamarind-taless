@@ -52,7 +52,7 @@ export default function Home() {
           <hr className="hairline" aria-hidden="true" />
           <p className="eyebrow" style={{ color:'#E8C060', textShadow:'0 1px 8px rgba(0,0,0,.8)', letterSpacing:'.4em' }}>Rare Artefacts — Living Heritage</p>
           <h1 className="display" style={{ color:'#FFFFFF', textShadow:'0 2px 24px rgba(0,0,0,.9), 0 0 50px rgba(0,0,0,.7)' }}>Objects that<br /><em style={{ color:'#E8355A', textShadow:'0 0 30px rgba(232,53,90,.4), 0 2px 12px rgba(0,0,0,.9)' }}>carry centuries</em></h1>
-          <p className="subline" style={{ color:'#FFFFFF', textShadow:'0 1px 12px rgba(0,0,0,.9)', fontSize:'clamp(1rem,1.8vw,1.25rem)' }} style={{ maxWidth:540 }}>Bronze, wood, pigment and devotion — each piece bridges ancient ritual and the living present.</p>
+          <p className="subline" style={{ color:'#FFFFFF', textShadow:'0 1px 12px rgba(0,0,0,.9)', fontSize:'clamp(1rem,1.8vw,1.25rem)', maxWidth:540 }}>Bronze, wood, pigment and devotion — each piece bridges ancient ritual and the living present.</p>
           <div style={{ display:'flex', gap:'.9rem', flexWrap:'wrap', justifyContent:'center' }}>
             <button className="btn btn-dark" onClick={() => navigate('/shop')}>Explore Collection</button>
             <button className="btn btn-outline" onClick={() => navigate('/about')}>Our Story</button>
@@ -105,7 +105,7 @@ export default function Home() {
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,#1A0810 0%,#2A1018 30%,#0A1208 70%,#060E08 100%)' }} aria-hidden="true" />
         <div style={{ position:'absolute', inset:0, background:'rgba(8,4,8,.62)', zIndex:1 }} aria-hidden="true" />
         <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 50% 60% at 30% 50%, rgba(212,160,64,.07) 0%, transparent 65%)', zIndex:1 }} aria-hidden="true" />
-        <div className="container" style={{ position:'relative', zIndex:2, padding:'80px 44px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:60, alignItems:'center' }} className="shaded-grid">
+        <div className="container shaded-grid" style={{ position:'relative', zIndex:2, padding:'80px 44px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:60, alignItems:'center' }}>
           <div>
             <hr className="hairline" style={{ marginBottom:16 }} aria-hidden="true" />
             <p className="eyebrow" style={{ marginBottom:16 }}>Who We Are</p>

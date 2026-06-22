@@ -1,5 +1,5 @@
-// Products are managed entirely via Firebase Admin Panel
-// This file has NO seed data — all products come from Firestore
+// Products are managed entirely via the Supabase Admin Panel
+// This file has NO seed data — all products come from Supabase
 // Admin adds products at /admin/login → Admin Panel → Add Product
 
 export const CATEGORIES = [

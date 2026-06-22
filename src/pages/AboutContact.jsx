@@ -55,7 +55,7 @@ export function About() {
             </div>
             <div>
               <hr className="hairline" style={{ marginBottom:14 }} />
-              <p className="section-label" ref={add(1)} className="reveal">Our Story</p>
+              <p className="section-label reveal" ref={add(1)}>Our Story</p>
               <h2 style={{ ...S.h2 }} ref={add(2)} className="reveal d1">Every piece carries <em style={{ color:'var(--gd)' }}>a living memory</em></h2>
               <p style={S.body} ref={add(3)} className="reveal d2">Tamarind Taless was founded by women with a deep reverence for South India's sacred artistic traditions. We believe that the bronze casting of Kerala, the ritual wood carving of coastal Karnataka, the mural traditions of temple walls, and the lost-wax metalwork of Tamil Nadu are not merely art forms — they are living memories encoded in material.</p>
               <p style={{ ...S.body, marginTop:14 }} ref={add(4)} className="reveal d3">Each piece in our collection is acquired with care and reverence. We travel, research, and verify provenance — and only bring forward pieces we believe deserve to continue their journey.</p>
