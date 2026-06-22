@@ -13,22 +13,22 @@ const EMPTY = { name: '', cat: 'bronze', subtitle: '', origin: '', material: '',
 
 // Rajput palette constants
 const M = {
-  bg:          'linear-gradient(160deg,#0E0205 0%,#1A0509 55%,#1E080D 100%)',
-  sidebar:     'linear-gradient(180deg,#080103 0%,#0D0305 55%,#110406 100%)',
-  sidebarBdr:  'rgba(210,145,45,0.22)',
-  topbar:      'rgba(5,1,2,0.92)',
-  card:        'rgba(90,10,25,0.18)',
-  cardBdr:     'rgba(210,145,45,0.15)',
-  rowHover:    'rgba(110,14,32,0.16)',
-  navActive:   'rgba(120,20,40,0.34)',
-  navHover:    'rgba(80,12,28,0.24)',
+  bg:          'linear-gradient(160deg,#2E080F 0%,#390E18 55%,#3E1019 100%)',
+  sidebar:     'linear-gradient(180deg,#1E0507 0%,#260A0F 55%,#2B0C12 100%)',
+  sidebarBdr:  'rgba(210,145,45,0.26)',
+  topbar:      'rgba(16,4,8,0.94)',
+  card:        'rgba(10,2,6,0.42)',
+  cardBdr:     'rgba(210,145,45,0.18)',
+  rowHover:    'rgba(80,12,28,0.45)',
+  navActive:   'rgba(160,30,55,0.48)',
+  navHover:    'rgba(120,20,40,0.32)',
   gold:        '#C89430',
-  goldFaint:   'rgba(200,148,48,0.18)',
+  goldFaint:   'rgba(200,148,48,0.16)',
   goldLine:    'linear-gradient(90deg,transparent,rgba(200,148,48,0.55),transparent)',
   maroon:      '#8B1828',
-  maroonFaint: 'rgba(139,24,40,0.14)',
-  dividerH:    '1px solid rgba(200,145,45,0.14)',
-  selectBg:    'rgba(20,5,10,0.96)',
+  maroonFaint: 'rgba(160,28,50,0.2)',
+  dividerH:    '1px solid rgba(200,145,45,0.16)',
+  selectBg:    'rgba(18,5,9,0.98)',
 };
 
 // ── NAV ITEMS ──────────────────────────────────────────────
@@ -460,10 +460,10 @@ export default function Admin() {
               </svg>
             </div>
           )}
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 18, color: 'var(--iv)', lineHeight: 1.1, letterSpacing: '.03em', fontWeight: 400 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', lineHeight: 1.1, letterSpacing: '.03em', fontWeight: 400 }}>
             {brand.brand_name || 'Tamarind Taless'}
           </div>
-          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 6.5, letterSpacing: '0.42em', color: M.gold, textTransform: 'uppercase', marginTop: 5, opacity: 0.85 }}>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.38em', color: M.gold, textTransform: 'uppercase', marginTop: 6, opacity: 0.9 }}>
             Admin Panel
           </div>
         </div>
@@ -485,7 +485,7 @@ export default function Admin() {
                   border: 'none',
                   borderLeft: `3px solid ${active ? M.gold : 'transparent'}`,
                   color: active ? M.gold : 'rgba(245,237,216,0.38)',
-                  fontFamily: "'Cinzel',serif", fontSize: 8.5, letterSpacing: '0.13em',
+                  fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.11em',
                   textTransform: 'uppercase', cursor: 'pointer', textAlign: 'left',
                   transition: 'all 0.18s',
                   boxShadow: active ? `inset 0 0 24px rgba(120,18,35,0.25)` : 'none',
@@ -521,8 +521,8 @@ export default function Admin() {
               </svg>
             </div>
             <div style={{ overflow: 'hidden', minWidth: 0 }}>
-              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', color: `${M.gold}bb`, textTransform: 'uppercase', marginBottom: 1 }}>Admin</div>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.38)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.1em', color: `${M.gold}bb`, textTransform: 'uppercase', marginBottom: 1 }}>Admin</div>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.38)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 7 }}>
@@ -546,10 +546,10 @@ export default function Admin() {
           position: 'sticky', top: 0, zIndex: 100,
         }}>
           <div>
-            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.34em', color: `${M.gold}80`, textTransform: 'uppercase', marginBottom: 3 }}>
+            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9.5, letterSpacing: '0.28em', color: `${M.gold}90`, textTransform: 'uppercase', marginBottom: 4 }}>
               {['Dashboard','Products','Add Product','Orders','Enquiries','Stories','Brand Settings'][tab]}
             </div>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 21, color: 'var(--iv)', lineHeight: 1, fontWeight: 300, letterSpacing: '.02em' }}>
+            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, color: 'var(--iv)', lineHeight: 1, fontWeight: 300, letterSpacing: '.02em' }}>
               {tab === 2 && editId ? 'Edit Product' : ['Overview','All Products','Add New Product','All Orders','All Enquiries','Stories & Blog','Brand Settings'][tab]}
             </div>
           </div>
@@ -558,7 +558,7 @@ export default function Admin() {
             <svg width="6" height="6" viewBox="0 0 10 10" fill={M.gold} opacity="0.4">
               <polygon points="5,0 6.5,3.5 10,5 6.5,6.5 5,10 3.5,6.5 0,5 3.5,3.5"/>
             </svg>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(245,237,216,0.28)', fontStyle: 'italic' }}>
+            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(245,237,216,0.32)', fontStyle: 'italic' }}>
               {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
             </div>
           </div>
@@ -580,8 +580,8 @@ export default function Admin() {
                 ].map(({ label, value, color, bg, sub, border }) => (
                   <div key={label} style={{ background: bg, border: `1px solid ${border}28`, borderTop: `3px solid ${border}`, padding: '22px 20px', boxShadow: `inset 0 0 30px rgba(80,6,18,0.1), 0 2px 16px rgba(0,0,0,0.3)` }}>
                     <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color, fontWeight: 300, lineHeight: 1, marginBottom: 10 }}>{value}</div>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.18em', color: 'var(--iv)', textTransform: 'uppercase' }}>{label}</div>
-                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.3)', marginTop: 3, fontStyle: 'italic' }}>{sub}</div>
+                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.16em', color: 'var(--iv)', textTransform: 'uppercase' }}>{label}</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(245,237,216,0.35)', marginTop: 4, fontStyle: 'italic' }}>{sub}</div>
                   </div>
                 ))}
               </div>
@@ -592,7 +592,7 @@ export default function Admin() {
                 {/* RECENT ORDERS TABLE */}
                 <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, overflow: 'hidden', boxShadow: `inset 0 0 40px rgba(60,5,15,0.12)` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: M.dividerH, background: 'rgba(60,5,15,0.3)' }}>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.22em', color: M.gold, textTransform: 'uppercase' }}>Recent Orders</div>
+                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.2em', color: M.gold, textTransform: 'uppercase' }}>Recent Orders</div>
                     <button onClick={() => setTab(3)} style={{ background: 'none', border: 'none', fontFamily: "'Cinzel',serif", fontSize: 7.5, color: `${M.gold}88`, cursor: 'pointer', letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'color 0.2s' }}
                       onMouseEnter={e => e.currentTarget.style.color = M.gold}
                       onMouseLeave={e => e.currentTarget.style.color = `${M.gold}88`}
@@ -605,7 +605,7 @@ export default function Admin() {
                       <thead>
                         <tr style={{ background: 'rgba(50,5,14,0.4)' }}>
                           {['Order ID','Customer','Items','Total','Status'].map(h => (
-                            <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', padding: '9px 14px', textAlign: 'left', color: `${M.gold}60`, borderBottom: M.dividerH, fontWeight: 400 }}>{h}</th>
+                            <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 14px', textAlign: 'left', color: `${M.gold}70`, borderBottom: M.dividerH, fontWeight: 400 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -635,7 +635,7 @@ export default function Admin() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* QUICK ACTIONS */}
                   <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, padding: '18px 18px 14px', boxShadow: `inset 0 0 30px rgba(60,5,15,0.12)` }}>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.22em', color: M.gold, textTransform: 'uppercase', marginBottom: 6 }}>Quick Actions</div>
+                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.18em', color: M.gold, textTransform: 'uppercase', marginBottom: 6 }}>Quick Actions</div>
                     <div style={{ height: 1, background: M.goldLine, marginBottom: 14 }} />
                     {[
                       { label: 'Add New Product', action: () => { setForm({...EMPTY}); setEditId(null); setTab(2); }, primary: true },
@@ -647,7 +647,7 @@ export default function Admin() {
                         width: '100%', display: 'block', padding: '10px 14px', marginBottom: 8,
                         background: primary ? `linear-gradient(135deg,${M.gold},#A87020)` : M.maroonFaint,
                         border: primary ? 'none' : `1px solid ${M.cardBdr}`,
-                        fontFamily: "'Cinzel',serif", fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase',
+                        fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.11em', textTransform: 'uppercase',
                         color: primary ? '#0E0205' : 'rgba(245,237,216,0.5)',
                         cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
                         boxShadow: primary ? '0 4px 14px rgba(180,120,20,0.3)' : 'none',
@@ -675,7 +675,7 @@ export default function Admin() {
                   {/* CATEGORY BREAKDOWN */}
                   {products.length > 0 && (
                     <div style={{ background: M.card, border: `1px solid ${M.cardBdr}`, padding: '14px 16px' }}>
-                      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.2em', color: M.gold, textTransform: 'uppercase', marginBottom: 6 }}>By Category</div>
+                      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.18em', color: M.gold, textTransform: 'uppercase', marginBottom: 6 }}>By Category</div>
                       <div style={{ height: 1, background: M.goldLine, marginBottom: 12 }} />
                       {CATS.map(cat => {
                         const count = products.filter(p => p.cat === cat).length;
@@ -703,7 +703,7 @@ export default function Admin() {
           {tab === 1 && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, textTransform: 'uppercase' }}>All Products ({products.length})</div>
+                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 12, letterSpacing: '0.18em', color: M.gold, textTransform: 'uppercase' }}>All Products ({products.length})</div>
                 <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(2); }} className="adm-btn-gold">Add New Product</button>
               </div>
               {loading ? <div style={{ textAlign: 'center', padding: 60, color: 'rgba(245,237,216,0.25)' }}>Loading...</div> : (
@@ -712,7 +712,7 @@ export default function Admin() {
                     <thead>
                       <tr style={{ background: 'rgba(60,5,15,0.5)' }}>
                         {['Image','Name','Category','Price','Stock','Visible','Actions'].map(h => (
-                          <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '11px 14px', textAlign: 'left', borderBottom: M.dividerH, color: `${M.gold}70`, fontWeight: 400 }}>{h}</th>
+                          <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '12px 14px', textAlign: 'left', borderBottom: M.dividerH, color: `${M.gold}80`, fontWeight: 400 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -806,7 +806,7 @@ export default function Admin() {
           {/* ── ORDERS ── */}
           {tab === 3 && (
             <div>
-              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.2em', color: M.gold, marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 12, letterSpacing: '0.18em', color: M.gold, marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
               {loading ? <div style={{ textAlign: 'center', padding: 60 }}><span className="spinner"></span></div> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {orders.map(o => (
@@ -861,7 +861,7 @@ export default function Admin() {
                 <thead>
                   <tr style={{ background: 'rgba(60,5,15,0.5)' }}>
                     {['Product','Customer','Message','Date','Type','Status'].map(h => (
-                      <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 7.5, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '11px 14px', textAlign: 'left', borderBottom: M.dividerH, color: `${M.gold}70`, fontWeight: 400 }}>{h}</th>
+                      <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '12px 14px', textAlign: 'left', borderBottom: M.dividerH, color: `${M.gold}80`, fontWeight: 400 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -907,10 +907,10 @@ export default function Admin() {
           border: none;
           color: #0E0205;
           font-family: 'Cinzel',serif;
-          font-size: 9px;
+          font-size: 11px;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          padding: 9px 18px;
+          padding: 10px 20px;
           cursor: pointer;
           box-shadow: 0 3px 12px rgba(180,120,20,0.28);
           transition: box-shadow 0.2s, filter 0.2s;
@@ -920,12 +920,12 @@ export default function Admin() {
         .adm-btn-outline {
           background: rgba(200,148,48,0.06);
           border: 1px solid rgba(200,148,48,0.28);
-          color: rgba(245,237,216,0.55);
+          color: rgba(245,237,216,0.6);
           font-family: 'Cinzel',serif;
-          font-size: 8px;
+          font-size: 10px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          padding: 7px 14px;
+          padding: 8px 16px;
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -936,10 +936,10 @@ export default function Admin() {
           border: 1px solid rgba(200,60,60,0.3);
           color: #D07070;
           font-family: 'Cinzel',serif;
-          font-size: 8px;
+          font-size: 10px;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          padding: 7px 12px;
+          padding: 7px 14px;
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -949,11 +949,11 @@ export default function Admin() {
           background: rgba(200,148,48,0.06);
           border: 1px solid rgba(200,148,48,0.18);
           font-family: 'Cinzel',serif;
-          font-size: 7px;
+          font-size: 9px;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: rgba(245,237,216,0.38);
-          padding: 8px 4px;
+          color: rgba(245,237,216,0.42);
+          padding: 9px 4px;
           cursor: pointer;
           transition: all 0.2s;
           border-radius: 2px;
@@ -964,11 +964,11 @@ export default function Admin() {
           background: rgba(160,30,40,0.1);
           border: 1px solid rgba(180,50,50,0.25);
           font-family: 'Cinzel',serif;
-          font-size: 7px;
+          font-size: 9px;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: rgba(210,100,100,0.6);
-          padding: 8px 4px;
+          color: rgba(210,100,100,0.65);
+          padding: 9px 4px;
           cursor: pointer;
           transition: all 0.2s;
           border-radius: 2px;
