@@ -110,13 +110,13 @@ export default function App() {
                   fontFamily: "'Cinzel', serif",
                   fontSize: '9px',
                   letterSpacing: '0.15em',
-                  background: '#1C0C14',
+                  background: '#2A0C14',
                   color: '#F8ECD8',
                   borderLeft: '3px solid #D4A040',
                   borderRadius: 0,
                   padding: '13px 22px',
                 },
-                success: { iconTheme: { primary: '#D4A040', secondary: '#1C0C14' } },
+                success: { iconTheme: { primary: '#D4A040', secondary: '#2A0C14' } },
                 error: { style: { borderLeft: '3px solid #B02840' } },
               }}
             />

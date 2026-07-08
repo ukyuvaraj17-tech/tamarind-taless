@@ -114,7 +114,7 @@ export default function Shop() {
               {/* SORT DROPDOWN */}
               <select value={sort} onChange={e => setSort(e.target.value)} style={selectStyle}>
                 {SORT_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value} style={{ background: '#1C0C14' }}>{o.label}</option>
+                  <option key={o.value} value={o.value} style={{ background: '#2A0C14' }}>{o.label}</option>
                 ))}
               </select>
 
