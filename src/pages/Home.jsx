@@ -3,18 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useBrand } from '../context/BrandContext';
 import { supabase } from '../supabase';
 import ProductCard from '../components/ProductCard';
-import ProductDetail from '../components/ProductDetail';
 
 const MQ = ['Bronze Artefacts','Theyyam Heritage','Kerala Murals','Bhuta Kola Traditions','Panchaloha Bronzes','Made in India','Women-Led Curation'];
 
-const NUM = { fontFamily:"'Cinzel', serif", fontSize:'clamp(1.1rem,2vw,1.5rem)', fontWeight:400, color:'var(--iv)', letterSpacing:'.08em', lineHeight:1 };
-const NUM_LABEL = { fontFamily:"'Cormorant Garamond', serif", fontSize:13, fontStyle:'italic', color:'var(--iv)', marginTop:5, lineHeight:1.3 };
+const NUM = { fontFamily:"'Inter', sans-serif", fontWeight:600, fontSize:'clamp(1.1rem,2vw,1.5rem)', fontWeight:400, color:'var(--iv)', letterSpacing:'.08em', lineHeight:1 };
+const NUM_LABEL = { fontFamily:"'Cormorant Garamond', serif", fontSize:14, fontStyle:'italic', color:'var(--iv)', marginTop:5, lineHeight:1.3 };
 
 export default function Home() {
   const navigate = useNavigate();
   const { brand } = useBrand();
   const [products, setProducts] = useState([]);
-  const [selected, setSelected] = useState(null);
   const revealRefs = useRef([]);
 
   useEffect(() => {
@@ -31,8 +29,13 @@ export default function Home() {
   }, [products]);
 
   const addReveal = (i) => (el) => { revealRefs.current[i] = el; };
+  // Admin-pinned products show first; if fewer are pinned than the showcase count, fill the rest with the newest pieces
+  const count = brand.featured_count || 3;
+  const featured = products.filter(p => p.featured);
+  const rest = products.filter(p => !p.featured);
+  const showcaseProducts = [...featured, ...rest].slice(0, count);
   const mqItems = [...MQ, ...MQ].map((item, i) => (
-    <React.Fragment key={i}><span className="marquee-item" >{item}</span><span className="marquee-sep">—</span></React.Fragment>
+    <React.Fragment key={i}><span className="marquee-item" >{item}</span><span className="marquee-sep">•</span></React.Fragment>
   ));
 
   return (
@@ -41,21 +44,20 @@ export default function Home() {
       <section style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'clamp(4rem,10vw,8rem) clamp(1.5rem,5vw,3.5rem)', position:'relative', overflow:'hidden' }}>
         {/* HERO BG IMAGE — set from Admin > Brand Settings */}
         {brand.hero_image && (
-          <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:`url(${brand.hero_image})`, backgroundSize:'cover', backgroundPosition:'center', backgroundRepeat:'no-repeat', zIndex:0 }} />
+          <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:`url(${brand.hero_image})`, backgroundSize:'cover', backgroundPosition: brand.hero_image_position || 'center', backgroundRepeat:'no-repeat', zIndex:0 }} />
         )}
-        {/* DARK OVERLAY — always on top of image */}
+        {/* OVERLAY — dark scrim only when a photo is set, otherwise a quiet ink-tinted glow */}
         <div aria-hidden="true" style={{ position:'absolute', inset:0, zIndex:1, background: brand.hero_image
-          ? 'linear-gradient(to bottom, rgba(8,4,8,.72) 0%, rgba(8,4,8,.55) 50%, rgba(8,4,8,.72) 100%)'
-          : 'radial-gradient(ellipse 60% 55% at 50% 50%, rgba(96,16,32,.28) 0%, transparent 65%), radial-gradient(ellipse 35% 30% at 20% 75%, rgba(212,160,64,.06) 0%, transparent 55%), radial-gradient(ellipse 30% 28% at 80% 25%, rgba(176,40,64,.08) 0%, transparent 50%)'
+          ? 'linear-gradient(to bottom, rgba(30,27,20,.55) 0%, rgba(30,27,20,.35) 50%, rgba(30,27,20,.55) 100%)'
+          : 'radial-gradient(ellipse 60% 55% at 50% 50%, rgba(33,29,20,.05) 0%, transparent 65%), radial-gradient(ellipse 35% 30% at 20% 75%, rgba(33,29,20,.04) 0%, transparent 55%), radial-gradient(ellipse 30% 28% at 80% 25%, rgba(33,29,20,.04) 0%, transparent 50%)'
         }} />
         <div style={{ position:'relative', zIndex:2, maxWidth:820, margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:'1.4rem', animation:'fadeUp .9s ease both' }}>
           <hr className="hairline" aria-hidden="true" />
-          <p className="eyebrow" style={{ color:'#E8C060', textShadow:'0 1px 8px rgba(0,0,0,.8)', letterSpacing:'.4em' }}>Rare Artefacts — Living Heritage</p>
-          <h1 className="display" style={{ color:'#FFFFFF', textShadow:'0 2px 24px rgba(0,0,0,.9), 0 0 50px rgba(0,0,0,.7)' }}>Objects that<br /><em style={{ color:'#E8355A', textShadow:'0 0 30px rgba(232,53,90,.4), 0 2px 12px rgba(0,0,0,.9)' }}>carry centuries</em></h1>
-          <p className="subline" style={{ color:'#FFFFFF', textShadow:'0 1px 12px rgba(0,0,0,.9)', fontSize:'clamp(1rem,1.8vw,1.25rem)', maxWidth:540 }}>Bronze, wood, pigment and devotion — each piece bridges ancient ritual and the living present.</p>
+          <h1 className="display" style={{ color: brand.hero_image ? '#F2EFE4' : 'var(--text)', textShadow: brand.hero_image ? '0 2px 24px rgba(0,0,0,.5)' : 'none' }}>Where India's Stories<br /><em style={{ color: brand.hero_image ? '#F2EFE4' : 'var(--gold-muted)' }}>Find New Homes</em></h1>
+          <p className="subline" style={{ color: brand.hero_image ? '#F2EFE4' : 'var(--text-muted)', textShadow: brand.hero_image ? '0 1px 12px rgba(0,0,0,.5)' : 'none', fontSize:'clamp(1rem,1.8vw,1.25rem)', maxWidth:540 }}>Curating vintage heirlooms, handcrafted treasures, and timeless artistry that celebrate India's rich cultural heritage, one story at a time.</p>
           <div style={{ display:'flex', gap:'.9rem', flexWrap:'wrap', justifyContent:'center' }}>
             <button className="btn btn-dark" onClick={() => navigate('/shop')}>Explore Collection</button>
-            <button className="btn btn-outline" onClick={() => navigate('/about')}>Our Story</button>
+            <button className="btn btn-outline" style={brand.hero_image ? { color: '#F2EFE4', borderColor: 'rgba(242,239,228,.5)' } : undefined} onClick={() => navigate('/about')}>Our Journey</button>
           </div>
         </div>
       </section>
@@ -74,9 +76,9 @@ export default function Home() {
             <button className="btn btn-outline btn-sm reveal" ref={addReveal(1)} onClick={() => navigate('/shop')}>View All</button>
           </div>
           <div className="grid-3 home-grid-3">
-            {products.slice(0, brand.featured_count || 3).map((p,i) => (
+            {showcaseProducts.map((p,i) => (
               <div key={p.id} ref={addReveal(i+2)} className={`reveal d${i+1}`}>
-                <ProductCard product={p} onViewDetail={setSelected} />
+                <ProductCard product={p} />
               </div>
             ))}
             {products.length === 0 && [1,2,3].map(i => (
@@ -92,39 +94,36 @@ export default function Home() {
         <div style={{ maxWidth:820, margin:'0 auto', textAlign:'center' }} ref={addReveal(10)} className="reveal">
           <div aria-hidden="true" style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'5rem', fontWeight:300, color:'var(--cr20)', lineHeight:.8, marginBottom:'.5rem' }}>"</div>
           <blockquote style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(1.25rem,2.5vw,1.8rem)', fontStyle:'italic', fontWeight:300, color:'var(--iv)', lineHeight:1.55, marginBottom:'1.2rem' }}>
-            These are not objects of decor. They are vessels of devotion, memory, and belonging — made by hands that understood their purpose.
+            These are not objects of decor. They are vessels of devotion, memory, and belonging, made by hands that understood their purpose.
           </blockquote>
-          <p style={{ fontFamily:"'Cinzel', serif", fontSize:'6.5px', letterSpacing:'.32em', textTransform:'uppercase', color:'var(--gold50)' }}>Tamarind Taless — Heritage Curators</p>
+          <p style={{ fontFamily:"'Inter', sans-serif", fontWeight:600, fontSize:'9.5px', letterSpacing:'.32em', textTransform:'uppercase', color:'var(--gold50)' }}>Tamarind Taless</p>
         </div>
       </section>
 
       <hr className="hairline-full" aria-hidden="true" />
 
-      {/* SHADED BRAND SECTION */}
-      <section style={{ position:'relative', minHeight:500, background:'var(--bg)', overflow:'hidden', display:'flex', alignItems:'center' }}>
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,#1A0810 0%,#2A1018 30%,#0A1208 70%,#060E08 100%)' }} aria-hidden="true" />
-        <div style={{ position:'absolute', inset:0, background:'rgba(8,4,8,.62)', zIndex:1 }} aria-hidden="true" />
-        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 50% 60% at 30% 50%, rgba(212,160,64,.07) 0%, transparent 65%)', zIndex:1 }} aria-hidden="true" />
+      {/* SHADED BRAND SECTION — deliberate ink band for rhythm, still within the approved palette */}
+      <section style={{ position:'relative', minHeight:500, background:'var(--gold)', overflow:'hidden', display:'flex', alignItems:'center' }}>
         <div className="container shaded-grid" style={{ position:'relative', zIndex:2, padding:'80px 44px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:60, alignItems:'center' }}>
           <div>
-            <hr className="hairline" style={{ marginBottom:16 }} aria-hidden="true" />
-            <p className="eyebrow" style={{ marginBottom:16 }}>Who We Are</p>
-            <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(32px,4.5vw,56px)', fontWeight:300, color:'var(--iv)', lineHeight:.95, marginBottom:20 }}>
-              Curated with<br /><em style={{ fontStyle:'italic', color:'var(--crimson)' }}>devotion</em>
+            <hr className="hairline" style={{ marginBottom:16, background: '#F2EFE4' }} aria-hidden="true" />
+            <p className="eyebrow" style={{ marginBottom:16, color: 'rgba(242,239,228,.65)' }}>Who We Are</p>
+            <h2 style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(32px,4.5vw,56px)', fontWeight:300, color:'#F2EFE4', lineHeight:.95, marginBottom:20 }}>
+              Curated with<br /><em style={{ fontStyle:'italic', color:'rgba(242,239,228,.65)' }}>devotion</em>
             </h2>
-            <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:17, color:'rgba(248,236,216,.88)', lineHeight:1.8, fontStyle:'italic', marginBottom:28 }}>
-              Tamarind Taless was born from a deep love for India's living heritage — the bronzes cast in fire, the wood carved with devotion, the paintings that still carry the breath of their makers. We source directly from artisan communities, ensuring every piece arrives with its story intact.
+            <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:17, color:'rgba(242,239,228,.65)', lineHeight:1.8, fontStyle:'italic', marginBottom:28 }}>
+              Tamarind Taless was born from a deep love for India's living heritage: bronzes cast in fire, wood carved with devotion, paintings that still carry the breath of their makers. We source directly from artisan communities, ensuring every piece arrives with its story intact.
             </p>
             <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-              <button className="btn btn-gold" onClick={() => navigate('/about')}>Our Story</button>
-              <button className="btn btn-outline" onClick={() => navigate('/services')}>Our Services</button>
+              <button className="btn" style={{ background: '#F2EFE4', color: 'var(--gold)' }} onClick={() => navigate('/about')}>Our Story</button>
+              <button className="btn btn-outline" style={{ color: '#F2EFE4', borderColor: 'rgba(242,239,228,.35)' }} onClick={() => navigate('/services')}>Our Services</button>
             </div>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {[['30,385','Instagram Followers'],['Noida','North India'],['Coimbatore','South India'],['Women-Led','Curation']].map(([n,l]) => (
-              <div key={l} style={{ background:'rgba(28,12,20,.7)', border:'1px solid rgba(212,160,64,.15)', padding:'22px 18px' }}>
-                <div style={{ ...NUM, fontSize:'clamp(1rem,1.8vw,1.3rem)', marginBottom:6 }}>{n}</div>
-                <div style={NUM_LABEL}>{l}</div>
+              <div key={l} style={{ background:'rgba(242,239,228,.06)', border:'1px solid rgba(242,239,228,.15)', padding:'22px 18px' }}>
+                <div style={{ ...NUM, color: '#F2EFE4', fontSize:'clamp(1rem,1.8vw,1.3rem)', marginBottom:6 }}>{n}</div>
+                <div style={{ ...NUM_LABEL, color: 'rgba(242,239,228,.65)' }}>{l}</div>
               </div>
             ))}
           </div>
@@ -144,7 +143,7 @@ export default function Home() {
             <div className="grid-4 home-grid-4">
               {products.map((p,i) => (
                 <div key={p.id} ref={addReveal(12+i)} className={`reveal d${(i%4)+1}`}>
-                  <ProductCard product={p} onViewDetail={setSelected} height={220} />
+                  <ProductCard product={p} height={220} />
                 </div>
               ))}
             </div>
@@ -161,8 +160,6 @@ export default function Home() {
           <a href="https://instagram.com/tamarindtaless" target="_blank" rel="noreferrer" className="btn btn-gold" style={{ textDecoration:'none', display:'inline-flex' }}>View on Instagram</a>
         </div>
       </section>
-
-      <ProductDetail product={selected} onClose={() => setSelected(null)} />
 
       <style>{`
         @media (max-width: 768px) {

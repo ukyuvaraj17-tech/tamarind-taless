@@ -13,8 +13,8 @@ export default function ShippingPolicy() {
         </div>
       </div>
       <div className="container" style={{ padding: '56px 44px', maxWidth: 860 }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(248,236,216,.88)', lineHeight: 1.9 }}>
-          <p style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>
+          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 44 }}>
             {[
@@ -24,8 +24,8 @@ export default function ShippingPolicy() {
               { label: 'Free Shipping Above', value: 'Rs. 50,000' },
             ].map(({ label, value }) => (
               <div key={label} style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '18px 20px' }}>
-                <div style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 6 }}>{label}</div>
-                <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, color: 'var(--iv)', fontWeight: 400, letterSpacing: '.05em' }}>{value}</div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: 'var(--iv)', fontWeight: 400, letterSpacing: '.05em' }}>{value}</div>
               </div>
             ))}
           </div>
@@ -40,8 +40,8 @@ export default function ShippingPolicy() {
             { title: '7. Lost or Stolen Shipments', body: 'If your tracking shows delivery but you have not received the item, please contact us within 24 hours. We will initiate an investigation with the courier. Tamarind Taless is not liable for shipments stolen after confirmed delivery.' },
           ].map(({ title, body }) => (
             <div key={title} style={{ marginBottom: 32 }}>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
-              <p style={{ color: 'rgba(248,236,216,.88)', lineHeight: 1.9 }}>{body}</p>
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>{body}</p>
             </div>
           ))}
         </div>

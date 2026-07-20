@@ -76,8 +76,8 @@ export default function ImageUploader({ images = [], onChange }) {
   }
 
   const lbl = {
-    fontFamily: "'Cinzel',serif", fontSize: 8,
-    letterSpacing: '0.14em', color: 'rgba(245,237,216,0.4)',
+    fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11,
+    letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)',
     textTransform: 'uppercase', display: 'block', marginBottom: 7
   };
 
@@ -95,23 +95,23 @@ export default function ImageUploader({ images = [], onChange }) {
                 alt=""
                 style={{
                   width: '100%', height: '100%', objectFit: 'cover',
-                  border: i === 0 ? '2px solid var(--gd)' : '1px solid rgba(200,169,110,0.2)'
+                  border: i === 0 ? '2px solid var(--gd)' : '1px solid rgba(33,29,20,0.2)'
                 }}
-                onError={e => { e.target.src = ''; e.target.style.background = '#2a1f18'; }}
+                onError={e => { e.target.src = ''; e.target.style.background = '#D3CCB9'; }}
               />
               {i === 0 && (
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--gd)', color: 'var(--iv)', fontFamily: "'Cinzel',serif", fontSize: 7, letterSpacing: '0.1em', textAlign: 'center', padding: '2px 0', textTransform: 'uppercase' }}>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--gd)', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.1em', textAlign: 'center', padding: '2px 0', textTransform: 'uppercase' }}>
                   Main
                 </div>
               )}
               <div style={{ position: 'absolute', top: 2, right: 2, display: 'flex', gap: 2 }}>
                 {i > 0 && (
-                  <button onClick={() => moveImage(i, -1)} title="Move left" style={{ width: 18, height: 18, background: 'rgba(0,0,0,0.75)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+                  <button onClick={() => moveImage(i, -1)} title="Move left" style={{ width: 18, height: 18, background: 'rgba(0,0,0,0.75)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
                 )}
                 {i < images.length - 1 && (
-                  <button onClick={() => moveImage(i, 1)} title="Move right" style={{ width: 18, height: 18, background: 'rgba(0,0,0,0.75)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>→</button>
+                  <button onClick={() => moveImage(i, 1)} title="Move right" style={{ width: 18, height: 18, background: 'rgba(0,0,0,0.75)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>→</button>
                 )}
-                <button onClick={() => removeImage(i)} title="Remove" style={{ width: 18, height: 18, background: 'rgba(139,61,42,0.9)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                <button onClick={() => removeImage(i)} title="Remove" style={{ width: 18, height: 18, background: 'rgba(192,120,64,0.9)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
               </div>
             </div>
           ))}
@@ -122,14 +122,14 @@ export default function ImageUploader({ images = [], onChange }) {
       <div style={{ display: 'flex', gap: 0, marginBottom: 12 }}>
         <button
           onClick={() => setMode('url')}
-          style={{ padding: '7px 14px', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(200,169,110,0.2)', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'url' ? 'var(--gd)' : 'rgba(255,255,255,0.04)', color: mode === 'url' ? 'var(--br)' : 'rgba(245,237,216,0.5)' }}
+          style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'url' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'url' ? 'var(--br)' : 'rgba(106,99,80,0.5)' }}
         >
           Paste URL
         </button>
         {canUpload && (
           <button
             onClick={() => setMode('upload')}
-            style={{ padding: '7px 14px', fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(200,169,110,0.2)', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'upload' ? 'var(--gd)' : 'rgba(255,255,255,0.04)', color: mode === 'upload' ? 'var(--br)' : 'rgba(245,237,216,0.5)' }}
+            style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'upload' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'upload' ? 'var(--br)' : 'rgba(106,99,80,0.5)' }}
           >
             Upload File
           </button>
@@ -145,18 +145,18 @@ export default function ImageUploader({ images = [], onChange }) {
               onChange={e => setUrlInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addUrl()}
               placeholder="Paste Cloudinary or any image URL here..."
-              style={{ flex: 1, padding: '10px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(200,169,110,0.2)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, outline: 'none' }}
+              style={{ flex: 1, padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.2)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none' }}
               onFocus={e => e.target.style.borderColor = 'var(--gd)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.2)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'}
             />
             <button
               onClick={addUrl}
-              style={{ background: 'var(--gd)', border: 'none', color: 'var(--iv)', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
             >
               Add
             </button>
           </div>
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12, color: 'rgba(245,237,216,0.28)', fontStyle: 'italic', marginTop: 7, lineHeight: 1.6 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(106,99,80,0.28)', fontStyle: 'italic', marginTop: 7, lineHeight: 1.6 }}>
             Upload image to cloudinary.com → right click image → Copy image address → paste above. Press Enter or click Add.
           </div>
         </div>
@@ -169,14 +169,14 @@ export default function ImageUploader({ images = [], onChange }) {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            style={{ background: uploading ? 'rgba(200,169,110,0.4)' : 'rgba(255,255,255,0.08)', border: '1px dashed rgba(200,169,110,0.35)', color: uploading ? 'var(--gd)' : 'rgba(245,237,216,0.6)', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '12px 20px', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}
+            style={{ background: uploading ? 'rgba(33,29,20,0.4)' : 'rgba(30,27,20,0.08)', border: '1px dashed rgba(33,29,20,0.35)', color: uploading ? 'var(--gd)' : 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '12px 20px', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}
           >
             {uploading ? (
-              <><span style={{ width: 14, height: 14, border: '2px solid rgba(200,169,110,0.3)', borderTopColor: 'var(--gd)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} /> Uploading... {progress}%</>
+              <><span style={{ width: 14, height: 14, border: '2px solid rgba(33,29,20,0.3)', borderTopColor: 'var(--gd)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} /> Uploading... {progress}%</>
             ) : 'Select Photos to Upload'}
           </button>
           {uploading && (
-            <div style={{ marginTop: 8, height: 3, background: 'rgba(200,169,110,0.15)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ marginTop: 8, height: 3, background: 'rgba(33,29,20,0.15)', borderRadius: 2, overflow: 'hidden' }}>
               <div style={{ height: '100%', background: 'var(--gd)', width: `${progress}%`, transition: 'width 0.3s' }} />
             </div>
           )}

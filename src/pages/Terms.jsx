@@ -14,9 +14,9 @@ export default function Terms() {
       </div>
 
       <div className="container" style={{ padding: '56px 44px', maxWidth: 860 }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(248,236,216,.88)', lineHeight: 1.9 }}>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>
 
-          <p style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
+          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
           <p style={{ marginBottom: 32, fontSize: 17 }}>Please read these Terms and Conditions carefully before using the Tamarind Taless website. By accessing or placing an order, you agree to be bound by these terms.</p>
 
           {[
@@ -42,7 +42,7 @@ export default function Terms() {
             },
             {
               title: '6. Intellectual Property',
-              body: `All content on this website — including photographs, descriptions, brand identity, and design — is the intellectual property of Tamarind Taless. Reproduction, redistribution, or commercial use of any content without written permission is strictly prohibited.`
+              body: `All content on this website, including photographs, descriptions, brand identity, and design, is the intellectual property of Tamarind Taless. Reproduction, redistribution, or commercial use of any content without written permission is strictly prohibited.`
             },
             {
               title: '7. User Accounts',
@@ -62,8 +62,8 @@ export default function Terms() {
             },
           ].map(({ title, body }) => (
             <div key={title} style={{ marginBottom: 36 }}>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
-              <p style={{ color: 'rgba(248,236,216,.88)', lineHeight: 1.9, fontSize: 16 }}>{body}</p>
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9, fontSize: 16 }}>{body}</p>
             </div>
           ))}
         </div>

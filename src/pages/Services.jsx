@@ -37,9 +37,10 @@ export default function Services() {
       {/* HERO */}
       <PageHero
         image={brand.hero_services}
+        position={brand.hero_services_position}
         eyebrow="What We Offer"
-        title={<>Our <em style={{ fontStyle: 'italic', color: '#E8355A' }}>Services</em></>}
-        subtitle="Heritage curation, sourcing, and styling — for collectors, designers, and spaces that deserve something extraordinary."
+        title={<>Our <em style={{ fontStyle: 'italic', color: 'var(--gold-pale)' }}>Services</em></>}
+        subtitle="Heritage curation, sourcing, and styling for collectors, designers, and spaces that deserve something extraordinary."
         minHeight={300}
       />
 
@@ -53,18 +54,18 @@ export default function Services() {
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--line)'}
               >
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: 'var(--gd)', marginBottom: 14, lineHeight: 1 }}>{s.icon}</div>
-                <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', marginBottom: 20, fontWeight: 500 }}>{s.title}</h2>
+                <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', marginBottom: 20, fontWeight: 500 }}>{s.title}</h2>
                 <ul style={{ listStyle: 'none', marginBottom: 24 }}>
                   {s.items.map((item, j) => (
-                    <li key={j} style={{ display: 'flex', gap: 12, marginBottom: 10, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(248,236,216,.88)', lineHeight: 1.6 }}>
-                      <span style={{ color: 'var(--crimson)', flexShrink: 0 }}>—</span>
+                    <li key={j} style={{ display: 'flex', gap: 12, marginBottom: 10, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)', lineHeight: 1.6 }}>
+                      <span style={{ color: 'var(--crimson)', flexShrink: 0 }}>•</span>
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
-                <Link to="/contact" style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', textDecoration: 'none', borderBottom: '1px solid rgba(212,160,64,.85)', paddingBottom: 2, transition: 'border-color .2s', cursor: 'none' }}
+                <Link to="/contact" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', textDecoration: 'none', borderBottom: '1px solid rgba(33,29,20,.85)', paddingBottom: 2, transition: 'border-color .2s', cursor: 'none' }}
                   onMouseEnter={e => e.currentTarget.style.borderBottomColor = 'var(--gd)'}
-                  onMouseLeave={e => e.currentTarget.style.borderBottomColor = 'rgba(212,160,64,.85)'}
+                  onMouseLeave={e => e.currentTarget.style.borderBottomColor = 'rgba(33,29,20,.85)'}
                 >{s.cta} →</Link>
               </div>
             ))}
@@ -87,9 +88,9 @@ export default function Services() {
               { num: '04', title: 'Deliver', desc: 'Your chosen piece is carefully packed and delivered to your doorstep.' },
             ].map(({ num, title, desc }) => (
               <div key={num} style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1rem,1.5vw,1.2rem)', fontWeight: 400, fontFamily: "'Cinzel', serif", color: 'rgba(248,236,216,.88)', lineHeight: 1, marginBottom: 8, opacity: .4 }}>{num}</div>
-                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', marginBottom: 10 }}>{title}</h3>
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(248,236,216,.88)', lineHeight: 1.7, fontStyle: 'italic' }}>{desc}</p>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1rem,1.5vw,1.2rem)', fontWeight: 400, fontFamily: "'Inter', sans-serif", fontWeight: 600, color: 'rgba(106,99,80,.88)', lineHeight: 1, marginBottom: 8, opacity: .4 }}>{num}</div>
+                <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', marginBottom: 10 }}>{title}</h3>
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)', lineHeight: 1.7, fontStyle: 'italic' }}>{desc}</p>
               </div>
             ))}
           </div>
@@ -101,7 +102,7 @@ export default function Services() {
         <div className="container" style={{ maxWidth: 560 }}>
           <p className="section-label">Ready to Begin?</p>
           <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(28px,4vw,44px)', fontWeight: 300, color: 'var(--iv)', fontStyle: 'italic', marginBottom: 18 }}>Let us find your perfect piece</h2>
-          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(248,236,216,.88)', marginBottom: 28, lineHeight: 1.7 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(106,99,80,.88)', marginBottom: 28, lineHeight: 1.7 }}>
             Every collector's journey is unique. We are here to make yours extraordinary.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>

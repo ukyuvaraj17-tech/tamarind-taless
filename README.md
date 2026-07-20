@@ -1,35 +1,33 @@
-# Tamarind Tales — E-commerce Website
+# Tamarind Taless — E-commerce Website
 
-Premium heritage art e-commerce for Tamarind Tales (@tamarindtaless).
-Built with React, Firebase, Razorpay redirect, and Cloudinary.
+Premium heritage art e-commerce for Tamarind Taless (@tamarindtaless).
+Built with React, Supabase, Razorpay redirect, and Cloudinary.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                    |
-|------------|-------------------------------|
-| Frontend   | React 18, React Router v6     |
-| Auth       | Firebase Auth (Google + Email)|
-| Database   | Firestore                     |
-| Storage    | Firebase Storage              |
-| Payments   | Razorpay Payment Link redirect|
-| Deployment | Vercel (free)                 |
-| Images CDN | Firebase Storage              |
+| Layer      | Technology                       |
+|------------|-----------------------------------|
+| Frontend   | React 18, React Router v6         |
+| Auth       | Supabase Auth (Google + Email)    |
+| Database   | Supabase (Postgres)               |
+| Images CDN | Cloudinary                        |
+| Payments   | Razorpay Payment Link redirect    |
+| Deployment | Vercel (free)                     |
 
 ---
 
-## Step 1 — Firebase Setup
+## Step 1 — Supabase Setup
 
-1. Go to [console.firebase.google.com](https://console.firebase.google.com)
-2. Create a new project (e.g. `tamarind-tales`)
-3. Add a **Web App** — copy the config object
-4. Enable **Authentication**:
-   - Sign-in methods: Email/Password ✓, Google ✓
-   - Add your domain to Authorised Domains (add `localhost` for dev, your Vercel URL for prod)
-5. Enable **Firestore Database** (production mode)
-6. Enable **Storage** (for product image uploads)
-7. Deploy Firestore rules: copy `firestore.rules` content into Firebase Console → Firestore → Rules
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Under **Project Settings → API**, copy the Project URL and anon public key
+3. Create the following tables: `profiles`, `products`, `orders`, `enquiries`, `stories`, `settings`
+4. Enable **Authentication** providers: Email/Password and Google
+5. Set up Row Level Security (RLS) policies so:
+   - Products are publicly readable, writable only by the admin account
+   - Orders/enquiries are readable by their owner and the admin account
+   - Profiles are readable/writable only by their owner
 
 ---
 
@@ -42,19 +40,18 @@ cp .env.example .env
 ```
 
 ```env
-REACT_APP_FIREBASE_API_KEY=AIza...
-REACT_APP_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=your-project-id
-REACT_APP_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=123456789
-REACT_APP_FIREBASE_APP_ID=1:123:web:abc
+REACT_APP_SUPABASE_URL=https://your-project.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your-anon-key
+
+REACT_APP_CLOUDINARY_CLOUD_NAME=your_cloud_name
+REACT_APP_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 
 REACT_APP_ADMIN_EMAIL=admin@tamarindtaless.com
 REACT_APP_PAYMENT_URL=https://rzp.io/l/your-payment-link
 ```
 
 **REACT_APP_ADMIN_EMAIL** — only this email gets admin access.
-Use your Tamarind Tales admin email here.
+Use your Tamarind Taless admin email here.
 
 **REACT_APP_PAYMENT_URL** — your Razorpay Payment Link URL.
 Get this from Razorpay Dashboard → Payment Links → Create.
@@ -75,14 +72,12 @@ App opens at http://localhost:3000
 
 ## Step 4 — Populate Products
 
-Option A — Use Admin Panel (recommended):
-1. Login with REACT_APP_ADMIN_EMAIL
-2. Go to /admin → Products → Add New Product
+Products are managed entirely via the Admin Panel — there is no local seed data.
+1. Login with REACT_APP_ADMIN_EMAIL at `/admin/login`
+2. Go to Admin Panel → Add Product
 3. Fill in all fields, upload images, save
 
-Option B — Seed from code:
-Products in `src/data/products.js` are the local fallback.
-They display before Firestore loads and when Firebase is not configured.
+Category taxonomy lives in `src/data/products.js` (`categories` / `CATEGORY_GROUPS`) and drives both the Navbar mega-menu and the Shop filter bar.
 
 ---
 
@@ -100,30 +95,30 @@ When prompted:
 
 Add all `.env` variables in Vercel Dashboard → Settings → Environment Variables.
 
-Also add your Vercel domain to Firebase Auth → Authorised Domains.
+Also add your Vercel domain to Supabase → Authentication → URL Configuration.
 
 ---
 
 ## Product Fields Reference
 
-| Field        | Type    | Description                                      |
-|--------------|---------|--------------------------------------------------|
-| name         | string  | Product name                                     |
-| cat          | string  | bronze / wooden / paintings / brass / miniatures |
-| subtitle     | string  | Short tagline                                    |
-| origin       | string  | Region (e.g. "North Malabar, Kerala")            |
-| material     | string  | Material description                             |
-| dimensions   | string  | Size (e.g. '10" H x 4" W')                      |
-| weight       | string  | Weight (e.g. "1.2 kg")                          |
-| price        | number  | Price in Rs. — set null if enquiryOnly           |
-| enquiryOnly  | boolean | true = hide price, show WhatsApp enquiry only    |
-| stock        | number  | 0 = Sold Out, 1 = "Only 1 Left", 2+ = normal    |
-| available    | boolean | false = hidden from shop entirely                |
-| badge        | string  | Optional badge (Featured / Rare / Collector)     |
-| images       | array   | Image URLs (uploaded via Admin Panel)            |
-| story        | string  | Narrative about the piece                        |
-| together     | string  | Collection context note                          |
-| bg           | string  | CSS gradient fallback when no image              |
+| Field        | Type    | Description                                              |
+|--------------|---------|------------------------------------------------------------|
+| name         | string  | Product name                                              |
+| cat          | string  | One of the categories in `src/data/products.js`           |
+| subtitle     | string  | Short tagline                                              |
+| origin       | string  | Region (e.g. "North Malabar, Kerala")                      |
+| material     | string  | Material description                                       |
+| dimensions   | string  | Size (e.g. '10" H x 4" W')                                 |
+| weight       | string  | Weight (e.g. "1.2 kg")                                      |
+| price        | number  | Price in Rs. — set null if enquiry_only                    |
+| enquiry_only | boolean | true = hide price, show WhatsApp enquiry only               |
+| stock        | number  | 0 = Sold Out, 1 = "Only 1 Left", 2+ = normal                |
+| available    | boolean | false = hidden from shop entirely                           |
+| badge        | string  | Optional badge (Featured / Rare / Collector)                |
+| images       | array   | Image URLs (uploaded via Admin Panel)                       |
+| story        | string  | Narrative about the piece                                   |
+| together     | string  | Collection context note                                     |
+| bg           | string  | CSS gradient fallback when no image                          |
 
 ---
 
@@ -135,9 +130,11 @@ Login: use REACT_APP_ADMIN_EMAIL account only
 Features:
 - Dashboard stats (products, orders, pending, enquiries)
 - Products: add, edit, delete, toggle visibility
-- Image upload direct to Firebase Storage
+- Image upload direct to Cloudinary
 - Orders: view all, update status (Pending → Confirmed → Shipped → Delivered)
 - Enquiries: view all customer email and WhatsApp enquiries
+- Stories: publish/manage the Stories & Blog page
+- Brand Settings: logo, brand name, per-page hero images
 
 ---
 
@@ -149,7 +146,7 @@ Features:
 4. Selects payment method:
    - **Online (Razorpay)** → redirects to REACT_APP_PAYMENT_URL
    - **WhatsApp** → order saved, WhatsApp opened with order details
-5. Order saved to Firestore
+5. Order saved to Supabase
 6. Seller receives WhatsApp notification automatically
 
 ---
@@ -166,9 +163,12 @@ tamarind-taless/
 │   │   ├── Footer.jsx
 │   │   ├── ProductCard.jsx
 │   │   ├── ProductDetail.jsx
+│   │   ├── PageHero.jsx
+│   │   ├── ImageUploader.jsx
 │   │   └── ProtectedRoute.jsx
 │   ├── context/
 │   │   ├── AuthContext.jsx
+│   │   ├── BrandContext.jsx
 │   │   └── CartContext.jsx
 │   ├── data/
 │   │   └── products.js
@@ -182,13 +182,13 @@ tamarind-taless/
 │   │   ├── Register.jsx
 │   │   ├── Account.jsx
 │   │   ├── Admin.jsx
+│   │   ├── AdminLogin.jsx
 │   │   └── AboutContact.jsx
 │   ├── styles/
 │   │   └── globals.css
-│   ├── firebase.js
+│   ├── supabase.js
 │   ├── App.jsx
 │   └── index.js
-├── firestore.rules
 ├── package.json
 ├── .env.example
 └── README.md

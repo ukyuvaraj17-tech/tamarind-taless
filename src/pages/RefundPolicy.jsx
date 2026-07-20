@@ -15,17 +15,17 @@ export default function RefundPolicy() {
       </div>
 
       <div className="container" style={{ padding: '56px 44px', maxWidth: 860 }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(248,236,216,.88)', lineHeight: 1.9 }}>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>
 
-          <p style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
+          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
           <p style={{ marginBottom: 32, fontSize: 17, color: 'var(--iv)' }}>
-            At Tamarind Taless, each piece is a unique heritage artefact — handled with extraordinary care from source to your doorstep. We want you to love what you receive. Here is our complete policy.
+            At Tamarind Taless, each piece is a unique heritage artefact, handled with extraordinary care from source to your doorstep. We want you to love what you receive. Here is our complete policy.
           </p>
 
           {/* HIGHLIGHT BOX */}
           <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: '3px solid var(--gd)', padding: '20px 24px', marginBottom: 40 }}>
-            <p style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 8 }}>Our Promise</p>
-            <p style={{ fontSize: 16, color: 'var(--iv)', lineHeight: 1.8 }}>We accept returns within <strong style={{ color: 'var(--iv)' }}>7 days</strong> of delivery for damaged or incorrectly delivered pieces. For all other cases, we encourage you to speak with us directly before placing your order — we are happy to share detailed photos, videos, and condition reports.</p>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 8 }}>Our Promise</p>
+            <p style={{ fontSize: 16, color: 'var(--iv)', lineHeight: 1.8 }}>We accept returns within <strong style={{ color: 'var(--iv)' }}>7 days</strong> of delivery for damaged or incorrectly delivered pieces. For all other cases, we encourage you to speak with us directly before placing your order. We are happy to share detailed photos, videos, and condition reports.</p>
           </div>
 
           {[
@@ -74,17 +74,17 @@ export default function RefundPolicy() {
             },
             {
               title: '7. Damaged in Transit',
-              body: 'If your piece arrives damaged, please photograph the packaging and the item immediately and send it to us on WhatsApp within 48 hours of delivery. We will work with you to resolve this — either through a replacement (subject to availability) or a full refund.'
+              body: 'If your piece arrives damaged, please photograph the packaging and the item immediately and send it to us on WhatsApp within 48 hours of delivery. We will work with you to resolve this, either through a replacement (subject to availability) or a full refund.'
             },
           ].map(({ title, body, items, steps, note }) => (
             <div key={title} style={{ marginBottom: 36 }}>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
-              {body && <p style={{ color: 'rgba(248,236,216,.88)', lineHeight: 1.9 }}>{body}</p>}
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              {body && <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>{body}</p>}
               {items && (
                 <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
                   {items.map((item, i) => (
-                    <li key={i} style={{ display: 'flex', gap: 12, marginBottom: 8, color: 'rgba(248,236,216,.88)', alignItems: 'flex-start' }}>
-                      <span style={{ color: 'var(--crimson)', flexShrink: 0, marginTop: 3 }}>—</span>
+                    <li key={i} style={{ display: 'flex', gap: 12, marginBottom: 8, color: 'rgba(106,99,80,.88)', alignItems: 'flex-start' }}>
+                      <span style={{ color: 'var(--crimson)', flexShrink: 0, marginTop: 3 }}>•</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -93,21 +93,21 @@ export default function RefundPolicy() {
               {steps && (
                 <ol style={{ listStyle: 'none', paddingLeft: 0, counterReset: 'steps' }}>
                   {steps.map((step, i) => (
-                    <li key={i} style={{ display: 'flex', gap: 14, marginBottom: 10, color: 'rgba(248,236,216,.88)', alignItems: 'flex-start' }}>
-                      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, color: 'var(--gd)', flexShrink: 0, minWidth: 20 }}>{String(i+1).padStart(2,'0')}</span>
+                    <li key={i} style={{ display: 'flex', gap: 14, marginBottom: 10, color: 'rgba(106,99,80,.88)', alignItems: 'flex-start' }}>
+                      <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, color: 'var(--gd)', flexShrink: 0, minWidth: 20 }}>{String(i+1).padStart(2,'0')}</span>
                       <span>{step}</span>
                     </li>
                   ))}
                 </ol>
               )}
-              {note && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontStyle: 'italic', color: 'var(--gd)', marginTop: 12, opacity: .8 }}>{note}</p>}
+              {note && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, fontStyle: 'italic', color: 'var(--gd)', marginTop: 12, opacity: .8 }}>{note}</p>}
             </div>
           ))}
 
           <div style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '24px', marginTop: 20, textAlign: 'center' }}>
-            <p style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 10 }}>Need Help?</p>
-            <p style={{ fontSize: 16, color: 'rgba(248,236,216,.88)', marginBottom: 16 }}>Our team is available on WhatsApp for any questions about returns, refunds, or your order.</p>
-            <a href="https://wa.me/918796988216?text=I have a question about my order" target="_blank" rel="noreferrer" className="btn btn-gold" style={{ textDecoration: 'none', display: 'inline-flex', fontSize: 10 }}>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 10 }}>Need Help?</p>
+            <p style={{ fontSize: 16, color: 'rgba(106,99,80,.88)', marginBottom: 16 }}>Our team is available on WhatsApp for any questions about returns, refunds, or your order.</p>
+            <a href="https://wa.me/918796988216?text=I have a question about my order" target="_blank" rel="noreferrer" className="btn btn-gold" style={{ textDecoration: 'none', display: 'inline-flex', fontSize: 12 }}>
               WhatsApp Us
             </a>
           </div>

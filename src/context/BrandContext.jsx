@@ -8,15 +8,29 @@ export function BrandProvider({ children }) {
   const [brand, setBrand] = useState({
     logo_url: '',
     brand_name: 'Tamarind Taless',
-    tagline: 'Heritage Curators',
+    tagline: '',
     // Per-page hero images
     hero_image: '',          // Home
     hero_shop: '',           // Shop
     hero_about: '',          // About
     hero_services: '',       // Services
-    hero_stories: '',        // Stories/Blog
+    hero_stories: '',        // Stories
     hero_care: '',           // Care
+    hero_gallery: '',        // Gallery
     about_image: '',         // About page side image
+    // Focal point (crop position) for each image above
+    hero_image_position: '50% 50%',
+    hero_shop_position: '50% 50%',
+    hero_about_position: '50% 50%',
+    hero_services_position: '50% 50%',
+    hero_stories_position: '50% 50%',
+    hero_care_position: '50% 50%',
+    hero_gallery_position: '50% 50%',
+    about_image_position: '50% 50%',
+    // Splash / loading screen logo (shown while the site loads)
+    splash_logo: '',
+    // Registered office address shown in the footer
+    registered_office: '',
     // Home showcase control
     featured_count: 3,
   });

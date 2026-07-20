@@ -3,80 +3,53 @@ import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useBrand } from '../context/BrandContext';
 import { useNavigate } from 'react-router-dom';
-import { fmt } from '../data/products';
+import { fmt, categories } from '../data/products';
 import ImageUploader from '../components/ImageUploader';
 import toast from 'react-hot-toast';
 
-const CATS = ['bronze', 'wooden', 'paintings', 'brass', 'miniatures'];
+const CATS = categories.filter(c => c !== 'All');
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
-const EMPTY = { name: '', cat: 'bronze', subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, bg: 'linear-gradient(145deg,#2a1f18,#4a3020)', images: [] };
+const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Brand Settings'];
+const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '' };
 
-// Black · Silver · White palette
-const S = {
-  bg:         '#0C0C0C',
-  sidebar:    'linear-gradient(180deg,#080808 0%,#0B0B0B 100%)',
-  sidebarBdr: 'rgba(255,255,255,0.09)',
-  topbar:     'rgba(6,6,6,0.96)',
-  card:       'rgba(255,255,255,0.04)',
-  cardBdr:    'rgba(255,255,255,0.1)',
-  rowHover:   'rgba(255,255,255,0.05)',
-  navActive:  'rgba(255,255,255,0.09)',
-  navHover:   'rgba(255,255,255,0.04)',
-  silver:     '#C4C4C4',
-  silverFaint:'rgba(200,200,200,0.1)',
-  silverLine: 'linear-gradient(90deg,transparent,rgba(200,200,200,0.22),transparent)',
-  divider:    '1px solid rgba(255,255,255,0.08)',
-  selectBg:   'rgba(8,8,8,0.98)',
-  iv:         '#F0F0F0',
-};
-
-// ── NAV ITEMS ──────────────────────────────────────────────
-const NAV_ITEMS = [
-  { id: 0, label: 'Dashboard', icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-    </svg>
-  )},
-  { id: 1, label: 'Products', icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-    </svg>
-  )},
-  { id: 2, label: 'Add Product', icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-    </svg>
-  )},
-  { id: 3, label: 'Orders', icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
-      <path d="M16 10a4 4 0 01-8 0"/>
-    </svg>
-  )},
-  { id: 4, label: 'Enquiries', icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-    </svg>
-  )},
-  { id: 5, label: 'Stories', icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
-    </svg>
-  )},
-  { id: 6, label: 'Brand Settings', icon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-    </svg>
-  )},
+// 3x3 focal-point grid — maps a friendly label to a CSS object-position value
+const IMAGE_POSITIONS = [
+  ['Top Left', '0% 0%'],   ['Top', '50% 0%'],    ['Top Right', '100% 0%'],
+  ['Left', '0% 50%'],      ['Center', '50% 50%'], ['Right', '100% 50%'],
+  ['Bottom Left', '0% 100%'], ['Bottom', '50% 100%'], ['Bottom Right', '100% 100%'],
 ];
 
-const Divider = () => (
-  <div style={{ height: 1, background: S.silverLine, margin: '4px 22px' }} />
-);
+function ImagePositionPicker({ image, value, onChange, aspect = '1/1', width = 220 }) {
+  const pos = value || '50% 50%';
+  return (
+    <div>
+      <label style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>
+        Image Focal Point — which part of the photo should stay visible when cropped
+      </label>
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div style={{ width, aspectRatio: aspect, position: 'relative', border: '1px solid rgba(33,29,20,0.2)', flexShrink: 0, overflow: 'hidden', background: 'var(--card)' }}>
+          {image ? (
+            <img src={image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: pos }} />
+          ) : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, fontStyle: 'italic', color: 'rgba(106,99,80,0.5)', textAlign: 'center', padding: 20 }}>Add an image to preview crop</div>
+          )}
+          <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(30,27,20,0.6)', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 7px' }}>Preview</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,32px)', gridTemplateRows: 'repeat(3,32px)', gap: 4 }}>
+          {IMAGE_POSITIONS.map(([label, val]) => (
+            <button key={val} type="button" title={label} onClick={() => onChange(val)} style={{
+              width: 32, height: 32, border: '1px solid rgba(33,29,20,0.25)', cursor: 'pointer',
+              background: pos === val ? 'var(--gd)' : 'rgba(30,27,20,0.04)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: pos === val ? '#F2EFE4' : 'rgba(106,99,80,0.5)' }} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── STORIES MANAGER ────────────────────────────────────────
 const EMPTY_STORY = { title: '', subtitle: '', category: 'Heritage Notes', author: 'Tamarind Taless', story: '', images: [], published: true };
@@ -85,7 +58,7 @@ const STORY_CATS = ['Artisan Story', 'Heritage Notes', "Collector's Corner", 'Be
 function StoriesManager() {
   const [stories, setStories] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [view, setView] = React.useState('list');
+  const [view, setView] = React.useState('list'); // 'list' or 'edit'
   const [form, setForm] = React.useState({ ...EMPTY_STORY });
   const [editId, setEditId] = React.useState(null);
   const [saving, setSaving] = React.useState(false);
@@ -100,6 +73,7 @@ function StoriesManager() {
   }
 
   function setF(key, val) { setForm(f => ({ ...f, [key]: val })); }
+
   function startNew() { setForm({ ...EMPTY_STORY }); setEditId(null); setView('edit'); }
   function startEdit(s) { setForm({ ...s }); setEditId(s.id); setView('edit'); }
 
@@ -133,37 +107,38 @@ function StoriesManager() {
     fetchStories();
   }
 
-  const lbl = { fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', color: 'rgba(240,240,240,0.45)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: S.card, border: `1px solid ${S.cardBdr}`, color: S.iv, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: '#fff' };
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: 'var(--gd)' };
 
+  // ── LIST VIEW ──
   if (view === 'list') {
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 12, letterSpacing: '0.2em', color: S.iv, textTransform: 'uppercase' }}>Stories &amp; Blog ({stories.length})</div>
-          <button onClick={startNew} className="adm-btn-primary">Add New Story</button>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>Stories ({stories.length})</div>
+          <button onClick={startNew} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Story</button>
         </div>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40 }}><span className="spinner"></span></div>
         ) : stories.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'rgba(240,240,240,0.3)', fontStyle: 'italic' }}>No stories yet.</div>
+          <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>No stories yet. Click "Add New Story" to publish your first one.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {stories.map(s => (
-              <div key={s.id} style={{ background: S.card, border: `1px solid ${S.cardBdr}`, padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center' }}>
-                {s.images?.[0] && <img src={s.images[0]} alt="" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: `1px solid ${S.cardBdr}` }} />}
+              <div key={s.id} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center' }}>
+                {s.images?.[0] && <img src={s.images[0]} alt="" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(33,29,20,0.2)' }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 5 }}>
-                    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: S.silver, background: S.silverFaint, padding: '2px 8px', border: `1px solid ${S.cardBdr}` }}>{s.category}</span>
-                    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: s.published ? '#6AD08A' : 'rgba(240,240,240,0.3)' }}>{s.published ? 'Published' : 'Draft'}</span>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gd)', background: 'rgba(33,29,20,.12)', padding: '2px 8px' }}>{s.category}</span>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: s.published ? 'var(--success)' : 'rgba(106,99,80,0.4)' }}>{s.published ? 'Published' : 'Draft'}</span>
                   </div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 18, color: S.iv, marginBottom: 2 }}>{s.title}</div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(240,240,240,0.4)', fontStyle: 'italic' }}>{s.author} · {new Date(s.created_at).toLocaleDateString()}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', marginBottom: 2 }}>{s.title}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>{s.author} · {new Date(s.created_at).toLocaleDateString()}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                  <button onClick={() => togglePublish(s)} className="adm-btn-outline">{s.published ? 'Unpublish' : 'Publish'}</button>
-                  <button onClick={() => startEdit(s)} className="adm-btn-primary" style={{ padding: '7px 14px' }}>Edit</button>
-                  <button onClick={() => deleteStory(s.id)} className="adm-btn-danger">Delete</button>
+                  <button onClick={() => togglePublish(s)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.3)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>{s.published ? 'Unpublish' : 'Publish'}</button>
+                  <button onClick={() => startEdit(s)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Edit</button>
+                  <button onClick={() => deleteStory(s.id)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Delete</button>
                 </div>
               </div>
             ))}
@@ -173,38 +148,46 @@ function StoriesManager() {
     );
   }
 
+  // ── EDIT/ADD VIEW ──
   return (
     <div style={{ maxWidth: 680 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 12, letterSpacing: '0.2em', color: S.iv, textTransform: 'uppercase' }}>{editId ? 'Edit Story' : 'New Story'}</div>
-        <button onClick={() => setView('list')} className="adm-btn-outline">Back to List</button>
+        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>{editId ? 'Edit Story' : 'New Story'}</div>
+        <button onClick={() => setView('list')} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 16px', cursor: 'pointer' }}>Back to List</button>
       </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div><label style={lbl}>Title *</label><input style={inp} value={form.title} onChange={e => setF('title', e.target.value)} placeholder="e.g. The Last Bell-Maker of Palakkad" className="adm-input" /></div>
-        <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="One-line summary shown under the title" className="adm-input" /></div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div><label style={lbl}>Title *</label><input style={inp} value={form.title} onChange={e => setF('title', e.target.value)} placeholder="e.g. The Last Bell-Maker of Palakkad" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+
+        <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="One-line summary shown under the title" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+
+        <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div>
             <label style={lbl}>Category</label>
-            <select style={{ ...inp, cursor: 'pointer' }} value={form.category} onChange={e => setF('category', e.target.value)} className="adm-input">
-              {STORY_CATS.map(c => <option key={c} value={c} style={{ background: '#111' }}>{c}</option>)}
+            <select style={{ ...inp, cursor: 'pointer' }} value={form.category} onChange={e => setF('category', e.target.value)}>
+              {STORY_CATS.map(c => <option key={c} value={c} style={{ background: '#F2EFE4' }}>{c}</option>)}
             </select>
           </div>
-          <div><label style={lbl}>Author</label><input style={inp} value={form.author} onChange={e => setF('author', e.target.value)} className="adm-input" /></div>
+          <div><label style={lbl}>Author</label><input style={inp} value={form.author} onChange={e => setF('author', e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         </div>
+
         <div>
           <label style={lbl}>Story Text</label>
-          <textarea style={{ ...inp, minHeight: 180, resize: 'vertical', lineHeight: 1.7 }} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="Write the full story here..." className="adm-input" />
+          <textarea style={{ ...inp, minHeight: 180, resize: 'vertical', lineHeight: 1.7 }} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="Write the full story here..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
         </div>
+
         <ImageUploader images={form.images} onChange={imgs => setF('images', imgs)} />
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <input type="checkbox" checked={form.published} onChange={e => setF('published', e.target.checked)} style={{ width: 16, height: 16, accentColor: '#C4C4C4' }} />
-          <label style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: S.iv }}>Published — visible on the public Stories page</label>
+          <input type="checkbox" checked={form.published} onChange={e => setF('published', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--gd)' }} />
+          <label style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>Published (visible on the public Stories page)</label>
         </div>
+
         <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-          <button onClick={saveStory} disabled={saving} className="adm-btn-primary" style={{ padding: '13px 28px', opacity: saving ? 0.6 : 1 }}>
+          <button onClick={saveStory} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Saving...' : editId ? 'Update Story' : 'Publish Story'}
           </button>
-          {editId && <button onClick={() => { setForm({ ...EMPTY_STORY }); setEditId(null); setView('list'); }} className="adm-btn-outline" style={{ padding: '13px 28px' }}>Cancel</button>}
+          {editId && <button onClick={() => { setForm({ ...EMPTY_STORY }); setEditId(null); setView('list'); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
         </div>
       </div>
     </div>
@@ -214,18 +197,20 @@ function StoriesManager() {
 // ── BRAND SETTINGS ────────────────────────────────────────
 function BrandSettings() {
   const { brand, updateBrand } = useBrand();
-  const [form, setForm] = React.useState({ brand_name: brand.brand_name || '', tagline: brand.tagline || '' });
+  const [form, setForm] = React.useState({ brand_name: brand.brand_name || '', tagline: brand.tagline || '', registered_office: brand.registered_office || '' });
   const [saving, setSaving] = React.useState(false);
   const [logoUrl, setLogoUrl] = React.useState('');
+
+  // Per-page hero image URL inputs
   const [heroUrls, setHeroUrls] = React.useState({
-    hero_image: '', hero_shop: '', hero_about: '', hero_services: '', hero_stories: '', hero_care: '', about_image: '',
+    hero_image: '', hero_shop: '', hero_about: '', hero_services: '', hero_stories: '', hero_care: '', hero_gallery: '', about_image: '', splash_logo: '',
   });
 
-  const lbl = { fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', color: 'rgba(240,240,240,0.45)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: S.card, border: `1px solid ${S.cardBdr}`, color: S.iv, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: '#fff' };
-  const section = { background: S.card, border: `1px solid ${S.cardBdr}`, padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 14 };
-  const secHead = { fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '.25em', textTransform: 'uppercase', color: S.silver, marginBottom: 4 };
-  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 13.5, fontStyle: 'italic', color: 'rgba(240,240,240,0.45)' };
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: 'var(--gd)' };
+  const section = { background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 16 };
+  const secHead = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(33,29,20,.7)', marginBottom: 4 };
+  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 13.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)' };
 
   async function saveLogoUrl() {
     if (!logoUrl.trim()) return;
@@ -240,7 +225,7 @@ function BrandSettings() {
       await updateBrand({ [field]: val });
       toast.success('Image saved.');
       setHeroUrls(h => ({ ...h, [field]: '' }));
-    } catch { toast.error('Failed to save.'); }
+    } catch { toast.error('Failed to save. Run the hero_image SQL migration in Supabase if this keeps failing.'); }
   }
 
   async function removeHeroField(field) {
@@ -248,9 +233,14 @@ function BrandSettings() {
     catch { toast.error('Failed.'); }
   }
 
+  async function savePositionField(field, val) {
+    try { await updateBrand({ [`${field}_position`]: val }); toast.success('Crop position saved.'); }
+    catch { toast.error('Failed to save. Run the image position SQL migration in Supabase if this keeps failing.'); }
+  }
+
   async function saveBrand() {
     setSaving(true);
-    try { await updateBrand({ brand_name: form.brand_name, tagline: form.tagline }); toast.success('Brand settings saved.'); }
+    try { await updateBrand({ brand_name: form.brand_name, tagline: form.tagline, registered_office: form.registered_office }); toast.success('Brand settings saved.'); }
     catch { toast.error('Failed.'); }
     finally { setSaving(false); }
   }
@@ -260,70 +250,91 @@ function BrandSettings() {
     catch { toast.error('Failed.'); }
   }
 
-  function HeroImageField({ field, title, description }) {
+  // Reusable hero image upload block
+  function HeroImageField({ field, title, description, aspect = '16/5' }) {
     return (
       <div style={section}>
         <div style={secHead}>{title}</div>
         <div style={helpText}>{description}</div>
         {brand[field] && (
-          <div style={{ position: 'relative', height: 130, overflow: 'hidden', border: `1px solid ${S.cardBdr}` }}>
-            <img src={brand[field]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: .65 }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '.2em', textTransform: 'uppercase', color: S.silver }}>Current Image</span>
-            </div>
-          </div>
+          <ImagePositionPicker image={brand[field]} value={brand[`${field}_position`]} onChange={v => savePositionField(field, v)} aspect={aspect} width={aspect === '3/4' ? 180 : 320} />
         )}
         <div style={{ display: 'flex', gap: 8 }}>
-          <input value={heroUrls[field]} onChange={e => setHeroUrls(h => ({ ...h, [field]: e.target.value }))} placeholder="Paste Cloudinary image URL..." style={{ ...inp, flex: 1 }} className="adm-input" />
-          <button onClick={() => saveHeroField(field)} className="adm-btn-primary" style={{ whiteSpace: 'nowrap' }}>Save</button>
+          <input
+            value={heroUrls[field]}
+            onChange={e => setHeroUrls(h => ({ ...h, [field]: e.target.value }))}
+            placeholder="Paste Cloudinary image URL..."
+            style={{ ...inp, flex: 1 }}
+            onFocus={e => e.target.style.borderColor = 'var(--gd)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'}
+          />
+          <button onClick={() => saveHeroField(field)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save</button>
         </div>
-        {brand[field] && <button onClick={() => removeHeroField(field)} className="adm-btn-danger" style={{ alignSelf: 'flex-start' }}>Remove Image</button>}
+        {brand[field] && <button onClick={() => removeHeroField(field)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Image</button>}
       </div>
     );
   }
 
   return (
     <div style={{ maxWidth: 620 }}>
-      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 12, letterSpacing: '0.2em', color: S.iv, marginBottom: 20, textTransform: 'uppercase' }}>Brand Settings</div>
+      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>Brand Settings</div>
 
+      {/* LOGO */}
       <div style={section}>
         <div style={secHead}>Logo Image</div>
-        {brand.logo_url && <img src={brand.logo_url} alt="Logo" style={{ height: 48, objectFit: 'contain', maxWidth: 200, marginBottom: 4, display: 'block', border: `1px solid ${S.cardBdr}`, padding: 6 }} />}
+        {brand.logo_url && <img src={brand.logo_url} alt="Logo" style={{ height: 48, objectFit: 'contain', maxWidth: 200, marginBottom: 4, display: 'block', border: '1px solid rgba(33,29,20,.15)', padding: 6 }} />}
         <div style={{ display: 'flex', gap: 8 }}>
-          <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="Paste Cloudinary logo URL..." style={{ ...inp, flex: 1 }} className="adm-input" />
-          <button onClick={saveLogoUrl} className="adm-btn-primary" style={{ whiteSpace: 'nowrap' }}>Save Logo</button>
+          <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="Paste Cloudinary logo URL..." style={{ ...inp, flex: 1 }} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+          <button onClick={saveLogoUrl} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save Logo</button>
         </div>
-        {brand.logo_url && <button onClick={() => updateBrand({ logo_url: '' })} className="adm-btn-danger" style={{ alignSelf: 'flex-start' }}>Remove Logo</button>}
+        {brand.logo_url && <button onClick={() => updateBrand({ logo_url: '' })} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Logo</button>}
       </div>
 
+      {/* SPLASH / LOADING LOGO */}
+      <div style={section}>
+        <div style={secHead}>Loading Screen Logo</div>
+        <div style={helpText}>Shown full-screen while the website loads. If empty, the main logo is used.</div>
+        {brand.splash_logo && <img src={brand.splash_logo} alt="Splash logo" style={{ height: 64, objectFit: 'contain', maxWidth: 200, marginBottom: 4, display: 'block', border: '1px solid rgba(33,29,20,.15)', padding: 6 }} />}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={heroUrls.splash_logo || ''} onChange={e => setHeroUrls(h => ({ ...h, splash_logo: e.target.value }))} placeholder="Paste Cloudinary logo URL..." style={{ ...inp, flex: 1 }} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+          <button onClick={() => saveHeroField('splash_logo')} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save</button>
+        </div>
+        {brand.splash_logo && <button onClick={() => removeHeroField('splash_logo')} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove</button>}
+      </div>
+
+      {/* BRAND TEXT */}
       <div style={section}>
         <div style={secHead}>Brand Text</div>
-        <div><label style={lbl}>Brand Name</label><input style={inp} value={form.brand_name} onChange={e => setForm(f => ({ ...f, brand_name: e.target.value }))} className="adm-input" /></div>
-        <div><label style={lbl}>Tagline</label><input style={inp} value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} className="adm-input" /></div>
-        <button onClick={saveBrand} disabled={saving} className="adm-btn-primary" style={{ alignSelf: 'flex-start', padding: '13px 28px', opacity: saving ? 0.6 : 1 }}>
+        <div><label style={lbl}>Brand Name</label><input style={inp} value={form.brand_name} onChange={e => setForm(f => ({ ...f, brand_name: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Tagline</label><input style={inp} value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Registered Office (shown in the footer)</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={2} value={form.registered_office} onChange={e => setForm(f => ({ ...f, registered_office: e.target.value }))} placeholder="e.g. 12/3 Example Street, Noida, Uttar Pradesh 201301" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <button onClick={saveBrand} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: saving ? 0.6 : 1 }}>
           {saving ? 'Saving...' : 'Save Brand Text'}
         </button>
       </div>
 
+      {/* HOME PAGE PRODUCT SHOWCASE */}
       <div style={section}>
         <div style={secHead}>Home Page Product Showcase</div>
         <div style={helpText}>Choose how many products appear in the "Featured Acquisitions" section on the homepage.</div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <select value={brand.featured_count || 3} onChange={e => saveFeaturedCount(Number(e.target.value))} style={{ ...inp, width: 120, cursor: 'pointer' }} className="adm-input">
-            {[2,3,4,5,6].map(n => <option key={n} value={n} style={{ background: '#111' }}>{n} products</option>)}
+          <select value={brand.featured_count || 3} onChange={e => saveFeaturedCount(Number(e.target.value))} style={{ ...inp, width: 120, cursor: 'pointer' }}>
+            {[2,3,4,5,6].map(n => <option key={n} value={n} style={{ background: '#F2EFE4' }}>{n} products</option>)}
           </select>
           <span style={helpText}>currently showing {brand.featured_count || 3}</span>
         </div>
       </div>
 
-      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.2em', color: S.silver, margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
-      <HeroImageField field="hero_image"    title="Home Page Hero"           description="Full-screen background behind the main homepage headline." />
-      <HeroImageField field="hero_shop"     title="Shop Page Hero"           description="Background banner at the top of the Shop / Collection page." />
-      <HeroImageField field="hero_about"    title="About Page Hero"          description="Background banner at the top of the About page." />
-      <HeroImageField field="about_image"   title="About Page — Side Image"  description="The image block next to the brand story text on the About page." />
-      <HeroImageField field="hero_services" title="Services Page Hero"       description="Background banner at the top of the Services page." />
-      <HeroImageField field="hero_stories"  title="Stories Page Hero"        description="Background banner at the top of the Stories / Blog page." />
-      <HeroImageField field="hero_care"     title="Care Guide Page Hero"     description="Background banner at the top of the Care &amp; Preservation page." />
+      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
+
+      <HeroImageField field="hero_image" title="Home Page Hero" description="Full-screen background behind the main homepage headline." />
+      <HeroImageField field="hero_shop" title="Shop Page Hero" description="Background banner at the top of the Shop / Collection page." />
+      <HeroImageField field="hero_gallery" title="Gallery Page Hero" description="Background banner at the top of the Gallery page." />
+      <HeroImageField field="hero_about" title="About Page Hero" description="Background banner at the top of the About page." />
+      <HeroImageField field="about_image" title="About Page Side Image" description="The image block next to the brand story text on the About page." aspect="3/4" />
+      <HeroImageField field="hero_services" title="Services Page Hero" description="Background banner at the top of the Services page." />
+      <HeroImageField field="hero_stories" title="Stories Page Hero" description="Background banner at the top of the Stories page." />
+      <HeroImageField field="hero_care" title="Care Guide Page Hero" description="Background banner at the top of the Care &amp; Preservation page." />
     </div>
   );
 }
@@ -331,8 +342,7 @@ function BrandSettings() {
 
 // ── MAIN ADMIN ────────────────────────────────────────────
 export default function Admin() {
-  const { logout, currentUser } = useAuth();
-  const { brand } = useBrand();
+  const { isAdmin, logout, currentUser } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
   const [products, setProducts] = useState([]);
@@ -345,7 +355,10 @@ export default function Admin() {
 
   useEffect(() => {
     if (!currentUser) { navigate('/admin/login'); return; }
-    if (currentUser.email !== process.env.REACT_APP_ADMIN_EMAIL) { navigate('/'); return; }
+    if (currentUser && currentUser.email !== process.env.REACT_APP_ADMIN_EMAIL) {
+      navigate('/');
+      return;
+    }
     fetchAll();
   }, [currentUser]);
 
@@ -370,7 +383,11 @@ export default function Admin() {
     if (!form.name.trim()) { toast.error('Product name is required.'); return; }
     setSaving(true);
     try {
-      const data = { ...form, price: form.enquiry_only ? null : (Number(form.price) || null), stock: Number(form.stock) || 0 };
+      const data = {
+        ...form,
+        price: form.enquiry_only ? null : (Number(form.price) || null),
+        stock: Number(form.stock) || 0,
+      };
       delete data.id;
       if (editId) {
         const { error } = await supabase.from('products').update({ ...data, updated_at: new Date().toISOString() }).eq('id', editId);
@@ -395,550 +412,230 @@ export default function Admin() {
   }
 
   function editProduct(p) {
-    setForm({ ...EMPTY, ...p, images: p.images || [] });
+    setForm({ ...EMPTY, ...p, images: p.images || [], image_position: p.image_position || '50% 50%', pinterest_url: p.pinterest_url || '' });
     setEditId(p.id); setTab(2);
   }
 
-  async function updateStatus(id, status) {
+  async function toggleFeatured(p) {
+    const { error } = await supabase.from('products').update({ featured: !p.featured }).eq('id', p.id);
+    if (error) { toast.error('Failed to update. Run the featured SQL migration in Supabase if this keeps failing.'); return; }
+    toast.success(p.featured ? 'Removed from Homepage showcase.' : 'Pinned to Homepage showcase.');
+    await fetchAll();
+  }
+
+  async function updateStatus(id, status, order) {
     const { error } = await supabase.from('orders').update({ status }).eq('id', id);
     if (error) { toast.error('Failed.'); return; }
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
     toast.success(`Status: ${status}`);
   }
 
-  async function updateDelivery(id, date) {
+  async function updateDelivery(id, date, order) {
     const { error } = await supabase.from('orders').update({ estimated_delivery: date }).eq('id', id);
     if (error) { toast.error('Failed.'); return; }
     setOrders(prev => prev.map(o => o.id === id ? { ...o, estimated_delivery: date } : o));
     toast.success('Delivery date set.');
   }
 
-  const lbl = { fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', color: 'rgba(240,240,240,0.4)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: S.card, border: `1px solid ${S.cardBdr}`, color: S.iv, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', transition: 'border-color 0.25s' };
-
-  const statusColor = s => s === 'Delivered' ? '#6AD08A' : s === 'Cancelled' ? '#E07070' : s === 'Pending' ? '#E8C060' : s === 'Shipped' ? '#8090E0' : S.iv;
-  const statusBg   = s => s === 'Delivered' ? 'rgba(106,208,138,0.12)' : s === 'Cancelled' ? 'rgba(224,112,112,0.12)' : s === 'Pending' ? 'rgba(232,192,96,0.12)' : s === 'Shipped' ? 'rgba(128,144,224,0.12)' : S.silverFaint;
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.2)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', transition: 'border-color 0.25s' };
+  const stats = [['Products', products.length], ['Orders', orders.length], ['Pending', orders.filter(o => o.status === 'Pending').length], ['Enquiries', enquiries.length]];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: S.bg, color: S.iv }}>
-
-      {/* ══ SIDEBAR ══════════════════════════════════════ */}
-      <aside style={{
-        width: 234, flexShrink: 0,
-        background: S.sidebar,
-        borderRight: `1px solid ${S.sidebarBdr}`,
-        boxShadow: '4px 0 32px rgba(0,0,0,0.6)',
-        display: 'flex', flexDirection: 'column',
-        position: 'fixed', top: 0, left: 0, bottom: 0,
-        zIndex: 200, overflowY: 'auto',
-      }}>
-
-        {/* LOGO / BRAND */}
-        <div style={{ padding: '26px 22px 18px' }}>
-          {brand.logo_url ? (
-            <img src={brand.logo_url} alt={brand.brand_name || 'Logo'}
-              style={{ height: 48, objectFit: 'contain', maxWidth: 172, display: 'block', marginBottom: 13, filter: 'brightness(0) invert(1)' }}
-            />
-          ) : (
-            <div style={{ width: 44, height: 44, background: S.silverFaint, border: `1px solid ${S.sidebarBdr}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 13 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={S.silver} strokeWidth="1.5">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-          )}
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: '#FFFFFF', lineHeight: 1.1, letterSpacing: '.02em', fontWeight: 300 }}>
-            {brand.brand_name || 'Tamarind Taless'}
-          </div>
-          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 8.5, letterSpacing: '0.38em', color: S.silver, textTransform: 'uppercase', marginTop: 6, opacity: 0.7 }}>
-            Admin Panel
-          </div>
+    <div style={{ minHeight: '100vh', background: 'var(--br)', color: 'var(--iv)' }}>
+      {/* NAV */}
+      <div style={{ background: 'rgba(0,0,0,0.25)', borderBottom: '1px solid rgba(33,29,20,0.1)', padding: '15px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: 'var(--iv)' }}>Tamarind Taless</div>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.28em', color: 'var(--gd)' }}>ADMIN</div>
         </div>
-
-        <Divider />
-
-        {/* NAV ITEMS */}
-        <nav style={{ flex: 1, padding: '6px 0' }}>
-          {NAV_ITEMS.map(({ id, label, icon }) => {
-            const active = tab === id;
-            return (
-              <button key={id} onClick={() => setTab(id)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '12px 22px',
-                  background: active ? S.navActive : 'transparent',
-                  border: 'none',
-                  borderLeft: `2px solid ${active ? '#FFFFFF' : 'transparent'}`,
-                  color: active ? '#FFFFFF' : 'rgba(240,240,240,0.36)',
-                  fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.11em',
-                  textTransform: 'uppercase', cursor: 'pointer', textAlign: 'left',
-                  transition: 'all 0.18s',
-                }}
-                onMouseEnter={e => { if (!active) { e.currentTarget.style.background = S.navHover; e.currentTarget.style.color = 'rgba(240,240,240,0.7)'; } }}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(240,240,240,0.36)'; } }}
-              >
-                <span style={{ flexShrink: 0, opacity: active ? 1 : 0.45 }}>{icon}</span>
-                {label}
-                {id === 3 && orders.filter(o => o.status === 'Pending').length > 0 && (
-                  <span style={{ marginLeft: 'auto', background: '#E8C060', color: '#0C0C0C', fontFamily: "'Cinzel',serif", fontSize: 8, padding: '1px 7px', borderRadius: 99 }}>
-                    {orders.filter(o => o.status === 'Pending').length}
-                  </span>
-                )}
-                {id === 4 && enquiries.length > 0 && (
-                  <span style={{ marginLeft: 'auto', background: S.silverFaint, color: S.silver, fontFamily: "'Cinzel',serif", fontSize: 8, padding: '1px 7px', borderRadius: 99, border: `1px solid ${S.sidebarBdr}` }}>
-                    {enquiries.length}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        <Divider />
-
-        {/* BOTTOM: USER + ACTIONS */}
-        <div style={{ padding: '14px 18px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: S.silverFaint, border: `1px solid ${S.sidebarBdr}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={S.silver} strokeWidth="1.5">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-              </svg>
-            </div>
-            <div style={{ overflow: 'hidden', minWidth: 0 }}>
-              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.1em', color: S.silver, textTransform: 'uppercase', marginBottom: 1, opacity: 0.7 }}>Admin</div>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(240,240,240,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 7 }}>
-            <button onClick={() => navigate('/')} className="adm-btn-side" style={{ flex: 1 }}>View Site</button>
-            <button onClick={() => { logout(); navigate('/admin/login'); }} className="adm-btn-side-danger" style={{ flex: 1 }}>Sign Out</button>
-          </div>
-        </div>
-      </aside>
-
-      {/* ══ MAIN AREA ═════════════════════════════════════ */}
-      <div style={{ marginLeft: 234, flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: '100vh' }}>
-
-        {/* TOP BAR */}
-        <div style={{
-          background: S.topbar,
-          backdropFilter: 'blur(16px)',
-          borderBottom: `1px solid ${S.sidebarBdr}`,
-          boxShadow: '0 2px 20px rgba(0,0,0,0.4)',
-          padding: '14px 36px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          position: 'sticky', top: 0, zIndex: 100,
-        }}>
-          <div>
-            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9.5, letterSpacing: '0.3em', color: 'rgba(200,200,200,0.5)', textTransform: 'uppercase', marginBottom: 4 }}>
-              {['Dashboard','Products','Add Product','Orders','Enquiries','Stories','Brand Settings'][tab]}
-            </div>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, color: '#FFFFFF', lineHeight: 1, fontWeight: 300 }}>
-              {tab === 2 && editId ? 'Edit Product' : ['Overview','All Products','Add New Product','All Orders','All Enquiries','Stories & Blog','Brand Settings'][tab]}
-            </div>
-          </div>
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(200,200,200,0.35)', fontStyle: 'italic' }}>
-            {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-          </div>
-        </div>
-
-        {/* PAGE CONTENT */}
-        <div style={{ padding: '32px 36px 72px', flex: 1 }}>
-
-          {/* ── DASHBOARD ── */}
-          {tab === 0 && (
-            <div>
-              {/* STAT CARDS */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 28 }}>
-                {[
-                  { label: 'Total Products', value: products.length, color: '#FFFFFF',  bg: 'rgba(255,255,255,0.05)', sub: 'In catalogue' },
-                  { label: 'Total Orders',   value: orders.length,   color: '#6AD08A',  bg: 'rgba(106,208,138,0.06)', sub: 'All time' },
-                  { label: 'Pending Orders', value: orders.filter(o => o.status === 'Pending').length, color: '#E8C060', bg: 'rgba(232,192,96,0.06)', sub: 'Awaiting action' },
-                  { label: 'Enquiries',      value: enquiries.length, color: '#C4C4C4', bg: 'rgba(200,200,200,0.05)', sub: 'Total received' },
-                ].map(({ label, value, color, bg, sub }) => (
-                  <div key={label} style={{ background: bg, border: `1px solid rgba(255,255,255,0.09)`, borderTop: `2px solid ${color}`, padding: '24px 20px' }}>
-                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color, fontWeight: 300, lineHeight: 1, marginBottom: 10 }}>{value}</div>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.16em', color: S.iv, textTransform: 'uppercase' }}>{label}</div>
-                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(240,240,240,0.3)', marginTop: 4, fontStyle: 'italic' }}>{sub}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* RECENT ORDERS + SIDE PANEL */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
-
-                {/* RECENT ORDERS TABLE */}
-                <div style={{ background: S.card, border: `1px solid ${S.cardBdr}`, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: S.divider, background: 'rgba(255,255,255,0.03)' }}>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.2em', color: S.iv, textTransform: 'uppercase' }}>Recent Orders</div>
-                    <button onClick={() => setTab(3)} style={{ background: 'none', border: 'none', fontFamily: "'Cinzel',serif", fontSize: 9, color: 'rgba(200,200,200,0.45)', cursor: 'pointer', letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(200,200,200,0.45)'}
-                    >View All →</button>
-                  </div>
-                  {orders.length === 0 ? (
-                    <div style={{ padding: '44px 20px', textAlign: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(240,240,240,0.2)', fontStyle: 'italic' }}>No orders yet</div>
-                  ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                          {['Order ID','Customer','Items','Total','Status'].map(h => (
-                            <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 14px', textAlign: 'left', color: 'rgba(200,200,200,0.45)', borderBottom: S.divider, fontWeight: 400 }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {orders.slice(0, 7).map(o => (
-                          <tr key={o.id} style={{ transition: 'background 0.15s' }}
-                            onMouseEnter={e => e.currentTarget.style.background = S.rowHover}
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                          >
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cinzel',serif", fontSize: 9, color: S.silver, borderBottom: `1px solid rgba(255,255,255,0.05)`, whiteSpace: 'nowrap' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</td>
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: S.iv, borderBottom: `1px solid rgba(255,255,255,0.05)` }}>{o.user_name || '—'}</td>
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(240,240,240,0.4)', borderBottom: `1px solid rgba(255,255,255,0.05)`, maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.items?.map(i => i.name).join(', ') || '—'}</td>
-                            <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: '#FFFFFF', fontWeight: 400, borderBottom: `1px solid rgba(255,255,255,0.05)`, whiteSpace: 'nowrap' }}>{fmt(o.total)}</td>
-                            <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', color: statusColor(o.status), background: statusBg(o.status) }}>
-                                {o.status || 'Pending'}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {/* QUICK PANEL */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {/* QUICK ACTIONS */}
-                  <div style={{ background: S.card, border: `1px solid ${S.cardBdr}`, padding: '20px 18px' }}>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.18em', color: S.iv, textTransform: 'uppercase', marginBottom: 6 }}>Quick Actions</div>
-                    <div style={{ height: 1, background: S.silverLine, marginBottom: 16 }} />
-                    {[
-                      { label: 'Add New Product', action: () => { setForm({...EMPTY}); setEditId(null); setTab(2); }, primary: true },
-                      { label: 'View All Orders',  action: () => setTab(3), primary: false },
-                      { label: 'Manage Stories',   action: () => setTab(5), primary: false },
-                      { label: 'Brand Settings',   action: () => setTab(6), primary: false },
-                    ].map(({ label, action, primary }) => (
-                      <button key={label} onClick={action} style={{
-                        width: '100%', display: 'block', padding: '11px 14px', marginBottom: 8,
-                        background: primary ? '#FFFFFF' : 'rgba(255,255,255,0.04)',
-                        border: primary ? 'none' : `1px solid rgba(255,255,255,0.12)`,
-                        fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.11em', textTransform: 'uppercase',
-                        color: primary ? '#0C0C0C' : 'rgba(240,240,240,0.5)',
-                        cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
-                      }}
-                        onMouseEnter={e => { if (primary) { e.currentTarget.style.background='#E8E8E8'; } else { e.currentTarget.style.background='rgba(255,255,255,0.09)'; e.currentTarget.style.color='#FFF'; e.currentTarget.style.borderColor='rgba(255,255,255,0.25)'; } }}
-                        onMouseLeave={e => { if (primary) { e.currentTarget.style.background='#FFFFFF'; } else { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.color='rgba(240,240,240,0.5)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.12)'; } }}
-                      >{label}</button>
-                    ))}
-                  </div>
-
-                  {/* CATEGORY BREAKDOWN */}
-                  {products.length > 0 && (
-                    <div style={{ background: S.card, border: `1px solid ${S.cardBdr}`, padding: '18px 16px' }}>
-                      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 11, letterSpacing: '0.18em', color: S.iv, textTransform: 'uppercase', marginBottom: 6 }}>By Category</div>
-                      <div style={{ height: 1, background: S.silverLine, marginBottom: 14 }} />
-                      {CATS.map(cat => {
-                        const count = products.filter(p => p.cat === cat).length;
-                        if (!count) return null;
-                        return (
-                          <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
-                            <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(240,240,240,0.5)', textTransform: 'capitalize' }}>{cat}</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <div style={{ width: 60, height: 2, background: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden' }}>
-                                <div style={{ width: `${(count / products.length) * 100}%`, height: '100%', background: '#FFFFFF' }} />
-                              </div>
-                              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 10, color: S.silver, minWidth: 16, textAlign: 'right' }}>{count}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── PRODUCTS LIST ── */}
-          {tab === 1 && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 12, letterSpacing: '0.18em', color: S.iv, textTransform: 'uppercase' }}>All Products ({products.length})</div>
-                <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(2); }} className="adm-btn-primary">Add New Product</button>
-              </div>
-              {loading ? <div style={{ textAlign: 'center', padding: 60, color: 'rgba(240,240,240,0.2)' }}>Loading...</div> : (
-                <div style={{ background: S.card, border: `1px solid ${S.cardBdr}`, overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
-                    <thead>
-                      <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                        {['Image','Name','Category','Price','Stock','Visible','Actions'].map(h => (
-                          <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '12px 14px', textAlign: 'left', borderBottom: S.divider, color: 'rgba(200,200,200,0.45)', fontWeight: 400 }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map(p => (
-                        <tr key={p.id} style={{ transition: 'background 0.15s' }}
-                          onMouseEnter={e => e.currentTarget.style.background = S.rowHover}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                          <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                            <div style={{ width: 52, height: 52, background: p.bg, overflow: 'hidden' }}>
-                              {p.images?.[0] && <img src={p.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                            </div>
-                          </td>
-                          <td style={{ padding: '10px 14px', color: S.iv, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, borderBottom: `1px solid rgba(255,255,255,0.05)` }}>{p.name}</td>
-                          <td style={{ padding: '10px 14px', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.12em', color: S.silver, textTransform: 'uppercase', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>{p.cat}</td>
-                          <td style={{ padding: '10px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: '#FFFFFF', fontWeight: 400, borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                            {p.enquiry_only ? <span style={{ fontStyle: 'italic', fontSize: 14, color: 'rgba(240,240,240,0.4)' }}>Enquiry</span> : fmt(p.price)}
-                          </td>
-                          <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                            {p.stock === 0
-                              ? <span style={{ background: 'rgba(120,120,120,0.15)', color: '#888', padding: '2px 8px', fontSize: 8, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>Sold</span>
-                              : <span style={{ color: 'rgba(240,240,240,0.55)', fontSize: 14, fontFamily: "'Cormorant Garamond',serif" }}>{p.stock}</span>
-                            }
-                          </td>
-                          <td style={{ padding: '10px 14px', fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: p.available ? '#6AD08A' : '#C07070', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                            {p.available ? 'Live' : 'Hidden'}
-                          </td>
-                          <td style={{ padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                              <button onClick={() => editProduct(p)} className="adm-btn-outline" style={{ padding: '5px 12px', fontSize: 9 }}>Edit</button>
-                              <button onClick={() => deleteProduct(p.id, p.name)} className="adm-btn-danger" style={{ padding: '5px 12px', fontSize: 9 }}>Delete</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {products.length === 0 && (
-                        <tr><td colSpan={7} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(240,240,240,0.18)', fontFamily: "'Cormorant Garamond',serif", fontSize: 17 }}>No products yet — click "Add New Product"</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── ADD / EDIT PRODUCT ── */}
-          {tab === 2 && (
-            <div style={{ maxWidth: 740 }}>
-              <div style={{ background: S.card, border: `1px solid ${S.cardBdr}`, padding: '34px 32px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Product Name *</label><input style={inp} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Naranbil Bhagavathy" className="adm-input" /></div>
-                  <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="e.g. Guardian of Justice" className="adm-input" /></div>
-                  <div><label style={lbl}>Category</label><select style={{ ...inp, cursor: 'pointer' }} value={form.cat} onChange={e => setF('cat', e.target.value)} className="adm-input">{CATS.map(c => <option key={c} value={c} style={{ background: '#111' }}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>)}</select></div>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Origin</label><input style={inp} value={form.origin} onChange={e => setF('origin', e.target.value)} placeholder="e.g. North Malabar, Kerala" className="adm-input" /></div>
-                  <div><label style={lbl}>Material</label><input style={inp} value={form.material} onChange={e => setF('material', e.target.value)} placeholder="e.g. Bronze" className="adm-input" /></div>
-                  <div><label style={lbl}>Dimensions</label><input style={inp} value={form.dimensions} onChange={e => setF('dimensions', e.target.value)} placeholder='10" H x 4" W' className="adm-input" /></div>
-                  <div><label style={lbl}>Weight</label><input style={inp} value={form.weight} onChange={e => setF('weight', e.target.value)} placeholder="e.g. 1.2 kg" className="adm-input" /></div>
-                  <div><label style={lbl}>Stock</label><input style={inp} type="number" min="0" value={form.stock} onChange={e => setF('stock', e.target.value)} className="adm-input" /></div>
-                  <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <input type="checkbox" id="eq" checked={form.enquiry_only} onChange={e => setF('enquiry_only', e.target.checked)} style={{ accentColor: '#C4C4C4', width: 16, height: 16, cursor: 'pointer' }} />
-                    <label htmlFor="eq" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Enquiry Only — hide price, show WhatsApp button</label>
-                  </div>
-                  {!form.enquiry_only && (
-                    <div><label style={lbl}>Price (Rs.)</label><input style={inp} type="number" value={form.price} onChange={e => setF('price', e.target.value)} placeholder="e.g. 45000" className="adm-input" /></div>
-                  )}
-                  <div><label style={lbl}>Badge</label><input style={inp} value={form.badge} onChange={e => setF('badge', e.target.value)} placeholder="Featured / Rare / Collector" className="adm-input" /></div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <input type="checkbox" id="av" checked={form.available} onChange={e => setF('available', e.target.checked)} style={{ accentColor: '#C4C4C4', width: 16, height: 16, cursor: 'pointer' }} />
-                    <label htmlFor="av" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Visible on website</label>
-                  </div>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Story</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={4} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="The story behind this piece..." className="adm-input" /></div>
-                  <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Collection Note</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={3} value={form.together} onChange={e => setF('together', e.target.value)} placeholder="Context..." className="adm-input" /></div>
-                  <div style={{ gridColumn: '1/-1' }}><ImageUploader images={form.images || []} onChange={imgs => setF('images', imgs)} /></div>
-                </div>
-                <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
-                  <button onClick={saveProduct} disabled={saving} className="adm-btn-primary" style={{ padding: '13px 32px', opacity: saving ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {saving && <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />}
-                    {editId ? 'Update Product' : 'Add Product'}
-                  </button>
-                  {editId && (
-                    <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(1); }} className="adm-btn-outline" style={{ padding: '13px 28px' }}>Cancel</button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── ORDERS ── */}
-          {tab === 3 && (
-            <div>
-              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 12, letterSpacing: '0.18em', color: S.iv, marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
-              {loading ? <div style={{ textAlign: 'center', padding: 60 }}><span className="spinner"></span></div> : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {orders.map(o => (
-                    <div key={o.id} style={{ background: S.card, border: `1px solid ${S.cardBdr}`, padding: '24px 26px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
-                        <div>
-                          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 13, letterSpacing: '0.2em', color: '#FFFFFF' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
-                          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(240,240,240,0.6)', marginTop: 3 }}>{o.user_name} — {o.user_email}</div>
-                          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(240,240,240,0.35)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '—'}</div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, color: '#FFFFFF', fontWeight: 400 }}>{fmt(o.total)}</div>
-                          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 9, color: o.payment_method === 'razorpay' ? '#6AD08A' : S.silver, textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
-                        </div>
-                      </div>
-                      <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: S.divider }}>
-                        {o.items?.map((item, i) => <span key={i} style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(240,240,240,0.4)', marginRight: 12 }}>{item.name} ×{item.qty}</span>)}
-                      </div>
-                      {o.address && (
-                        <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(240,240,240,0.35)', lineHeight: 1.6 }}>
-                          {o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state} — {o.address.pincode}
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                        <div>
-                          <label style={{ ...lbl, marginBottom: 6 }}>Status</label>
-                          <select value={o.status || 'Pending'} onChange={e => updateStatus(o.id, e.target.value)} style={{ background: S.selectBg, border: `1px solid ${S.cardBdr}`, color: S.iv, padding: '8px 12px', fontFamily: "'Cinzel',serif", fontSize: 10, letterSpacing: '0.1em', outline: 'none', cursor: 'pointer' }}>
-                            {STATUSES.map(s => <option key={s} value={s} style={{ background: '#111' }}>{s}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label style={{ ...lbl, marginBottom: 6 }}>Delivery Date</label>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <input type="date" id={`dd-${o.id}`} defaultValue={o.estimated_delivery ? new Date(o.estimated_delivery).toISOString?.().split('T')[0] : ''} style={{ background: S.selectBg, border: `1px solid ${S.cardBdr}`, color: S.iv, padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', colorScheme: 'dark' }} />
-                            <button onClick={() => { const v = document.getElementById(`dd-${o.id}`)?.value; if (v) { const d = new Date(v); updateDelivery(o.id, d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })); } }} className="adm-btn-primary" style={{ padding: '8px 16px', fontSize: 10 }}>Set</button>
-                          </div>
-                          {o.estimated_delivery && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: S.silver, marginTop: 5, fontStyle: 'italic' }}>Set: {o.estimated_delivery}</div>}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {orders.length === 0 && <div style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(240,240,240,0.18)', fontFamily: "'Cormorant Garamond',serif", fontSize: 17 }}>No orders yet</div>}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── ENQUIRIES ── */}
-          {tab === 4 && (
-            <div style={{ background: S.card, border: `1px solid ${S.cardBdr}`, overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
-                <thead>
-                  <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    {['Product','Customer','Message','Date','Type','Status'].map(h => (
-                      <th key={h} style={{ fontFamily: "'Cinzel',serif", fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '12px 14px', textAlign: 'left', borderBottom: S.divider, color: 'rgba(200,200,200,0.45)', fontWeight: 400 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {enquiries.map(e => (
-                    <tr key={e.id} style={{ transition: 'background 0.15s' }}
-                      onMouseEnter={ev => ev.currentTarget.style.background = S.rowHover}
-                      onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
-                    >
-                      <td style={{ padding: '12px 14px', color: 'rgba(240,240,240,0.7)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, borderBottom: `1px solid rgba(255,255,255,0.05)` }}>{e.product || '—'}</td>
-                      <td style={{ padding: '12px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(240,240,240,0.6)', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                        {e.user_name}<br /><span style={{ opacity: 0.4, fontSize: 12 }}>{e.user_email}</span>
-                      </td>
-                      <td style={{ padding: '12px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(240,240,240,0.45)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>{e.message || '—'}</td>
-                      <td style={{ padding: '12px 14px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(240,240,240,0.35)', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—'}</td>
-                      <td style={{ padding: '12px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}><span style={{ background: 'rgba(60,120,70,0.12)', color: '#6AD08A', padding: '2px 8px', fontSize: 8, fontFamily: "'Cinzel',serif", textTransform: 'uppercase' }}>{e.type || 'Email'}</span></td>
-                      <td style={{ padding: '12px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}><span style={{ background: S.silverFaint, color: S.silver, padding: '2px 8px', fontSize: 8, fontFamily: "'Cinzel',serif", textTransform: 'uppercase', border: `1px solid ${S.sidebarBdr}` }}>{e.status || 'Received'}</span></td>
-                    </tr>
-                  ))}
-                  {enquiries.length === 0 && (
-                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(240,240,240,0.18)', fontFamily: "'Cormorant Garamond',serif", fontSize: 17 }}>No enquiries yet</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── STORIES ── */}
-          {tab === 5 && <StoriesManager />}
-
-          {/* ── BRAND SETTINGS ── */}
-          {tab === 6 && <BrandSettings />}
-
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.35)' }}>{currentUser?.email}</span>
+          <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.color = 'var(--gd)'} onMouseLeave={e => e.target.style.color = 'rgba(106,99,80,0.4)'}>View Site</button>
+          <button onClick={() => { logout(); navigate('/admin/login'); }} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.2)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.45)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => { e.target.style.borderColor = 'var(--gd)'; e.target.style.color = 'var(--gd)'; }} onMouseLeave={e => { e.target.style.borderColor = 'rgba(33,29,20,0.2)'; e.target.style.color = 'rgba(106,99,80,0.45)'; }}>Sign Out</button>
         </div>
       </div>
 
+      <div className="admin-body-pad" style={{ padding: '28px 30px 60px' }}>
+        {/* TABS */}
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(33,29,20,0.1)', marginBottom: 28, overflowX: 'auto' }}>
+          {TABS.map((t, i) => <button key={i} onClick={() => setTab(i)} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '12px 18px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === i ? 'var(--gd)' : 'transparent'}`, color: tab === i ? 'var(--cr)' : 'rgba(106,99,80,0.38)', cursor: 'pointer', marginBottom: -1, whiteSpace: 'nowrap' }}>{t}</button>)}
+        </div>
+
+        {/* DASHBOARD */}
+        {tab === 0 && <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>{stats.map(([l, v]) => <div key={l} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: 24 }}><div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color: 'var(--gd)', fontWeight: 300, lineHeight: 1 }}>{v}</div><div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.18em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', marginTop: 6 }}>{l}</div></div>)}</div>}
+
+        {/* PRODUCTS LIST */}
+        {tab === 1 && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>All Products ({products.length})</div>
+              <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(2); }} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Product</button>
+            </div>
+            {loading ? <div style={{ textAlign: 'center', padding: 60, color: 'rgba(106,99,80,0.3)' }}>Loading...</div> : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
+                  <thead><tr>{['Image', 'Name', 'Category', 'Price', 'Stock', 'Visible', 'Actions'].map(h => <th key={h} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(33,29,20,0.12)', color: 'rgba(106,99,80,0.4)' }}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {products.map(p => (
+                      <tr key={p.id}>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><div style={{ width: 52, height: 52, background: p.bg, overflow: 'hidden' }}>{p.images?.[0] && <img src={p.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</div></td>
+                        <td style={{ padding: '10px 12px', color: 'var(--iv)', fontSize: 15, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.name}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', color: 'var(--gd)', textTransform: 'uppercase', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.cat}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)', fontWeight: 500, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.enquiry_only ? <span style={{ fontStyle: 'italic', fontSize: 15, color: 'rgba(106,99,80,0.5)' }}>Enquiry</span> : fmt(p.price)}</td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.stock === 0 ? <span style={{ background: 'var(--bg-hover)', color: 'var(--text-muted)', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>Sold</span> : p.stock === 1 ? <span style={{ background: 'var(--tr)', color: '#fff', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>Last 1</span> : <span style={{ color: 'rgba(106,99,80,0.6)', fontSize: 14 }}>{p.stock}</span>}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: p.available ? 'var(--success)' : 'var(--error)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.available ? 'Live' : 'Hidden'}</td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => toggleFeatured(p)} title={p.featured ? 'Unpin from Homepage' : 'Pin to Homepage'} style={{ background: p.featured ? 'var(--gd)' : 'none', border: '1px solid rgba(33,29,20,0.25)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', color: p.featured ? 'var(--text-dark)' : 'var(--gd)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }}>{p.featured ? '★ Pinned' : '☆ Pin'}</button>
+                            <button onClick={() => editProduct(p)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.25)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', color: 'var(--gd)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.background = 'rgba(33,29,20,0.1)'} onMouseLeave={e => e.target.style.background = 'none'}>Edit</button>
+                            <button onClick={() => deleteProduct(p.id, p.name)} style={{ background: 'none', border: '1px solid rgba(192,120,64,0.4)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', color: 'var(--error)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.background = 'rgba(192,120,64,0.15)'} onMouseLeave={e => e.target.style.background = 'none'}>Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {products.length === 0 && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(106,99,80,0.2)' }}>No products yet</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ADD/EDIT PRODUCT */}
+        {tab === 2 && (
+          <div style={{ maxWidth: 720 }}>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 24, textTransform: 'uppercase' }}>{editId ? 'Edit Product' : 'Add New Product'}</div>
+            <div style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: '30px 28px' }}>
+              <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Product Name *</label><input style={inp} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Naranbil Bhagavathy" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="e.g. Guardian of Justice" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Category</label><select style={{ ...inp, cursor: 'pointer' }} value={form.cat} onChange={e => setF('cat', e.target.value)}>{CATS.map(c => <option key={c} value={c} style={{ background: '#F2EFE4' }}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}</select></div>
+                <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Source</label><input style={inp} value={form.origin} onChange={e => setF('origin', e.target.value)} placeholder="e.g. North Malabar, Kerala" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Material</label><input style={inp} value={form.material} onChange={e => setF('material', e.target.value)} placeholder="e.g. Bronze" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Dimensions</label><input style={inp} value={form.dimensions} onChange={e => setF('dimensions', e.target.value)} placeholder='10" H x 4" W' onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Weight</label><input style={inp} value={form.weight} onChange={e => setF('weight', e.target.value)} placeholder="e.g. 1.2 kg" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Stock (0 = Sold Out)</label><input style={inp} type="number" min="0" value={form.stock} onChange={e => setF('stock', e.target.value)} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <input type="checkbox" id="eq" checked={form.enquiry_only} onChange={e => setF('enquiry_only', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+                  <label htmlFor="eq" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Enquiry Only (hide price, show WhatsApp button)</label>
+                </div>
+                {!form.enquiry_only && <div><label style={lbl}>Price (Rs.)</label><input style={inp} type="number" value={form.price} onChange={e => setF('price', e.target.value)} placeholder="e.g. 45000" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>}
+                <div><label style={lbl}>Badge</label><input style={inp} value={form.badge} onChange={e => setF('badge', e.target.value)} placeholder="Featured / Rare / Collector" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Pinterest Pin URL (optional)</label><input style={inp} value={form.pinterest_url} onChange={e => setF('pinterest_url', e.target.value)} placeholder="Paste the pin's URL from Pinterest — leave blank to auto-generate a Pin It link" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <input type="checkbox" id="av" checked={form.available} onChange={e => setF('available', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+                  <label htmlFor="av" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Visible on website</label>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <input type="checkbox" id="ft" checked={form.featured} onChange={e => setF('featured', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+                  <label htmlFor="ft" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Featured (pin to Homepage showcase)</label>
+                </div>
+                <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Story</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={4} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="The story behind this piece..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Collection Note</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={3} value={form.together} onChange={e => setF('together', e.target.value)} placeholder="Context..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div style={{ gridColumn: '1/-1' }}>
+                  <ImageUploader images={form.images || []} onChange={imgs => setF('images', imgs)} />
+                </div>
+                <div style={{ gridColumn: '1/-1' }}>
+                  <ImagePositionPicker image={form.images?.[0]} value={form.image_position} onChange={v => setF('image_position', v)} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
+                <button onClick={saveProduct} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {saving ? <span style={{ width: 14, height: 14, border: '2px solid rgba(26,15,8,0.3)', borderTopColor: 'var(--br)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} /> : null}
+                  {editId ? 'Update Product' : 'Add Product'}
+                </button>
+                {editId && <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(1); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ORDERS */}
+        {tab === 3 && (
+          <div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
+            {loading ? <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div> : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {orders.map(o => (
+                  <div key={o.id} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: '22px 24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
+                      <div>
+                        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.2em', color: 'var(--gd)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.7)', marginTop: 3 }}>{o.user_name}, {o.user_email}</div>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.4)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '-'}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}>{fmt(o.total)}</div>
+                        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, color: o.payment_method === 'razorpay' ? 'var(--success)' : 'var(--gd)', textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(33,29,20,0.08)' }}>
+                      {o.items?.map((item, i) => <span key={i} style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.5)', marginRight: 12 }}>{item.name} ×{item.qty}</span>)}
+                    </div>
+                    {o.address && <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.4)', lineHeight: 1.6 }}>{o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state}, {o.address.pincode}</div>}
+                    <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                      <div>
+                        <label style={{ ...lbl, marginBottom: 6 }}>Status</label>
+                        <select value={o.status || 'Pending'} onChange={e => updateStatus(o.id, e.target.value, o)} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', outline: 'none', cursor: 'pointer' }}>
+                          {STATUSES.map(s => <option key={s} value={s} style={{ background: '#F2EFE4' }}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ ...lbl, marginBottom: 6 }}>Delivery Date</label>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input type="date" id={`dd-${o.id}`} defaultValue={o.estimated_delivery ? new Date(o.estimated_delivery).toISOString?.().split('T')[0] : ''} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', colorScheme: 'light' }} />
+                          <button onClick={() => { const v = document.getElementById(`dd-${o.id}`)?.value; if (v) { const d = new Date(v); updateDelivery(o.id, d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), o); } }} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 14px', cursor: 'pointer' }}>Set &amp; Notify</button>
+                        </div>
+                        {o.estimated_delivery && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--gd)', marginTop: 5, fontStyle: 'italic' }}>Set: {o.estimated_delivery}</div>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {orders.length === 0 && <div style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(106,99,80,0.2)' }}>No orders yet</div>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ENQUIRIES */}
+        {tab === 4 && (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
+              <thead><tr>{['Product', 'Customer', 'Message', 'Date', 'Type', 'Status'].map(h => <th key={h} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(33,29,20,0.12)', color: 'rgba(106,99,80,0.4)' }}>{h}</th>)}</tr></thead>
+              <tbody>
+                {enquiries.map(e => (
+                  <tr key={e.id}>
+                    <td style={{ padding: '12px', color: 'rgba(106,99,80,0.7)', fontSize: 15, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.product || '-'}</td>
+                    <td style={{ padding: '12px', fontSize: 15, color: 'rgba(106,99,80,0.6)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.user_name}<br /><span style={{ opacity: 0.5, fontSize: 13 }}>{e.user_email}</span></td>
+                    <td style={{ padding: '12px', fontSize: 15, color: 'rgba(106,99,80,0.5)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.message || '-'}</td>
+                    <td style={{ padding: '12px', fontSize: 15, color: 'rgba(106,99,80,0.4)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '-'}</td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(107,142,80,0.1)', color: 'var(--success)', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.type || 'Email'}</span></td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(33,29,20,0.1)', color: 'var(--gd)', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.status || 'Received'}</span></td>
+                  </tr>
+                ))}
+                {enquiries.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(106,99,80,0.2)' }}>No enquiries yet</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* STORIES */}
+        {tab === 5 && <StoriesManager />}
+
+        {/* BRAND SETTINGS */}
+        {tab === 6 && <BrandSettings />}
+      </div>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .adm-btn-primary {
-          background: #FFFFFF;
-          border: none;
-          color: #0C0C0C;
-          font-family: 'Cinzel',serif;
-          font-size: 11px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          padding: 10px 20px;
-          cursor: pointer;
-          transition: background 0.2s;
+        @media (max-width: 768px) {
+          .admin-body-pad { padding: 20px 16px 44px !important; }
+          .admin-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+          .admin-form-grid { grid-template-columns: 1fr !important; }
         }
-        .adm-btn-primary:hover { background: #E0E0E0; }
-
-        .adm-btn-outline {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.2);
-          color: rgba(240,240,240,0.6);
-          font-family: 'Cinzel',serif;
-          font-size: 10px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          padding: 8px 16px;
-          cursor: pointer;
-          transition: all 0.2s;
+        @media (max-width: 480px) {
+          .admin-stats-grid { grid-template-columns: 1fr !important; }
         }
-        .adm-btn-outline:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); color: #fff; }
-
-        .adm-btn-danger {
-          background: rgba(200,60,60,0.1);
-          border: 1px solid rgba(200,80,80,0.3);
-          color: #D07070;
-          font-family: 'Cinzel',serif;
-          font-size: 10px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          padding: 7px 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .adm-btn-danger:hover { background: rgba(200,60,60,0.2); border-color: rgba(200,80,80,0.55); color: #E08080; }
-
-        .adm-btn-side {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.12);
-          font-family: 'Cinzel',serif;
-          font-size: 9px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: rgba(240,240,240,0.38);
-          padding: 9px 4px;
-          cursor: pointer;
-          transition: all 0.2s;
-          border-radius: 2px;
-        }
-        .adm-btn-side:hover { border-color: rgba(255,255,255,0.3); color: #fff; background: rgba(255,255,255,0.08); }
-
-        .adm-btn-side-danger {
-          background: rgba(200,50,50,0.07);
-          border: 1px solid rgba(200,70,70,0.2);
-          font-family: 'Cinzel',serif;
-          font-size: 9px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: rgba(210,100,100,0.6);
-          padding: 9px 4px;
-          cursor: pointer;
-          transition: all 0.2s;
-          border-radius: 2px;
-        }
-        .adm-btn-side-danger:hover { border-color: rgba(200,70,70,0.5); color: #D07070; background: rgba(200,50,50,0.14); }
-
-        .adm-input:focus { border-color: rgba(255,255,255,0.4) !important; outline: none; }
-
-        aside::-webkit-scrollbar { width: 4px; }
-        aside::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-        aside::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-        aside::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
       `}</style>
     </div>
   );

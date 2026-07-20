@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
-import { BrandProvider } from './context/BrandContext';
+import { BrandProvider, useBrand } from './context/BrandContext';
 import { CartProvider } from './context/CartContext';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
@@ -25,6 +25,8 @@ import ShippingPolicy from './pages/ShippingPolicy';
 import Services from './pages/Services';
 import Stories from './pages/Stories';
 import Care from './pages/Care';
+import ProductPage from './pages/ProductPage';
+import Gallery from './pages/Gallery';
 import './styles/globals.css';
 
 function ScrollToTop() {
@@ -83,12 +85,99 @@ function AppLayout({ children }) {
   );
 }
 
+// Branded splash shown while brand settings load; uses the Admin-uploaded splash logo when set
+function SplashScreen() {
+  const { brand, loading } = useBrand();
+  const [gone, setGone] = React.useState(false);
+  React.useEffect(() => {
+    if (!loading) { const t = setTimeout(() => setGone(true), 450); return () => clearTimeout(t); }
+  }, [loading]);
+  if (gone) return null;
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 99999, background: 'var(--bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      opacity: loading ? 1 : 0, transition: 'opacity .45s ease', pointerEvents: loading ? 'auto' : 'none',
+    }}>
+      <div className="splash-ring">
+        {(brand.splash_logo || brand.logo_url) && <img src={brand.splash_logo || brand.logo_url} alt="" />}
+      </div>
+      <style>{`
+        .splash-ring {
+          position: relative; width: 160px; height: 160px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .splash-ring::before {
+          content: ''; position: absolute; inset: -7px; border-radius: 50%;
+          border: 4px solid transparent; border-top-color: var(--gd);
+          animation: splashRingSpin 1s linear infinite;
+        }
+        .splash-ring img { width: 120px; height: 120px; object-fit: contain; }
+        @keyframes splashRingSpin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+}
+
+// Route-transition "buffering" overlay: dark shade + pulsing logo shown briefly on every navigation.
+// Data-heavy pages (fetch from Supabase on mount) get a longer duration.
+const ROUTE_LOAD_MS = {
+  '/stories': 2000,
+  '/shop': 2000,
+  '/gallery': 2000,
+  '/account': 2000,
+  '/admin': 2000,
+};
+const DEFAULT_ROUTE_LOAD_MS = 1000;
+
+function RouteLoader() {
+  const { pathname } = useLocation();
+  const { brand } = useBrand();
+  const [active, setActive] = React.useState(false);
+  const isFirst = React.useRef(true);
+
+  React.useEffect(() => {
+    if (isFirst.current) { isFirst.current = false; return; } // initial load already shown by SplashScreen
+    const ms = ROUTE_LOAD_MS[pathname] ?? DEFAULT_ROUTE_LOAD_MS;
+    setActive(true);
+    const t = setTimeout(() => setActive(false), ms);
+    return () => clearTimeout(t);
+  }, [pathname]);
+
+  return (
+    <div className="route-loader-overlay" style={{
+      position: 'fixed', inset: 0, zIndex: 99998,
+      background: 'var(--bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      opacity: active ? 1 : 0, pointerEvents: active ? 'auto' : 'none',
+      transition: 'opacity .3s ease',
+    }}>
+      <div className="route-ring">
+        {(brand.splash_logo || brand.logo_url) && <img src={brand.splash_logo || brand.logo_url} alt="" />}
+      </div>
+      <style>{`
+        .route-ring {
+          position: relative; width: 160px; height: 160px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .route-ring::before {
+          content: ''; position: absolute; inset: -7px; border-radius: 50%;
+          border: 4px solid transparent; border-top-color: var(--gd);
+          animation: routeRingSpin 1s linear infinite;
+        }
+        .route-ring img { width: 120px; height: 120px; object-fit: contain; }
+        @keyframes routeRingSpin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+}
+
 function NotFound() {
   return (
     <div style={{ paddingTop: 64, minHeight: '80vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center', padding: '60px 24px' }}>
         <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(80px,14vw,140px)', fontWeight: 300, color: 'var(--iv)', lineHeight: 1, opacity: .15 }}>404</div>
-        <div style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '.3em', color: 'var(--gd)', marginBottom: 18, textTransform: 'uppercase' }}>Page Not Found</div>
+        <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.3em', color: 'var(--gd)', marginBottom: 18, textTransform: 'uppercase' }}>Page Not Found</div>
         <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'var(--iv)', marginBottom: 28, fontStyle: 'italic' }}>The page you are looking for does not exist.</p>
         <a href="/" className="btn btn-gold" style={{ textDecoration: 'none', display: 'inline-flex' }}>Return Home</a>
       </div>
@@ -102,22 +191,24 @@ export default function App() {
       <AuthProvider>
         <BrandProvider>
           <CartProvider>
+            <SplashScreen />
+            <RouteLoader />
             <CursorAndProgress />
             <Toaster
               position="bottom-right"
               toastOptions={{
                 style: {
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: '9px',
+                  fontFamily: "'Inter', sans-serif", fontWeight: 600,
+                  fontSize: '12px',
                   letterSpacing: '0.15em',
-                  background: '#2A0C14',
-                  color: '#F8ECD8',
-                  borderLeft: '3px solid #D4A040',
+                  background: '#F2EFE4',
+                  color: '#1E1B14',
+                  borderLeft: '3px solid #211D14',
                   borderRadius: 0,
                   padding: '13px 22px',
                 },
-                success: { iconTheme: { primary: '#D4A040', secondary: '#2A0C14' } },
-                error: { style: { borderLeft: '3px solid #B02840' } },
+                success: { iconTheme: { primary: '#211D14', secondary: '#F2EFE4' } },
+                error: { style: { borderLeft: '3px solid #9A5F45' } },
               }}
             />
             <ScrollToTop />
@@ -125,16 +216,17 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/product/:id" element={<ProductPage />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/services" element={<Services />} />
                 <Route path="/stories" element={<Stories />} />
                 <Route path="/care" element={<Care />} />
-                <Route path="/blog" element={<Stories />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/confirmation" element={<Confirmation />} />
                 <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                 <Route path="/terms" element={<Terms />} />

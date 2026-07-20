@@ -19,8 +19,9 @@ export default function Stories() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <PageHero
         image={brand.hero_stories}
+        position={brand.hero_stories_position}
         eyebrow="From Our World"
-        title={<em style={{ fontStyle: 'italic', color: '#E8355A' }}>Stories</em>}
+        title={<em style={{ fontStyle: 'italic', color: 'var(--gold-pale)' }}>Stories</em>}
         subtitle="Artisan journeys, heritage knowledge, and the stories behind the pieces we curate."
         minHeight={280}
       />
@@ -32,43 +33,34 @@ export default function Stories() {
           ) : stories.length === 0 ? (
             <div className="empty-state">No stories published yet. Check back soon.</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {stories.map((s, i) => {
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 56, maxWidth: 720, margin: '0 auto' }}>
+              {stories.map((s) => {
                 const isOpen = openId === s.id;
                 return (
-                  <div key={s.id} style={{ background: i % 2 === 0 ? 'var(--card)' : 'var(--nav)', border: '1px solid var(--line)', padding: '32px 32px', transition: 'border-color .3s', cursor: 'none' }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold50)'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--line)'}
-                  >
-                    <div style={{ display: 'grid', gridTemplateColumns: s.images?.[0] ? '180px 1fr auto' : '1fr auto', gap: 24, alignItems: 'start' }} className="story-row">
-                      {s.images?.[0] && (
-                        <img src={s.images[0]} alt={s.title} style={{ width: '100%', height: 130, objectFit: 'cover', flexShrink: 0 }} />
-                      )}
-                      <div>
-                        <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 14, flexWrap: 'wrap' }}>
-                          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 7, letterSpacing: '.2em', textTransform: 'uppercase', background: 'var(--cr08)', color: 'var(--crimson)', padding: '3px 9px' }}>{s.category}</span>
-                          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: 'rgba(248,236,216,.7)' }}>{s.author} · {new Date(s.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</span>
-                        </div>
-                        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(20px,2.5vw,28px)', fontWeight: 400, color: 'var(--iv)', lineHeight: 1.2, marginBottom: 14 }}>{s.title}</h2>
-                        {s.subtitle && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontStyle: 'italic', color: 'var(--gd)', marginBottom: 10 }}>{s.subtitle}</p>}
-                        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(248,236,216,.85)', lineHeight: 1.75, fontStyle: isOpen ? 'normal' : 'italic', maxWidth: 620, whiteSpace: 'pre-line' }}>
-                          {isOpen ? s.story : (s.story?.slice(0, 220) + (s.story?.length > 220 ? '…' : ''))}
-                        </p>
-                        {s.images?.length > 1 && isOpen && (
-                          <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-                            {s.images.slice(1).map((img, j) => (
-                              <img key={j} src={img} alt="" style={{ width: 100, height: 100, objectFit: 'cover' }} />
-                            ))}
-                          </div>
-                        )}
+                  <article key={s.id}>
+                    {s.images?.[0] && (
+                      <img src={s.images[0]} alt={s.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', marginBottom: 24, border: '1px solid var(--line)' }} />
+                    )}
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', background: 'var(--cr08)', color: 'var(--crimson)', padding: '3px 9px' }}>{s.category}</span>
+                    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 600, color: 'var(--iv)', lineHeight: 1.25, margin: '14px 0 10px', textDecoration: 'underline', textUnderlineOffset: 6 }}>{s.title}</h2>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.75)', marginBottom: 18 }}>{s.author} · {new Date(s.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</div>
+                    {s.subtitle && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 600, color: 'var(--iv)', lineHeight: 1.6, marginBottom: 14 }}>{s.subtitle}</p>}
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 400, color: 'var(--text-muted)', lineHeight: 1.75, whiteSpace: 'pre-line' }}>
+                      {isOpen ? s.story : (s.story?.slice(0, 260) + (s.story?.length > 260 ? '…' : ''))}
+                    </p>
+                    {s.images?.length > 1 && isOpen && (
+                      <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+                        {s.images.slice(1).map((img, j) => (
+                          <img key={j} src={img} alt="" style={{ width: 100, height: 100, objectFit: 'cover' }} />
+                        ))}
                       </div>
-                      <div style={{ flexShrink: 0, paddingTop: 8 }}>
-                        <button onClick={() => setOpenId(isOpen ? null : s.id)} style={{ background: 'none', border: 'none', fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--gd)', borderBottom: '1px solid rgba(212,160,64,.3)', paddingBottom: 2, cursor: 'none', whiteSpace: 'nowrap' }}>
-                          {isOpen ? 'Show Less ↑' : 'Read More →'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    )}
+                    {s.story?.length > 260 && (
+                      <button onClick={() => setOpenId(isOpen ? null : s.id)} style={{ background: 'none', border: 'none', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--gd)', borderBottom: '1px solid rgba(33,29,20,.3)', paddingBottom: 2, cursor: 'none', marginTop: 12, display: 'inline-block' }}>
+                        {isOpen ? 'Show Less ↑' : 'Read More →'}
+                      </button>
+                    )}
+                  </article>
                 );
               })}
             </div>
@@ -76,11 +68,6 @@ export default function Stories() {
         </div>
       </section>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .story-row { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }

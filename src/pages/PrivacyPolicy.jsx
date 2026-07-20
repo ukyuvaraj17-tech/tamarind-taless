@@ -14,8 +14,8 @@ export default function PrivacyPolicy() {
       </div>
 
       <div className="container" style={{ padding: '56px 44px', maxWidth: 860 }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(248,236,216,.88)', lineHeight: 1.9 }}>
-          <p style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>
+          <p style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.2em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 6 }}>Last updated: June 2026</p>
           <p style={{ marginBottom: 32, fontSize: 17, color: 'var(--iv)' }}>
             Tamarind Taless respects your privacy and is committed to protecting your personal data. This policy explains how we collect, use, and safeguard your information.
           </p>
@@ -31,8 +31,8 @@ export default function PrivacyPolicy() {
             { title: '9. Contact', body: 'For privacy-related queries, contact us on WhatsApp at +91 87969 88216. We take all privacy concerns seriously and will respond within 3 business days.' },
           ].map(({ title, body }) => (
             <div key={title} style={{ marginBottom: 32 }}>
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
-              <p style={{ color: 'rgba(248,236,216,.88)', lineHeight: 1.9 }}>{body}</p>
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>{body}</p>
             </div>
           ))}
         </div>

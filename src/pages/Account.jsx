@@ -48,7 +48,7 @@ export default function Account() {
           <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(30px,5vw,50px)', fontWeight: 300, color: 'var(--iv)', marginBottom: 4 }}>
             {userProfile?.name || currentUser.email?.split('@')[0] || 'Collector'}
           </h1>
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(245,237,216,0.45)' }}>{currentUser.email}</div>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.45)' }}>{currentUser.email}</div>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function Account() {
           orders.length === 0 ? (
             <div className="empty-state">
               <div>No orders yet</div>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, fontStyle: 'italic', margin: '8px 0 22px' }}>Your order history will appear here</div>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontStyle: 'italic', margin: '8px 0 22px' }}>Your order history will appear here</div>
               <button className="btn btn-gold btn-sm" onClick={() => navigate('/shop')}>Shop Now</button>
             </div>
           ) : (
@@ -73,13 +73,13 @@ export default function Account() {
                 <tbody>
                   {orders.map(o => (
                     <tr key={o.id}>
-                      <td style={{ fontFamily: "'Cinzel',serif", fontSize: 10, color: 'var(--iv)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</td>
-                      <td>{o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
-                      <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.items?.map(i => i.name).join(', ') || '—'}</td>
+                      <td style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, color: 'var(--iv)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</td>
+                      <td>{o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</td>
+                      <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.items?.map(i => i.name).join(', ') || '-'}</td>
                       <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, fontWeight: 500 }}>{fmt(o.total)}</td>
                       <td><span className={`badge ${statusCls[o.status] || 'badge-pending'}`}>{o.status}</span></td>
-                      <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: o.estimated_delivery ? 'var(--gd)' : 'var(--sm)', fontStyle: o.estimated_delivery ? 'normal' : 'italic' }}>{o.estimated_delivery || 'Pending'}</td>
-                      <td><a href={`https://wa.me/918796988216?text=Order status query for ${o.order_id || o.id.slice(-8)}`} target="_blank" rel="noreferrer" style={{ fontFamily: "'Cinzel',serif", fontSize: 8, letterSpacing: '0.12em', color: 'var(--gd)' }}>Track</a></td>
+                      <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: o.estimated_delivery ? 'var(--gd)' : 'var(--sm)', fontStyle: o.estimated_delivery ? 'normal' : 'italic' }}>{o.estimated_delivery || 'Pending'}</td>
+                      <td><a href={`https://wa.me/918796988216?text=Order status query for ${o.order_id || o.id.slice(-8)}`} target="_blank" rel="noreferrer" style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', color: 'var(--gd)' }}>Track</a></td>
                     </tr>
                   ))}
                 </tbody>
@@ -105,8 +105,8 @@ export default function Account() {
             <tbody>
               {enquiries.map(e => (
                 <tr key={e.id}>
-                  <td>{e.product || '—'}</td>
-                  <td>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—'}</td>
+                  <td>{e.product || '-'}</td>
+                  <td>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '-'}</td>
                   <td><span className="badge badge-confirmed">{e.type}</span></td>
                   <td><span className="badge badge-pending">{e.status}</span></td>
                 </tr>
@@ -133,7 +133,7 @@ function WishlistTab({ navigate }) {
           </div>
           <div className="product-card-body" style={{ padding: 13 }}>
             <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', marginBottom: 4 }}>{p.name}</div>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)', marginBottom: 9 }}>{p.enquiry_only ? <span style={{ fontStyle: 'italic', color: 'rgba(248,236,216,.88)', fontSize: 13 }}>Price on Enquiry</span> : fmt(p.price)}</div>
+            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)', marginBottom: 9 }}>{p.enquiry_only ? <span style={{ fontStyle: 'italic', color: 'rgba(106,99,80,.88)', fontSize: 14 }}>Price on Enquiry</span> : fmt(p.price)}</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {!p.enquiry_only && p.stock > 0 && <button className="btn btn-sm btn-gold" style={{ flex: 1 }} onClick={() => addToCart(p)}>Add to Cart</button>}
               <button className="btn btn-danger btn-sm" onClick={() => remove(p.id)}>Remove</button>
@@ -154,18 +154,18 @@ function ProfileTab({ userProfile, currentUser, updateProfile, handleLogout }) {
     catch (e) { toast.error('Failed.'); }
     finally { setSaving(false); }
   }
-  const inp = { width: '100%', padding: '11px 0', border: 'none', borderBottom: '1px solid rgba(212,160,64,.80)', background: 'transparent', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', outline: 'none' };
+  const inp = { width: '100%', padding: '11px 0', border: 'none', borderBottom: '1px solid rgba(33,29,20,.80)', background: 'transparent', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', outline: 'none' };
   return (
     <div style={{ maxWidth: 500 }}>
       <div className="card-white">
         <div className="section-label" style={{ marginBottom: 20 }}>Profile Details</div>
-        <div className="form-group"><label className="form-label">Full Name</label><input style={inp} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'} onBlur={e => e.target.style.borderBottomColor = '#D4C5B0'} /></div>
+        <div className="form-group"><label className="form-label">Full Name</label><input style={inp} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'} onBlur={e => e.target.style.borderBottomColor = '#D3CCB9'} /></div>
         <div className="form-group"><label className="form-label">Email</label><input style={{ ...inp, opacity: 0.5 }} value={currentUser.email} disabled /></div>
-        <div className="form-group"><label className="form-label">Phone</label><input style={inp} type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'} onBlur={e => e.target.style.borderBottomColor = '#D4C5B0'} /></div>
+        <div className="form-group"><label className="form-label">Phone</label><input style={inp} type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'} onBlur={e => e.target.style.borderBottomColor = '#D3CCB9'} /></div>
         <button className="btn btn-gold btn-sm" onClick={save} disabled={saving}>{saving ? <span className="spinner"></span> : 'Save Changes'}</button>
       </div>
       <div style={{ marginTop: 18 }}>
-        <button onClick={handleLogout} style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: '0.14em', color: 'var(--tr)', background: 'none', border: 'none', cursor: 'none', textTransform: 'uppercase', padding: 0 }}>Sign Out</button>
+        <button onClick={handleLogout} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', color: 'var(--tr)', background: 'none', border: 'none', cursor: 'none', textTransform: 'uppercase', padding: 0 }}>Sign Out</button>
       </div>
     </div>
   );
@@ -196,16 +196,16 @@ function AddressTab({ userProfile, currentUser, refreshProfile }) {
     toast.success('Address removed.');
   }
 
-  const inp = { width: '100%', padding: '11px 0', border: 'none', borderBottom: '1px solid rgba(212,160,64,.80)', background: 'transparent', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', outline: 'none' };
+  const inp = { width: '100%', padding: '11px 0', border: 'none', borderBottom: '1px solid rgba(33,29,20,.80)', background: 'transparent', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', outline: 'none' };
 
   return (
     <div style={{ maxWidth: 620 }}>
-      {addresses.length === 0 && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(248,236,216,.88)', fontStyle: 'italic', marginBottom: 22 }}>No saved addresses yet.</div>}
+      {addresses.length === 0 && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,.88)', fontStyle: 'italic', marginBottom: 22 }}>No saved addresses yet.</div>}
       {addresses.map((addr, i) => (
         <div key={i} style={{ border: '1px solid var(--iv)', padding: 18, marginBottom: 12, position: 'relative' }}>
-          {i === 0 && <span className="badge badge-gold" style={{ position: 'absolute', top: 11, right: 11, fontSize: 7 }}>Default</span>}
+          {i === 0 && <span className="badge badge-gold" style={{ position: 'absolute', top: 11, right: 11, fontSize: 10 }}>Default</span>}
           <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7 }}>
-            <strong>{addr.name}</strong> — {addr.phone}<br />{addr.line1}{addr.line2 ? ', ' + addr.line2 : ''}<br />{addr.city}, {addr.state} — {addr.pincode}
+            <strong>{addr.name}</strong>, {addr.phone}<br />{addr.line1}{addr.line2 ? ', ' + addr.line2 : ''}<br />{addr.city}, {addr.state}, {addr.pincode}
           </div>
           <button className="btn btn-danger btn-sm" style={{ marginTop: 11 }} onClick={() => deleteAddress(i)}>Delete</button>
         </div>
@@ -216,7 +216,7 @@ function AddressTab({ userProfile, currentUser, refreshProfile }) {
           {[['Full Name *','name',false],['Phone *','phone',false],['Address Line 1 *','line1',true],['Address Line 2','line2',true],['City *','city',false],['State *','state',false],['Pincode *','pincode',false]].map(([label,key,full]) => (
             <div key={key} style={{ gridColumn: full ? '1/-1' : 'auto' }}>
               <label className="form-label">{label}</label>
-              <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} style={inp} onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'} onBlur={e => e.target.style.borderBottomColor = '#D4C5B0'} />
+              <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} style={inp} onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'} onBlur={e => e.target.style.borderBottomColor = '#D3CCB9'} />
             </div>
           ))}
         </div>

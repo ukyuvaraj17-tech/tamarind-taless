@@ -38,32 +38,32 @@ export default function AdminLogin() {
   }
 
   const inp = {
-    width: '100%', padding: '12px 0', background: 'rgba(255,255,255,0.08)',
-    border: 'none', borderBottom: '1px solid rgba(212,160,64,0.35)',
+    width: '100%', padding: '12px 0', background: 'rgba(30,27,20,0.08)',
+    border: 'none', borderBottom: '1px solid rgba(33,29,20,0.35)',
     color: 'var(--iv)', fontFamily: "'Cormorant Garamond', serif",
     fontSize: 15, outline: 'none', transition: 'border-color 0.3s, background 0.3s'
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0f0a0f 0%, #070406 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 15%, rgba(212,160,64,0.16), transparent 26%), linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 38%)', pointerEvents: 'none' }} />
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #F2EFE4 0%, #E2DCC8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 15%, rgba(33,29,20,0.06), transparent 26%)', pointerEvents: 'none' }} />
       <div style={{ maxWidth: 420, width: '100%', position: 'relative', zIndex: 1 }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, color: 'var(--iv)', fontWeight: 300, textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}>Tamarind Taless</div>
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 9, color: 'var(--gd)', letterSpacing: '0.42em', marginTop: 8, textTransform: 'uppercase' }}>Admin Portal</div>
+          <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, color: 'var(--gd)', letterSpacing: '0.42em', marginTop: 8, textTransform: 'uppercase' }}>Admin Portal</div>
           <div style={{ width: 52, height: 1, background: 'var(--gd)', margin: '18px auto 0', opacity: 0.7 }} />
         </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(212,160,64,0.24)', padding: '42px 36px', borderRadius: 24, boxShadow: '0 40px 90px rgba(0,0,0,0.25)', backdropFilter: 'blur(16px)' }}>
+        <div style={{ background: 'rgba(30,27,20,0.08)', border: '1px solid rgba(33,29,20,0.24)', padding: '42px 36px', borderRadius: 24, boxShadow: '0 40px 90px rgba(0,0,0,0.25)', backdropFilter: 'blur(16px)' }}>
           {error && (
-            <div style={{ background: 'rgba(139,61,42,0.2)', borderLeft: '3px solid var(--tr)', padding: '10px 14px', marginBottom: 20, fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: '#E8A0A0', lineHeight: 1.5 }}>
+            <div style={{ background: 'rgba(154,95,69,0.1)', borderLeft: '3px solid var(--error)', padding: '10px 14px', marginBottom: 20, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--error)', lineHeight: 1.5 }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: 20 }}>
-              <label style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.18em', color: 'rgba(245,237,216,0.45)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+              <label style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', color: 'rgba(106,99,80,0.45)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
                 Admin Email
               </label>
               <input
@@ -72,11 +72,11 @@ export default function AdminLogin() {
                 placeholder="pc1@uktex.net"
                 style={inp}
                 onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'}
-                onBlur={e => e.target.style.borderBottomColor = 'rgba(200,169,110,0.3)'}
+                onBlur={e => e.target.style.borderBottomColor = 'rgba(33,29,20,0.3)'}
               />
             </div>
             <div style={{ marginBottom: 28 }}>
-              <label style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.18em', color: 'rgba(245,237,216,0.45)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+              <label style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', color: 'rgba(106,99,80,0.45)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
                 Password
               </label>
               <input
@@ -85,15 +85,15 @@ export default function AdminLogin() {
                 placeholder="Your password"
                 style={inp}
                 onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'}
-                onBlur={e => e.target.style.borderBottomColor = 'rgba(200,169,110,0.3)'}
+                onBlur={e => e.target.style.borderBottomColor = 'rgba(33,29,20,0.3)'}
               />
             </div>
             <button
               type="submit" disabled={loading}
-              style={{ width: '100%', padding: 16, background: loading ? 'rgba(212,160,64,0.55)' : 'var(--gd)', border: 'none', color: 'var(--bg)', fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 999, boxShadow: loading ? 'none' : '0 18px 38px rgba(212,160,64,0.24)'}}
+              style={{ width: '100%', padding: 16, background: loading ? 'rgba(33,29,20,0.55)' : 'var(--gd)', border: 'none', color: 'var(--bg)', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 999, boxShadow: loading ? 'none' : '0 18px 38px rgba(33,29,20,0.24)'}}
             >
               {loading
-                ? <span style={{ width: 18, height: 18, border: '2px solid rgba(26,15,8,0.3)', borderTopColor: 'var(--br)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                ? <span style={{ width: 18, height: 18, border: '2px solid rgba(242,239,228,0.4)', borderTopColor: 'var(--br)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
                 : 'Enter Admin Panel'
               }
             </button>
@@ -101,9 +101,9 @@ export default function AdminLogin() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <a href="/" style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.2em', color: 'rgba(212,160,64,0.75)', textDecoration: 'none', textTransform: 'uppercase', transition: 'color 0.25s' }}
+          <a href="/" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.2em', color: 'rgba(33,29,20,0.75)', textDecoration: 'none', textTransform: 'uppercase', transition: 'color 0.25s' }}
             onMouseEnter={e => e.target.style.color = 'var(--gl)'}
-            onMouseLeave={e => e.target.style.color = 'rgba(212,160,64,0.75)'}
+            onMouseLeave={e => e.target.style.color = 'rgba(33,29,20,0.75)'}
           >
             Return to Website
           </a>

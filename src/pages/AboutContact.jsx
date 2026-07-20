@@ -7,12 +7,12 @@ import PageHero from '../components/PageHero';
 import toast from 'react-hot-toast';
 
 const S = {
-  eyebrow: { fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'.35em', textTransform:'uppercase', color:'var(--gd)', marginBottom:10 },
+  eyebrow: { fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:12, letterSpacing:'.35em', textTransform:'uppercase', color:'var(--gd)', marginBottom:10 },
   h1: { fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(42px,6vw,72px)', fontWeight:300, color:'var(--iv)', fontStyle:'italic', lineHeight:.95 },
   h2: { fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(24px,3.5vw,38px)', fontWeight:300, color:'var(--iv)', lineHeight:1.05, marginBottom:28 },
   body: { fontFamily:"'Cormorant Garamond',serif", fontSize:16, color:'var(--iv)', lineHeight:1.85 },
-  label: { fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--gd)', marginBottom:4, display:'block' },
-  inp: { width:'100%', padding:'11px 0', border:'none', borderBottom:'1px solid rgba(212,160,64,.85)', background:'transparent', fontFamily:"'Cormorant Garamond',serif", fontSize:15, color:'var(--iv)', outline:'none', transition:'border-color .3s', caretColor:'var(--gd)' },
+  label: { fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:11, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--gd)', marginBottom:4, display:'block' },
+  inp: { width:'100%', padding:'11px 0', border:'none', borderBottom:'1px solid rgba(33,29,20,.85)', background:'transparent', fontFamily:"'Cormorant Garamond',serif", fontSize:15, color:'var(--iv)', outline:'none', transition:'border-color .3s', caretColor:'var(--gd)' },
 };
 
 // ── ABOUT ───────────────────────────────────────────────────
@@ -32,24 +32,24 @@ export function About() {
 
   const values = [
     ['Authentic Provenance', 'Every piece is verified and documented. We never acquire without understanding where a piece comes from and what it meant in its original context.'],
-    ['Heritage Over Decoration', 'We are custodians of living traditions — our pieces carry ritual meaning that we believe must be preserved and communicated to every collector.'],
+    ['Heritage Over Decoration', 'We are custodians of living traditions, and our pieces carry ritual meaning that we believe must be preserved and communicated to every collector.'],
     ['Women-Led Curation', 'Tamarind Taless is built on a feminine aesthetic of care, precision, and deep cultural knowledge. Our curation reflects this ethic in every choice we make.'],
   ];
 
   return (
     <>
       {/* HEADER */}
-      <PageHero image={brand.hero_about} eyebrow="The Brand" title="About Tamarind Taless" minHeight={260} />
+      <PageHero image={brand.hero_about} position={brand.hero_about_position} eyebrow="The Brand" title="About Tamarind Taless" minHeight={260} />
 
       {/* STORY */}
       <section className="section" style={{ background:'var(--bg)' }}>
         <div className="container">
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:72, alignItems:'center' }} className="about-grid">
-            <div ref={add(0)} className="reveal" style={{ aspectRatio:'3/4', background: brand.about_image ? `url(${brand.about_image})` : 'linear-gradient(145deg,#1A0810,#2A1018 50%,#1A2010)', backgroundSize:'cover', backgroundPosition:'center', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
+            <div ref={add(0)} className="reveal" style={{ aspectRatio:'3/4', background: brand.about_image ? `url(${brand.about_image})` : 'linear-gradient(145deg,#F2EFE4,#E2DCC8 50%,#D3CCB9)', backgroundSize:'cover', backgroundPosition: brand.about_image_position || 'center', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
               {!brand.about_image && (
                 <div style={{ textAlign:'center', padding:32 }}>
-                  <div style={{ fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'.2em', textTransform:'uppercase', color:'rgba(212,160,64,.5)', marginBottom:10 }}>No Image Set</div>
-                  <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:14, color:'rgba(248,236,216,.4)', fontStyle:'italic' }}>Add an image in Admin → Brand Settings → About Page Side Image</div>
+                  <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:11, letterSpacing:'.2em', textTransform:'uppercase', color:'rgba(33,29,20,.5)', marginBottom:10 }}>No Image Set</div>
+                  <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:14, color:'rgba(106,99,80,.65)', fontStyle:'italic' }}>Add an image in Admin → Brand Settings → About Page Side Image</div>
                 </div>
               )}
             </div>
@@ -57,9 +57,9 @@ export function About() {
               <hr className="hairline" style={{ marginBottom:14 }} />
               <p className="section-label reveal" ref={add(1)}>Our Story</p>
               <h2 style={{ ...S.h2 }} ref={add(2)} className="reveal d1">Every piece carries <em style={{ color:'var(--gd)' }}>a living memory</em></h2>
-              <p style={S.body} ref={add(3)} className="reveal d2">Tamarind Taless was founded by women with a deep reverence for South India's sacred artistic traditions. We believe that the bronze casting of Kerala, the ritual wood carving of coastal Karnataka, the mural traditions of temple walls, and the lost-wax metalwork of Tamil Nadu are not merely art forms — they are living memories encoded in material.</p>
-              <p style={{ ...S.body, marginTop:14 }} ref={add(4)} className="reveal d3">Each piece in our collection is acquired with care and reverence. We travel, research, and verify provenance — and only bring forward pieces we believe deserve to continue their journey.</p>
-              <p style={{ ...S.body, marginTop:14 }} ref={add(5)} className="reveal d4">We are based in Noida and Coimbatore — two cities at the intersection of modern India and its ancient inheritances.</p>
+              <p style={S.body} ref={add(3)} className="reveal d2">Tamarind Taless was founded by women with a deep reverence for South India's sacred artistic traditions. We believe that the bronze casting of Kerala, the ritual wood carving of coastal Karnataka, the mural traditions of temple walls, and the lost-wax metalwork of Tamil Nadu are not merely art forms. They are living memories encoded in material.</p>
+              <p style={{ ...S.body, marginTop:14 }} ref={add(4)} className="reveal d3">Each piece in our collection is acquired with care and reverence. We travel, research, and verify provenance, and only bring forward pieces we believe deserve to continue their journey.</p>
+              <p style={{ ...S.body, marginTop:14 }} ref={add(5)} className="reveal d4">We are based in Noida and Coimbatore, two cities at the intersection of modern India and its ancient inheritances.</p>
             </div>
           </div>
         </div>
@@ -71,8 +71,8 @@ export function About() {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)' }} className="stats-grid-r">
             {[['30,385','Instagram Followers'],['Noida & Coimbatore','Our Locations'],['Women-Led','Brand & Curation'],['Made in India','Curated in India']].map(([n,l],i) => (
               <div key={i} ref={add(6+i)} className={`reveal d${i+1}`} style={{ textAlign:'center', padding:'2rem 1rem', borderRight: i < 3 ? '1px solid var(--line)' : 'none' }}>
-                <div style={{ fontFamily:"'Cinzel',serif", fontSize:'clamp(1rem,2vw,1.4rem)', fontWeight:400, color:'var(--iv)', letterSpacing:'.06em', lineHeight:1, marginBottom:6 }}>{n}</div>
-                <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic', color:'rgba(248,236,216,.88)' }}>{l}</div>
+                <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:'clamp(1rem,2vw,1.4rem)', fontWeight:400, color:'var(--iv)', letterSpacing:'.06em', lineHeight:1, marginBottom:6 }}>{n}</div>
+                <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', color:'rgba(106,99,80,.88)' }}>{l}</div>
               </div>
             ))}
           </div>
@@ -169,7 +169,7 @@ export function Contact() {
               </h2>
 
               {contacts.map(({ label, val, href }) => (
-                <div key={label} style={{ display:'flex', gap:16, alignItems:'flex-start', marginBottom:24, paddingBottom:24, borderBottom:'1px solid rgba(96,16,32,.35)' }}>
+                <div key={label} style={{ display:'flex', gap:16, alignItems:'flex-start', marginBottom:24, paddingBottom:24, borderBottom:'1px solid rgba(40,32,26,.35)' }}>
                   <div style={{ width:42, height:42, background:'var(--card)', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <div style={{ width:8, height:8, background:'var(--gd)', borderRadius:'50%' }}></div>
                   </div>
@@ -198,7 +198,7 @@ export function Contact() {
             <div style={{ background:'var(--card)', border:'1px solid var(--line)', padding:'32px 28px' }}>
               <p className="section-label" style={{ marginBottom:20 }}>Send an Enquiry</p>
               {sent && (
-                <div style={{ background:'rgba(70,130,80,.1)', borderLeft:'3px solid #3A7A3A', padding:'12px 16px', marginBottom:20, fontFamily:"'Cormorant Garamond',serif", fontSize:15, color:'#6AD08A', lineHeight:1.6 }}>
+                <div style={{ background:'rgba(107,142,80,.1)', borderLeft:'3px solid var(--success)', padding:'12px 16px', marginBottom:20, fontFamily:"'Cormorant Garamond',serif", fontSize:15, color:'var(--success)', lineHeight:1.6 }}>
                   Your enquiry has been received. We will be in touch within 24 hours.
                 </div>
               )}
@@ -214,7 +214,7 @@ export function Contact() {
                       onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                       style={S.inp}
                       onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'}
-                      onBlur={e => e.target.style.borderBottomColor = 'rgba(212,160,64,.85)'}
+                      onBlur={e => e.target.style.borderBottomColor = 'rgba(33,29,20,.85)'}
                     />
                   </div>
                 ))}
@@ -224,7 +224,7 @@ export function Contact() {
                     onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                     style={{ ...S.inp, resize:'vertical', minHeight:90, lineHeight:1.6 }}
                     onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'}
-                    onBlur={e => e.target.style.borderBottomColor = 'rgba(212,160,64,.85)'}
+                    onBlur={e => e.target.style.borderBottomColor = 'rgba(33,29,20,.85)'}
                   />
                 </div>
                 <button type="submit" className="btn btn-dark" disabled={sending}>

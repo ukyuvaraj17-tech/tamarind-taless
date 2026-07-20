@@ -25,14 +25,14 @@ export default function Confirmation() {
         {/* ORDER DETAILS */}
         {order.orderId && (
           <div className="card-white" style={{ marginBottom: 26, textAlign: 'left' }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.18em', color: 'var(--iv)', marginBottom: 5, textTransform: 'uppercase' }}>Order ID</div>
+            <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', color: 'var(--iv)', marginBottom: 5, textTransform: 'uppercase' }}>Order ID</div>
             <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, color: 'var(--iv)', letterSpacing: '0.04em', marginBottom: 13 }}>{order.orderId}</div>
             {order.items && (
               <>
-                <div style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.14em', color: 'var(--iv)', marginBottom: 7, textTransform: 'uppercase' }}>Items Ordered</div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'var(--iv)', marginBottom: 7, textTransform: 'uppercase' }}>Items Ordered</div>
                 {order.items.map((item, i) => (
-                  <div key={i} style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'var(--iv)', marginBottom: 2 }}>
-                    {item.name} — Qty {item.qty}
+                  <div key={i} style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--iv)', marginBottom: 2 }}>
+                    {item.name} (Qty {item.qty})
                   </div>
                 ))}
                 {order.total && (
@@ -44,11 +44,11 @@ export default function Confirmation() {
             )}
             {order.addr && (
               <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--iv)' }}>
-                <div style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.14em', color: 'var(--iv)', marginBottom: 5, textTransform: 'uppercase' }}>Delivery To</div>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: 'var(--iv)', lineHeight: 1.6 }}>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'var(--iv)', marginBottom: 5, textTransform: 'uppercase' }}>Delivery To</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.6 }}>
                   {order.addr.name}<br />
                   {order.addr.line1}{order.addr.line2 ? ', ' + order.addr.line2 : ''}<br />
-                  {order.addr.city}, {order.addr.state} — {order.addr.pincode}
+                  {order.addr.city}, {order.addr.state}, {order.addr.pincode}
                 </div>
               </div>
             )}
