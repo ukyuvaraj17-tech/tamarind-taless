@@ -41,6 +41,7 @@ function CursorAndProgress() {
   useEffect(() => {
     const cur = curRef.current;
     const prog = progressRef.current;
+    const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
     let visible = false;
     function onMove(e) {
       if (!visible) { if (cur) cur.style.opacity = '1'; visible = true; }
@@ -54,9 +55,11 @@ function CursorAndProgress() {
       const pct = doc.scrollHeight === doc.clientHeight ? 0 : (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
       prog.style.width = Math.min(pct, 100) + '%';
     }
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseover', onOver);
-    document.addEventListener('mouseout', onOut);
+    if (!isTouch) {
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseover', onOver);
+      document.addEventListener('mouseout', onOut);
+    }
     window.addEventListener('scroll', onScroll);
     return () => {
       document.removeEventListener('mousemove', onMove);

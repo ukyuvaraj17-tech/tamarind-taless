@@ -19,34 +19,56 @@ const IMAGE_POSITIONS = [
   ['Bottom Left', '0% 100%'], ['Bottom', '50% 100%'], ['Bottom Right', '100% 100%'],
 ];
 
-function ImagePositionPicker({ image, value, onChange, aspect = '1/1', width = 220 }) {
+function PositionGrid({ pos, onChange, size = 32 }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(3,${size}px)`, gridTemplateRows: `repeat(3,${size}px)`, gap: 4 }}>
+      {IMAGE_POSITIONS.map(([label, val]) => (
+        <button key={val} type="button" title={label} onClick={() => onChange(val)} style={{
+          width: size, height: size, border: '1px solid rgba(33,29,20,0.25)', cursor: 'pointer',
+          background: pos === val ? 'var(--gd)' : 'rgba(30,27,20,0.04)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+        }}>
+          <span style={{ width: size * 0.19, height: size * 0.19, borderRadius: '50%', background: pos === val ? '#F2EFE4' : 'rgba(106,99,80,0.5)' }} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ImagePositionPicker({ image, value, onChange, aspect = '1/1', width = 320 }) {
   const pos = value || '50% 50%';
+  const [expanded, setExpanded] = React.useState(false);
   return (
     <div>
       <label style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>
         Image Focal Point — which part of the photo should stay visible when cropped
       </label>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <div style={{ width, aspectRatio: aspect, position: 'relative', border: '1px solid rgba(33,29,20,0.2)', flexShrink: 0, overflow: 'hidden', background: 'var(--card)' }}>
+        <div onClick={() => image && setExpanded(true)} style={{ width, aspectRatio: aspect, position: 'relative', border: '1px solid rgba(33,29,20,0.2)', flexShrink: 0, overflow: 'hidden', background: 'var(--card)', cursor: image ? 'zoom-in' : 'default' }}>
           {image ? (
             <img src={image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: pos }} />
           ) : (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, fontStyle: 'italic', color: 'rgba(106,99,80,0.5)', textAlign: 'center', padding: 20 }}>Add an image to preview crop</div>
           )}
-          <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(30,27,20,0.6)', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 7px' }}>Preview</div>
+          {image && <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(30,27,20,0.6)', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 7px' }}>Click to enlarge</div>}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,32px)', gridTemplateRows: 'repeat(3,32px)', gap: 4 }}>
-          {IMAGE_POSITIONS.map(([label, val]) => (
-            <button key={val} type="button" title={label} onClick={() => onChange(val)} style={{
-              width: 32, height: 32, border: '1px solid rgba(33,29,20,0.25)', cursor: 'pointer',
-              background: pos === val ? 'var(--gd)' : 'rgba(30,27,20,0.04)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: pos === val ? '#F2EFE4' : 'rgba(106,99,80,0.5)' }} />
-            </button>
-          ))}
-        </div>
+        <PositionGrid pos={pos} onChange={onChange} />
       </div>
+
+      {expanded && (
+        <div onClick={() => setExpanded(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(12,9,7,.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 28, display: 'flex', gap: 28, alignItems: 'flex-start', maxWidth: '92vw', maxHeight: '92vh', overflow: 'auto' }}>
+            <div style={{ width: 'min(60vw, 720px)', aspectRatio: aspect, position: 'relative', overflow: 'hidden', border: '1px solid var(--line)', flexShrink: 0 }}>
+              <img src={image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: pos }} />
+            </div>
+            <div>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 16 }}>Set Focal Point</div>
+              <PositionGrid pos={pos} onChange={onChange} size={54} />
+              <button onClick={() => setExpanded(false)} style={{ marginTop: 20, background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '11px 22px', cursor: 'pointer' }}>Done</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -257,7 +279,7 @@ function BrandSettings() {
         <div style={secHead}>{title}</div>
         <div style={helpText}>{description}</div>
         {brand[field] && (
-          <ImagePositionPicker image={brand[field]} value={brand[`${field}_position`]} onChange={v => savePositionField(field, v)} aspect={aspect} width={aspect === '3/4' ? 180 : 320} />
+          <ImagePositionPicker image={brand[field]} value={brand[`${field}_position`]} onChange={v => savePositionField(field, v)} aspect={aspect} width={aspect === '3/4' ? 260 : 460} />
         )}
         <div style={{ display: 'flex', gap: 8 }}>
           <input

@@ -67,7 +67,6 @@ export default function Care() {
         eyebrow="Preservation Guide"
         title={<>Care &amp; <em style={{ fontStyle: 'italic', color: 'var(--gold-pale)' }}>Preservation</em></>}
         subtitle="Your piece has survived centuries. With the right care, it will survive centuries more."
-        minHeight={280}
       />
 
       <section className="section" style={{ background: 'var(--bg)' }}>

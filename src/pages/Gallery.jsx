@@ -37,7 +37,6 @@ export default function Gallery() {
         eyebrow="Galleries by Tamarind Taless"
         title="Fine Art & Traditional Painting"
         subtitle="Five distinct painting traditions, each with its own hand, pigment, and lineage, browsed here as a curated gallery rather than a single catalogue."
-        minHeight={300}
       />
 
       <section className="section" style={{ background: 'var(--bg)' }}>

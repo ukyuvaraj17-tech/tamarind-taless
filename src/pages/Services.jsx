@@ -41,7 +41,6 @@ export default function Services() {
         eyebrow="What We Offer"
         title={<>Our <em style={{ fontStyle: 'italic', color: 'var(--gold-pale)' }}>Services</em></>}
         subtitle="Heritage curation, sourcing, and styling for collectors, designers, and spaces that deserve something extraordinary."
-        minHeight={300}
       />
 
       {/* SERVICES GRID */}

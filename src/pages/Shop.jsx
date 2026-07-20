@@ -121,9 +121,8 @@ export default function Shop() {
       <PageHero
         image={brand.hero_shop}
         position={brand.hero_shop_position}
-        eyebrow="The Collection"
-        title={products.length > 0 ? `${String(products.length).padStart(2,'0')} Pieces` : 'Collection'}
-        minHeight={260}
+        title="The Collection"
+        center
       />
 
       {/* FILTER BAR — sticky */}

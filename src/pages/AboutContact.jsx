@@ -39,7 +39,7 @@ export function About() {
   return (
     <>
       {/* HEADER */}
-      <PageHero image={brand.hero_about} position={brand.hero_about_position} eyebrow="The Brand" title="About Tamarind Taless" minHeight={260} />
+      <PageHero image={brand.hero_about} position={brand.hero_about_position} eyebrow="The Brand" title="About Tamarind Taless" />
 
       {/* STORY */}
       <section className="section" style={{ background:'var(--bg)' }}>

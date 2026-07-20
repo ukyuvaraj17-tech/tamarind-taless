@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useCart } from '../context/CartContext';
-import { fmt } from '../data/products';
+import { fmt, CATEGORY_GROUPS } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
 import ProductCard from '../components/ProductCard';
 import { FacebookIcon, TwitterXIcon, PinterestIcon, EmailIcon } from '../components/SocialIcons';
@@ -20,11 +21,31 @@ export default function ProductPage() {
   const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
-  const [relatedSameCat, setRelatedSameCat] = useState(true);
+  const [relatedTier, setRelatedTier] = useState('cat'); // 'cat' | 'group' | 'recent'
+  const [relatedGroupLabel, setRelatedGroupLabel] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Lock page scroll while the lightbox is open — without this, scrolling the
+  // underlying page on mobile made the fixed lightbox appear to jump/misalign.
+  useEffect(() => {
+    if (!lightbox) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [lightbox]);
+
+  useEffect(() => { setZoomed(false); }, [activeImg, lightbox]);
+
+  const lastTapRef = React.useRef(0);
+  function handleImageTap(e) {
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - lastTapRef.current < 350) setZoomed(z => !z);
+    lastTapRef.current = now;
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -42,17 +63,24 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!product) { setRelated([]); return; }
+    const productCat = (product.cat || '').trim().toLowerCase();
     supabase.from('products').select('*')
-      .eq('available', true).eq('cat', product.cat).neq('id', product.id)
-      .limit(4)
+      .eq('available', true).neq('id', product.id)
+      .order('created_at', { ascending: false })
       .then(({ data }) => {
-        if (data && data.length > 0) { setRelated(data); setRelatedSameCat(true); return; }
-        // No other pieces in the same category — fall back to any other available pieces
-        supabase.from('products').select('*')
-          .eq('available', true).neq('id', product.id)
-          .order('created_at', { ascending: false })
-          .limit(4)
-          .then(({ data: fallback }) => { setRelated(fallback || []); setRelatedSameCat(false); });
+        const all = data || [];
+        const sameCat = all.filter(p => (p.cat || '').trim().toLowerCase() === productCat);
+        if (sameCat.length > 0) { setRelated(sameCat.slice(0, 4)); setRelatedTier('cat'); return; }
+
+        // No other pieces in the exact same category — widen to the same taxonomy group
+        // (e.g. other Paintings, or other By Materials pieces) before falling back to "recent".
+        const group = CATEGORY_GROUPS.find(g => g.items.some(item => item.toLowerCase() === productCat));
+        const groupCats = group ? group.items.map(c => c.toLowerCase()) : [];
+        const sameGroup = groupCats.length ? all.filter(p => groupCats.includes((p.cat || '').trim().toLowerCase())) : [];
+        if (sameGroup.length > 0) { setRelated(sameGroup.slice(0, 4)); setRelatedTier('group'); setRelatedGroupLabel(group?.label || ''); return; }
+
+        setRelated(all.slice(0, 4));
+        setRelatedTier('recent');
       });
   }, [product]);
 
@@ -66,7 +94,7 @@ export default function ProductPage() {
   const touchX = React.useRef(null);
   function onTouchStart(e) { touchX.current = e.touches[0].clientX; }
   function onTouchEnd(e, count) {
-    if (touchX.current === null || count < 2) return;
+    if (touchX.current === null || count < 2 || zoomed) return;
     const dx = e.changedTouches[0].clientX - touchX.current;
     if (Math.abs(dx) > 40) {
       setActiveImg(i => dx < 0 ? (i + 1) % count : (i - 1 + count) % count);
@@ -135,6 +163,49 @@ export default function ProductPage() {
               ))}
             </div>
           )}
+
+          {/* SHARE — directly below the product image, on the image side of the layout */}
+          <div className="pp-share-row" style={{ marginTop: 24, borderTop: '1px solid var(--line)', borderLeft: '1px solid var(--line)', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+            {[
+              { label: 'Share On Facebook', Icon: FacebookIcon, href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`, external: true },
+              { label: 'Tweet This Product', Icon: TwitterXIcon, href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(product.name)}`, external: true },
+              { label: 'Pin This Product', Icon: PinterestIcon, href: product.pinterest_url || `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(pageUrl)}&media=${encodeURIComponent(images[0] || '')}&description=${encodeURIComponent(product.name)}`, external: true },
+              { label: 'Email This Product', Icon: EmailIcon, href: `mailto:?subject=${encodeURIComponent(product.name)}&body=${encodeURIComponent('Check out this piece: ' + pageUrl)}`, external: false },
+            ].map(({ label, Icon, href, external }) => (
+              <a key={label} href={href} target={external ? '_blank' : undefined} rel={external ? 'noreferrer' : undefined}
+                className="pp-share-item"
+                style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', padding: '16px 14px', borderRight: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}
+              >
+                <span className="pp-share-icon" style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--gd)', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background .2s, transform .2s' }}>
+                  <Icon width={15} height={15} />
+                </span>
+                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, color: 'var(--iv)' }}>{label}</span>
+              </a>
+            ))}
+          </div>
+
+          {/* SHIPPING / RETURNS / CARE — policy summary */}
+          <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[
+              { to: '/shipping-policy', icon: (
+                  <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                ), title: 'Shipping Information', body: 'See delivery timelines and charges' },
+              { to: '/refund-policy', icon: (
+                  <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8M3 3v5h5" />
+                ), title: 'Returns & Refunds', body: 'See our return eligibility and process' },
+              { to: '/care', icon: (
+                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" />
+                ), title: 'Care & Preservation Guide', body: 'How to look after this piece' },
+            ].map(({ to, icon, title, body }) => (
+              <Link key={to} to={to} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', textDecoration: 'none' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>{icon}</svg>
+                <div>
+                  <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)' }}>{title}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>{body}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* DETAILS */}
@@ -206,49 +277,6 @@ export default function ProductPage() {
               </>
             )}
           </div>
-
-          {/* SHIPPING / RETURNS / CARE — policy summary */}
-          <div style={{ marginTop: 28, borderTop: '1px solid var(--line)', paddingTop: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[
-              { to: '/shipping-policy', icon: (
-                  <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                ), title: 'Shipping Information', body: 'See delivery timelines and charges' },
-              { to: '/refund-policy', icon: (
-                  <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8M3 3v5h5" />
-                ), title: 'Returns & Refunds', body: 'See our return eligibility and process' },
-              { to: '/care', icon: (
-                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" />
-                ), title: 'Care & Preservation Guide', body: 'How to look after this piece' },
-            ].map(({ to, icon, title, body }) => (
-              <Link key={to} to={to} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', textDecoration: 'none' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>{icon}</svg>
-                <div>
-                  <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)' }}>{title}</div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>{body}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* SHARE */}
-          <div className="pp-share-row" style={{ marginTop: 24, borderTop: '1px solid var(--line)', borderLeft: '1px solid var(--line)', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-            {[
-              { label: 'Share On Facebook', Icon: FacebookIcon, href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`, external: true },
-              { label: 'Tweet This Product', Icon: TwitterXIcon, href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(product.name)}`, external: true },
-              { label: 'Pin This Product', Icon: PinterestIcon, href: product.pinterest_url || `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(pageUrl)}&media=${encodeURIComponent(images[0] || '')}&description=${encodeURIComponent(product.name)}`, external: true },
-              { label: 'Email This Product', Icon: EmailIcon, href: `mailto:?subject=${encodeURIComponent(product.name)}&body=${encodeURIComponent('Check out this piece: ' + pageUrl)}`, external: false },
-            ].map(({ label, Icon, href, external }) => (
-              <a key={label} href={href} target={external ? '_blank' : undefined} rel={external ? 'noreferrer' : undefined}
-                className="pp-share-item"
-                style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', padding: '16px 14px', borderRight: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}
-              >
-                <span className="pp-share-icon" style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--gd)', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background .2s, transform .2s' }}>
-                  <Icon width={15} height={15} />
-                </span>
-                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, color: 'var(--iv)' }}>{label}</span>
-              </a>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -258,7 +286,11 @@ export default function ProductPage() {
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <p className="section-label">You May Also Like</p>
-              <h2 className="section-title">{relatedSameCat ? <>More From <em>{product.cat}</em></> : <>Other <em>Pieces</em></>}</h2>
+              <h2 className="section-title">
+                {relatedTier === 'cat' && <>More From <em>{product.cat}</em></>}
+                {relatedTier === 'group' && <>More <em>{relatedGroupLabel}</em></>}
+                {relatedTier === 'recent' && <>Other <em>Pieces</em></>}
+              </h2>
             </div>
             <div className="grid-4 product-page-related">
               {related.map(p => <ProductCard key={p.id} product={p} height={220} />)}
@@ -267,30 +299,56 @@ export default function ProductPage() {
         </section>
       )}
 
-      {/* LIGHTBOX */}
-      {lightbox && images.length > 0 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(6,4,3,.96)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+      {/* LIGHTBOX — portaled to document.body so it always renders above the fixed navbar,
+          regardless of any transform/animation on this page's own ancestors */}
+      {lightbox && images.length > 0 && createPortal((
+        <div className="pp-lightbox" style={{ position: 'fixed', inset: 0, background: '#FDFCF9', zIndex: 9999, display: 'flex', touchAction: 'none' }}
           onClick={() => setLightbox(false)}
-          onTouchStart={onTouchStart}
-          onTouchEnd={e => onTouchEnd(e, images.length)}
         >
-          <button onClick={() => setLightbox(false)} style={{ position: 'absolute', top: 18, right: 22, background: 'none', border: 'none', color: 'rgba(242,239,228,.8)', fontSize: 28, cursor: 'pointer', zIndex: 10001, lineHeight: 1 }}>×</button>
-          <div style={{ maxWidth: '90vw', maxHeight: '75vh', position: 'relative' }} onClick={e => e.stopPropagation()}>
-            <img key={activeImg} src={images[activeImg]} alt={product.name} className="pp-img-fade" style={{ maxWidth: '90vw', maxHeight: '75vh', objectFit: 'contain', display: 'block' }} />
-          </div>
+          <button onClick={() => setLightbox(false)} style={{ position: 'absolute', top: 18, right: 22, background: 'none', border: 'none', color: 'var(--iv)', fontSize: 28, cursor: 'pointer', zIndex: 10001, lineHeight: 1 }}>×</button>
+
+          {/* THUMBNAIL RAIL */}
           {images.length > 1 && (
-            <>
-              <button onClick={e => { e.stopPropagation(); setActiveImg(i => (i - 1 + images.length) % images.length); }}
-                style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(242,239,228,.15)', border: '1px solid rgba(242,239,228,.3)', color: '#F2EFE4', width: 44, height: 44, fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
-              <button onClick={e => { e.stopPropagation(); setActiveImg(i => (i + 1) % images.length); }}
-                style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(242,239,228,.15)', border: '1px solid rgba(242,239,228,.3)', color: '#F2EFE4', width: 44, height: 44, fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
-            </>
+            <div className="pp-lightbox-rail" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 20, overflowY: 'auto', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+              {images.map((url, i) => (
+                <div key={i} onClick={() => setActiveImg(i)}
+                  style={{ width: 64, height: 64, flexShrink: 0, cursor: 'pointer', border: `2px solid ${activeImg === i ? 'var(--gd)' : 'var(--line)'}`, opacity: activeImg === i ? 1 : 0.55, transition: 'opacity .2s' }}
+                >
+                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              ))}
+            </div>
           )}
-          <div style={{ marginTop: 12, fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.2em', color: 'rgba(242,239,228,.8)', textTransform: 'uppercase' }}>
-            {activeImg + 1} / {images.length}
+
+          {/* MAIN IMAGE */}
+          <div className="pp-lightbox-main" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
+            onTouchStart={onTouchStart}
+            onTouchEnd={e => onTouchEnd(e, images.length)}
+          >
+            <div style={{ maxWidth: '85%', maxHeight: '85vh', position: 'relative', overflow: zoomed ? 'auto' : 'visible' }} onClick={e => e.stopPropagation()}>
+              <img key={activeImg} src={images[activeImg]} alt={product.name} className="pp-img-fade"
+                onClick={handleImageTap}
+                style={{
+                  maxWidth: zoomed ? 'none' : '100%', maxHeight: zoomed ? 'none' : '85vh',
+                  width: zoomed ? '190%' : 'auto',
+                  objectFit: 'contain', display: 'block', cursor: zoomed ? 'zoom-out' : 'zoom-in',
+                  transition: 'width .3s ease',
+                }} />
+            </div>
+            {images.length > 1 && !zoomed && (
+              <>
+                <button onClick={e => { e.stopPropagation(); setActiveImg(i => (i - 1 + images.length) % images.length); }}
+                  style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--iv)', width: 40, height: 40, fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>‹</button>
+                <button onClick={e => { e.stopPropagation(); setActiveImg(i => (i + 1) % images.length); }}
+                  style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--iv)', width: 40, height: 40, fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>›</button>
+              </>
+            )}
+            <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.2em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              {activeImg + 1} / {images.length}
+            </div>
           </div>
         </div>
-      )}
+      ), document.body)}
 
       <style>{`
         @keyframes ppFadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
@@ -299,6 +357,10 @@ export default function ProductPage() {
         .pp-img-fade { animation: ppImgFade .35s ease both; }
         @media (hover: hover) and (pointer: fine) {
           .pp-share-item:hover .pp-share-icon { background: var(--gl); transform: scale(1.08); }
+        }
+        @media (max-width: 700px) {
+          .pp-lightbox { flex-direction: column-reverse; }
+          .pp-lightbox-rail { flex-direction: row; overflow-x: auto; overflow-y: visible; padding: 12px; }
         }
         @media (max-width: 900px) {
           .product-page-grid { grid-template-columns: 1fr !important; gap: 32px !important; }

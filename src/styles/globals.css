@@ -110,6 +110,12 @@ img { display: block; max-width: 100%; }
   background: rgba(33,29,20,.15);
   border: 1px solid var(--gd);
 }
+/* Custom cursor is a desktop-only affordance — hide it and restore native
+   tap behavior on touch devices, where it just gets in the way. */
+@media (hover: none), (pointer: coarse) {
+  .tt-cursor { display: none !important; }
+  * { cursor: auto !important; }
+}
 
 /* ── SCROLL PROGRESS ─────────────────────────────────────── */
 .tt-progress {

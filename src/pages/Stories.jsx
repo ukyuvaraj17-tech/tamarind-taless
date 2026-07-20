@@ -23,7 +23,7 @@ export default function Stories() {
         eyebrow="From Our World"
         title={<em style={{ fontStyle: 'italic', color: 'var(--gold-pale)' }}>Stories</em>}
         subtitle="Artisan journeys, heritage knowledge, and the stories behind the pieces we curate."
-        minHeight={280}
+        minHeight="clamp(480px, 60vw, 640px)"
       />
 
       <section className="section" style={{ background: 'var(--bg)' }}>
