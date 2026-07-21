@@ -73,8 +73,8 @@ export function About() {
       <section style={{ background:'var(--card)', borderTop:'1px solid var(--line)', borderBottom:'1px solid var(--line)' }}>
         <div className="container">
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)' }} className="stats-grid-r">
-            {[['30,385','Instagram Followers'],['Noida & Coimbatore','Our Locations'],['Women-Led','Brand & Curation'],['Made in India','Curated in India']].map(([n,l],i) => (
-              <div key={i} ref={add(6+i)} className={`reveal d${i+1}`} style={{ textAlign:'center', padding:'2rem 1rem', borderRight: i < 3 ? '1px solid var(--line)' : 'none' }}>
+            {[['Noida & Coimbatore','Our Locations'],['Women-Led','Brand & Curation'],['Made in India','Curated in India'],['Handpicked','Every Single Piece']].map(([n,l],i) => (
+              <div key={i} ref={add(10+i)} className={`reveal d${i+1}`} style={{ textAlign:'center', padding:'2rem 1rem', borderRight: i < 3 ? '1px solid var(--line)' : 'none' }}>
                 <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:'clamp(1rem,2vw,1.4rem)', fontWeight:400, color:'var(--iv)', letterSpacing:'.06em', lineHeight:1, marginBottom:6 }}>{n}</div>
                 <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', color:'rgba(106,99,80,.88)' }}>{l}</div>
               </div>
@@ -86,13 +86,13 @@ export function About() {
       {/* VALUES */}
       <section className="section" style={{ background:'var(--bg)' }}>
         <div className="container">
-          <div style={{ textAlign:'center', marginBottom:48 }} ref={add(10)} className="reveal">
+          <div style={{ textAlign:'center', marginBottom:48 }} ref={add(14)} className="reveal">
             <p className="section-label">What We Stand For</p>
             <h2 className="section-title">Our <em>Values</em></h2>
           </div>
           <div className="grid-3">
             {values.map(([title, desc], i) => (
-              <div key={i} ref={add(11+i)} className={`reveal d${i+1}`} style={{ padding:28, background:'var(--card)', border:'1px solid var(--line)' }}>
+              <div key={i} ref={add(15+i)} className={`reveal d${i+1}`} style={{ padding:28, background:'var(--card)', border:'1px solid var(--line)' }}>
                 <hr className="hairline" style={{ marginBottom:14 }} />
                 <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, color:'var(--iv)', marginBottom:12, fontWeight:400 }}>{title}</h3>
                 <p style={S.body}>{desc}</p>
