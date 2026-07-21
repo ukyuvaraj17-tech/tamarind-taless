@@ -21,9 +21,43 @@ export default function Checkout() {
   });
   const [billingSame, setBillingSame] = useState(true);
   const [billing, setBilling] = useState({ name: '', phone: '', line1: '', line2: '', city: '', state: '', pincode: '' });
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   const hasExisting = (userProfile?.addresses?.length || 0) > 0;
   const shipping = cartSubtotal > 50000 ? 0 : 500;
+  const discount = appliedCoupon
+    ? (appliedCoupon.type === 'percent'
+        ? Math.round(cartSubtotal * (Number(appliedCoupon.value) / 100))
+        : Math.min(Number(appliedCoupon.value), cartSubtotal))
+    : 0;
+
+  async function applyCoupon() {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    setApplyingCoupon(true);
+    try {
+      const { data, error } = await supabase.from('coupons').select('*').eq('code', code).eq('active', true).maybeSingle();
+      if (error || !data) { toast.error('Invalid or expired coupon code.'); setAppliedCoupon(null); return; }
+      const cartProductIds = cart.filter(i => !i.isGiftCard).map(i => i.id);
+      if (data.applies_to === 'products') {
+        const matches = (data.product_ids || []).some(id => cartProductIds.includes(id));
+        if (!matches) { toast.error("This coupon doesn't apply to the items in your cart."); setAppliedCoupon(null); return; }
+      } else if (data.applies_to === 'bundle') {
+        const need = data.product_ids || [];
+        const matchCount = need.filter(id => cartProductIds.includes(id)).length;
+        if (matchCount < need.length) { toast.error(`This coupon needs all ${need.length} bundle items in your cart.`); setAppliedCoupon(null); return; }
+      }
+      setAppliedCoupon(data);
+      toast.success('Coupon applied.');
+    } finally { setApplyingCoupon(false); }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponCode('');
+  }
 
   // Sync form and useExisting when userProfile loads asynchronously after render
   useEffect(() => {
@@ -35,7 +69,7 @@ export default function Checkout() {
       phone: f.phone || userProfile.phone || '',
     }));
   }, [userProfile]);
-  const total = cartSubtotal + shipping;
+  const total = cartSubtotal + shipping - discount;
 
   function setF(k, v) { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); }
   function setB(k, v) { setBilling(b => ({ ...b, [k]: v })); setErrors(e => ({ ...e, ['b_' + k]: '' })); }
@@ -89,6 +123,7 @@ export default function Checkout() {
         address: { ...addr, billing: billAddr },
         items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null })),
         subtotal: cartSubtotal, shipping, total,
+        coupon_code: appliedCoupon?.code || null, discount,
         payment_method: payMethod,
         status: 'Pending',
       };
@@ -98,7 +133,8 @@ export default function Checkout() {
 
       // WhatsApp seller notification
       const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
-      const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
+      const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
+      const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
       window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
 
       localStorage.setItem('tt_last_order', JSON.stringify({ orderId, items: cart, total, addr }));
@@ -235,7 +271,34 @@ export default function Checkout() {
               </div>
             ))}
             <hr className="divider" />
+
+            {/* COUPON */}
+            <div style={{ marginBottom: 18 }}>
+              {appliedCoupon ? (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(107,142,80,.1)', borderLeft: '3px solid var(--success)', padding: '9px 12px' }}>
+                  <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '.06em', color: 'var(--success)' }}>{appliedCoupon.code} applied</span>
+                  <button onClick={removeCoupon} style={{ background: 'none', border: 'none', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(106,99,80,.7)', cursor: 'pointer', padding: 0 }}>Remove</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                    placeholder="Coupon code"
+                    style={{ flex: 1, padding: '10px 12px', border: '1px solid #D3CCB9', background: 'transparent', fontFamily: "'Inter',sans-serif", fontSize: 13, letterSpacing: '.04em', color: 'var(--iv)', outline: 'none', textTransform: 'uppercase' }}
+                  />
+                  <button onClick={applyCoupon} disabled={applyingCoupon || !couponCode.trim()} className="btn btn-outline btn-sm" style={{ opacity: applyingCoupon || !couponCode.trim() ? 0.5 : 1 }}>
+                    {applyingCoupon ? '...' : 'Apply'}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,.88)' }}><span>Subtotal</span><span>{fmt(cartSubtotal)}</span></div>
+            {discount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--success)' }}><span>Discount</span><span>-{fmt(discount)}</span></div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,.88)' }}><span>Delivery</span><span>{shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}><span>Total</span><span>{fmt(total)}</span></div>
           </div>

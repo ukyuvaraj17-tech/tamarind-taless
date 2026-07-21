@@ -14,7 +14,7 @@ function categoriesFor(groups) {
   return [...groups.flatMap(g => g.items), COLLECTOR_LABEL];
 }
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
-const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Brand Settings'];
+const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Coupons', 'Brand Settings'];
 const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, allow_enquiry: true, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [] };
 
 // ── SHARED CLOUDINARY UPLOAD (single file — logo / hero / video fields) ──
@@ -271,6 +271,202 @@ function StoriesManager() {
             {saving ? 'Saving...' : editId ? 'Update Story' : 'Publish Story'}
           </button>
           {editId && <button onClick={() => { setForm({ ...EMPTY_STORY }); setEditId(null); setView('list'); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── COUPONS ────────────────────────────────────────────────
+const EMPTY_COUPON = { code: '', type: 'percent', value: '', applies_to: 'all', product_ids: [], active: true };
+const APPLIES_TO_LABEL = { all: 'All products', products: 'Specific product(s)', bundle: 'Bundle — buy together' };
+
+function CouponsManager() {
+  const [coupons, setCoupons] = React.useState([]);
+  const [products, setProducts] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [view, setView] = React.useState('list');
+  const [form, setForm] = React.useState({ ...EMPTY_COUPON });
+  const [editId, setEditId] = React.useState(null);
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => { fetchCoupons(); fetchProducts(); }, []);
+
+  async function fetchCoupons() {
+    setLoading(true);
+    const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
+    if (data) setCoupons(data);
+    setLoading(false);
+  }
+  async function fetchProducts() {
+    const { data } = await supabase.from('products').select('id, name').order('name');
+    if (data) setProducts(data);
+  }
+
+  function setF(key, val) { setForm(f => ({ ...f, [key]: val })); }
+  function startNew() { setForm({ ...EMPTY_COUPON }); setEditId(null); setView('edit'); }
+  function startEdit(c) { setForm({ ...EMPTY_COUPON, ...c, value: String(c.value), product_ids: c.product_ids || [] }); setEditId(c.id); setView('edit'); }
+
+  function toggleProduct(id) {
+    setForm(f => ({ ...f, product_ids: f.product_ids.includes(id) ? f.product_ids.filter(x => x !== id) : [...f.product_ids, id] }));
+  }
+
+  function productNames(ids) {
+    if (!ids?.length) return '—';
+    return ids.map(id => products.find(p => p.id === id)?.name || '(deleted product)').join(', ');
+  }
+
+  async function saveCoupon() {
+    const code = form.code.trim().toUpperCase();
+    if (!code) { toast.error('Coupon code is required.'); return; }
+    if (!form.value || Number(form.value) <= 0) { toast.error('Enter a discount value greater than 0.'); return; }
+    if (form.applies_to !== 'all' && form.product_ids.length === 0) { toast.error('Select at least one product.'); return; }
+    if (form.applies_to === 'bundle' && form.product_ids.length < 2) { toast.error('A bundle coupon needs at least 2 products selected.'); return; }
+    setSaving(true);
+    try {
+      const payload = {
+        code, type: form.type, value: Number(form.value),
+        applies_to: form.applies_to, product_ids: form.applies_to === 'all' ? [] : form.product_ids,
+        min_products: form.applies_to === 'bundle' ? form.product_ids.length : 1,
+        active: form.active,
+      };
+      if (editId) {
+        const { error } = await supabase.from('coupons').update(payload).eq('id', editId);
+        if (error) throw error;
+        toast.success('Coupon updated.');
+      } else {
+        const { error } = await supabase.from('coupons').insert(payload);
+        if (error) throw error;
+        toast.success('Coupon created.');
+      }
+      await fetchCoupons();
+      setView('list');
+    } catch (e) {
+      toast.error(e.message?.includes('duplicate') ? 'That code already exists.' : 'Failed. Run the coupons SQL migration in Supabase if this keeps failing.');
+    } finally { setSaving(false); }
+  }
+
+  async function deleteCoupon(id) {
+    if (!window.confirm('Delete this coupon?')) return;
+    await supabase.from('coupons').delete().eq('id', id);
+    toast.success('Coupon deleted.');
+    fetchCoupons();
+  }
+
+  async function toggleActive(c) {
+    await supabase.from('coupons').update({ active: !c.active }).eq('id', c.id);
+    fetchCoupons();
+  }
+
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', caretColor: 'var(--gd)' };
+  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)' };
+
+  if (view === 'list') {
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>Coupons ({coupons.length})</div>
+          <button onClick={startNew} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Coupon</button>
+        </div>
+        <div style={{ ...helpText, marginBottom: 20 }}>Since this site has no backend server, coupon codes are checked directly against this table when a customer applies one at checkout — a normal customer typing a code you gave them works completely fine, but a technically determined person could discover codes by inspecting network requests. Fine for typical promotions, just worth knowing.</div>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 40 }}><span className="spinner"></span></div>
+        ) : coupons.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>No coupons yet. Click "Add New Coupon" to create your first one.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {coupons.map(c => (
+              <div key={c.id} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 220 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '0.06em', color: 'var(--iv)' }}>{c.code}</span>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.active ? 'var(--success)' : 'rgba(106,99,80,0.4)' }}>{c.active ? 'Active' : 'Inactive'}</span>
+                  </div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)' }}>
+                    {c.type === 'percent' ? `${c.value}% off` : `Rs. ${Number(c.value).toLocaleString('en-IN')} off`} — {APPLIES_TO_LABEL[c.applies_to]}
+                  </div>
+                  {c.applies_to !== 'all' && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(106,99,80,0.6)', fontStyle: 'italic', marginTop: 2 }}>{productNames(c.product_ids)}</div>}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button onClick={() => toggleActive(c)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.3)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>{c.active ? 'Deactivate' : 'Activate'}</button>
+                  <button onClick={() => startEdit(c)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Edit</button>
+                  <button onClick={() => deleteCoupon(c.id)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 620 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>{editId ? 'Edit Coupon' : 'New Coupon'}</div>
+        <button onClick={() => setView('list')} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 16px', cursor: 'pointer' }}>Back to List</button>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div>
+          <label style={lbl}>Coupon Code *</label>
+          <input style={{ ...inp, textTransform: 'uppercase' }} value={form.code} onChange={e => setF('code', e.target.value)} placeholder="e.g. FESTIVE20" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+        </div>
+
+        <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div>
+            <label style={lbl}>Discount Type</label>
+            <select style={{ ...inp, cursor: 'pointer' }} value={form.type} onChange={e => setF('type', e.target.value)}>
+              <option value="percent" style={{ background: '#F2EFE4' }}>Percentage Off</option>
+              <option value="flat" style={{ background: '#F2EFE4' }}>Flat Amount Off</option>
+            </select>
+          </div>
+          <div>
+            <label style={lbl}>{form.type === 'percent' ? 'Percentage (%)' : 'Amount (Rs.)'}</label>
+            <input style={inp} type="number" min="0" value={form.value} onChange={e => setF('value', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder={form.type === 'percent' ? 'e.g. 20' : 'e.g. 500'} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+          </div>
+        </div>
+
+        <div>
+          <label style={lbl}>Applies To</label>
+          <select style={{ ...inp, cursor: 'pointer' }} value={form.applies_to} onChange={e => setF('applies_to', e.target.value)}>
+            <option value="all" style={{ background: '#F2EFE4' }}>All products — works on any order</option>
+            <option value="products" style={{ background: '#F2EFE4' }}>Specific product(s) — order must contain at least one</option>
+            <option value="bundle" style={{ background: '#F2EFE4' }}>Bundle — order must contain ALL selected products</option>
+          </select>
+        </div>
+
+        {form.applies_to !== 'all' && (
+          <div>
+            <label style={lbl}>Select Product(s)</label>
+            <div style={{ ...helpText, marginBottom: 10 }}>
+              {form.applies_to === 'bundle'
+                ? 'The coupon only applies when every product checked below is in the cart together.'
+                : 'The coupon applies when any one of the products checked below is in the cart.'}
+            </div>
+            <div style={{ maxHeight: 240, overflowY: 'auto', border: '1px solid rgba(33,29,20,0.15)', padding: '4px 4px' }}>
+              {products.map(p => (
+                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>
+                  <input type="checkbox" checked={form.product_ids.includes(p.id)} onChange={() => toggleProduct(p.id)} style={{ accentColor: 'var(--gd)', width: 15, height: 15, cursor: 'pointer' }} />
+                  <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>{p.name}</span>
+                </label>
+              ))}
+              {products.length === 0 && <div style={{ ...helpText, padding: 10 }}>No products yet.</div>}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input type="checkbox" checked={form.active} onChange={e => setF('active', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--gd)', cursor: 'pointer' }} />
+          <label style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)' }}>Active (customers can use this code)</label>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+          <button onClick={saveCoupon} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+            {saving ? 'Saving...' : editId ? 'Update Coupon' : 'Create Coupon'}
+          </button>
+          {editId && <button onClick={() => { setForm({ ...EMPTY_COUPON }); setEditId(null); setView('list'); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
         </div>
       </div>
     </div>
@@ -867,6 +1063,7 @@ export default function Admin() {
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}>{fmt(o.total)}</div>
+                        {o.coupon_code && <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11.5, letterSpacing: '.06em', color: 'var(--success)', marginTop: 2 }}>{o.coupon_code} (-{fmt(o.discount || 0)})</div>}
                         <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: o.payment_method === 'razorpay' ? 'var(--success)' : 'var(--gd)', textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
                       </div>
                     </div>
@@ -923,8 +1120,11 @@ export default function Admin() {
         {/* STORIES */}
         {tab === 5 && <StoriesManager />}
 
+        {/* COUPONS */}
+        {tab === 6 && <CouponsManager />}
+
         {/* BRAND SETTINGS */}
-        {tab === 6 && <BrandSettings />}
+        {tab === 7 && <BrandSettings />}
       </div>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
