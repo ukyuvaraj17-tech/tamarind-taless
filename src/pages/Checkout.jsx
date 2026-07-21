@@ -121,7 +121,10 @@ export default function Checkout() {
         user_name: userProfile?.name || form.name,
         user_phone: form.phone || userProfile?.phone,
         address: { ...addr, billing: billAddr },
-        items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null })),
+        items: cart.map(i => ({
+          id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null,
+          ...(i.isGiftCard ? { isGiftCard: true, giftCode: i.giftCode, recipientName: i.recipientName || null, recipientEmail: i.recipientEmail || null, giftMessage: i.giftMessage || null } : {}),
+        })),
         subtotal: cartSubtotal, shipping, total,
         coupon_code: appliedCoupon?.code || null, discount,
         payment_method: payMethod,
@@ -263,6 +266,11 @@ export default function Checkout() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>{item.name}{item.size ? ` — ${item.size}` : ''}</div>
+                  {item.isGiftCard && (
+                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 12.5, color: 'rgba(106,99,80,.7)', fontStyle: 'italic' }}>
+                      {item.giftCode}{item.recipientName ? ` — for ${item.recipientName}` : ''}
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(106,99,80,.88)' }}>Qty: {item.qty}</span>
                     <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>{fmt(item.price * item.qty)}</span>

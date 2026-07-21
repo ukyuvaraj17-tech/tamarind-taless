@@ -1068,7 +1068,16 @@ export default function Admin() {
                       </div>
                     </div>
                     <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(33,29,20,0.08)' }}>
-                      {o.items?.map((item, i) => <span key={i} style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.5)', marginRight: 12 }}>{item.name} ×{item.qty}</span>)}
+                      {o.items?.map((item, i) => (
+                        <div key={i} style={{ display: 'inline-block', marginRight: 12 }}>
+                          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.5)' }}>{item.name} ×{item.qty}</span>
+                          {item.isGiftCard && (
+                            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.04em', color: 'var(--gd)', background: 'rgba(33,29,20,.08)', padding: '2px 8px', marginLeft: 6 }}>
+                              {item.giftCode}{item.recipientName ? ` → ${item.recipientName} (${item.recipientEmail})` : ''}
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
                     {o.address && <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.4)', lineHeight: 1.6 }}>{o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state}, {o.address.pincode}</div>}
                     <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>

@@ -46,7 +46,13 @@ export default function Cart() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'var(--gd)', marginBottom: 3 }}>{item.cat.toUpperCase()}</div>
                     <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, color: 'var(--iv)', fontWeight: 500, marginBottom: 2 }}>{item.name}{item.size ? ` — ${item.size}` : ''}</div>
-                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)', fontStyle: 'italic', marginBottom: 11 }}>{item.origin}</div>
+                    {item.isGiftCard ? (
+                      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(106,99,80,.88)', fontStyle: 'italic', marginBottom: 11 }}>
+                        Code: {item.giftCode}{item.recipientName ? ` — for ${item.recipientName}` : ''}
+                      </div>
+                    ) : (
+                      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)', fontStyle: 'italic', marginBottom: 11 }}>{item.origin}</div>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                         <button
