@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../supabase';
 import toast from 'react-hot-toast';
 
 const CartContext = createContext();
@@ -19,6 +20,33 @@ export function CartProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('tt_cart', JSON.stringify(cart));
   }, [cart]);
+
+  // The cart is saved in the browser and can go stale -- a product added days ago may
+  // since have been deleted or unpublished by the admin. Re-check once against Supabase
+  // on load and drop anything that's gone, so a removed product never lingers in a cart.
+  useEffect(() => {
+    const initialCart = cart;
+    const realIds = [...new Set(initialCart.filter(i => !i.isGiftCard).map(i => i.id))];
+    if (realIds.length === 0) return;
+    supabase.from('products').select('id, available, stock').in('id', realIds).then(({ data, error }) => {
+      if (error || !data) return;
+      const liveMap = new Map(data.map(p => [p.id, p]));
+      const kept = [];
+      let removedCount = 0;
+      initialCart.forEach(item => {
+        if (item.isGiftCard) { kept.push(item); return; }
+        const live = liveMap.get(item.id);
+        if (!live || live.available === false) { removedCount++; return; }
+        kept.push({ ...item, stock: live.stock });
+      });
+      setCart(kept);
+      if (removedCount > 0) {
+        toast.error(removedCount === 1
+          ? 'An item in your cart is no longer available and was removed.'
+          : `${removedCount} items in your cart are no longer available and were removed.`);
+      }
+    });
+  }, []);
 
   // Two different sizes of the same product are separate cart lines -- keyed by
   // id+size, not just id, so picking "Small" vs "Medium" doesn't merge them.
