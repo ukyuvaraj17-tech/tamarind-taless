@@ -349,7 +349,7 @@ export default function ProductPage() {
                     ? { ...product, price: chosenVariant.price, weight: chosenVariant.weight, dimensions: chosenVariant.dimensions, stock: chosenVariant.stock, size: chosenVariant.size }
                     : product);
                 }}>Add to Cart</button>
-                <button className="btn btn-full btn-wa" onClick={() => handleEnquire('inStock')}>Enquire on WhatsApp</button>
+                {product.allow_enquiry !== false && <button className="btn btn-full btn-wa" onClick={() => handleEnquire('inStock')}>Enquire on WhatsApp</button>}
               </>
             )}
           </div>

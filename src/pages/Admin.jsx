@@ -15,7 +15,7 @@ function categoriesFor(groups) {
 }
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Brand Settings'];
-const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [] };
+const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, allow_enquiry: true, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [] };
 
 // ── SHARED CLOUDINARY UPLOAD (single file — logo / hero / video fields) ──
 const CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
@@ -649,7 +649,7 @@ export default function Admin() {
   }
 
   function editProduct(p) {
-    setForm({ ...EMPTY, ...p, images: p.images || [], image_position: p.image_position || '50% 50%', pinterest_url: p.pinterest_url || '', variants: p.variants || [] });
+    setForm({ ...EMPTY, ...p, images: p.images || [], image_position: p.image_position || '50% 50%', pinterest_url: p.pinterest_url || '', variants: p.variants || [], allow_enquiry: p.allow_enquiry !== false });
     setEditId(p.id); setTab(2);
   }
 
@@ -787,6 +787,10 @@ export default function Admin() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <input type="checkbox" id="ft" checked={form.featured} onChange={e => setF('featured', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
                   <label htmlFor="ft" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Featured (pin to Homepage showcase)</label>
+                </div>
+                <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <input type="checkbox" id="aq" checked={form.allow_enquiry} onChange={e => setF('allow_enquiry', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+                  <label htmlFor="aq" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Allow WhatsApp Enquiry (uncheck for fixed-price / non-negotiable items)</label>
                 </div>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Story</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={4} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="The story behind this piece..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Collection Note</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }} rows={3} value={form.together} onChange={e => setF('together', e.target.value)} placeholder="Context..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
