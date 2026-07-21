@@ -3,11 +3,16 @@ import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useBrand } from '../context/BrandContext';
 import { useNavigate } from 'react-router-dom';
-import { fmt, categories, CATEGORY_GROUPS } from '../data/products';
+import { fmt, categories, CATEGORY_GROUPS, COLLECTOR_LABEL } from '../data/products';
 import ImageUploader from '../components/ImageUploader';
 import toast from 'react-hot-toast';
 
 const CATS = categories.filter(c => c !== 'All');
+// Same shape as the static `categories` export, but built from whatever taxonomy is
+// currently active (admin-customized via Brand Settings, or the built-in default).
+function categoriesFor(groups) {
+  return [...groups.flatMap(g => g.items), COLLECTOR_LABEL];
+}
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Brand Settings'];
 const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '' };
@@ -560,7 +565,9 @@ function BrandSettings() {
 // ── MAIN ADMIN ────────────────────────────────────────────
 export default function Admin() {
   const { isAdmin, logout, currentUser } = useAuth();
+  const { brand } = useBrand();
   const navigate = useNavigate();
+  const liveCats = categoriesFor(brand.category_taxonomy?.length ? brand.category_taxonomy : CATEGORY_GROUPS);
   const [tab, setTab] = useState(0);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -727,7 +734,7 @@ export default function Admin() {
               <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Product Name *</label><input style={inp} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Naranbil Bhagavathy" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div><label style={lbl}>Subtitle</label><input style={inp} value={form.subtitle} onChange={e => setF('subtitle', e.target.value)} placeholder="e.g. Guardian of Justice" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
-                <div><label style={lbl}>Category</label><select style={{ ...inp, cursor: 'pointer' }} value={form.cat} onChange={e => setF('cat', e.target.value)}>{CATS.map(c => <option key={c} value={c} style={{ background: '#F2EFE4' }}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}</select></div>
+                <div><label style={lbl}>Category</label><select style={{ ...inp, cursor: 'pointer' }} value={form.cat} onChange={e => setF('cat', e.target.value)}>{liveCats.map(c => <option key={c} value={c} style={{ background: '#F2EFE4' }}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}</select></div>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Source</label><input style={inp} value={form.origin} onChange={e => setF('origin', e.target.value)} placeholder="e.g. North Malabar, Kerala" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div><label style={lbl}>Material</label><input style={inp} value={form.material} onChange={e => setF('material', e.target.value)} placeholder="e.g. Bronze" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div><label style={lbl}>Dimensions</label><input style={inp} value={form.dimensions} onChange={e => setF('dimensions', e.target.value)} placeholder='10" H x 4" W' onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
