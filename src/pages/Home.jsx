@@ -161,7 +161,7 @@ export default function Home() {
         <div style={{ maxWidth:560, margin:'0 auto' }}>
           <p className="section-label">Follow Our Curation</p>
           <div style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:'clamp(2rem,5vw,4rem)', fontWeight:300, fontStyle:'italic', color:'var(--iv)', margin:'8px 0' }}>@tamarindtaless</div>
-          <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:15, color:'var(--iv)', marginBottom:24 }}>30,000 collectors and art lovers follow our heritage curation</p>
+          <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize:15, color:'var(--iv)', marginBottom:24 }}>{brand.home_ig_followers || '30,000'} collectors and art lovers follow our heritage curation</p>
           <a href="https://instagram.com/tamarindtaless" target="_blank" rel="noreferrer" className="btn btn-gold" style={{ textDecoration:'none', display:'inline-flex' }}>View on Instagram</a>
         </div>
       </section>

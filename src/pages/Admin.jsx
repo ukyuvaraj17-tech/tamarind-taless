@@ -279,7 +279,7 @@ function BrandSettings() {
     brand_name: brand.brand_name || '', tagline: brand.tagline || '', registered_office: brand.registered_office || '',
     home_featured_label: brand.home_featured_label || '', home_featured_title: brand.home_featured_title || '',
     home_quote_text: brand.home_quote_text || '', home_ink_eyebrow: brand.home_ink_eyebrow || '',
-    home_ink_title: brand.home_ink_title || '', home_ink_body: brand.home_ink_body || '',
+    home_ink_title: brand.home_ink_title || '', home_ink_body: brand.home_ink_body || '', home_ig_followers: brand.home_ig_followers || '',
   });
   const [savingHome, setSavingHome] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -347,7 +347,7 @@ function BrandSettings() {
       await updateBrand({
         home_featured_label: form.home_featured_label, home_featured_title: form.home_featured_title,
         home_quote_text: form.home_quote_text, home_ink_eyebrow: form.home_ink_eyebrow,
-        home_ink_title: form.home_ink_title, home_ink_body: form.home_ink_body,
+        home_ink_title: form.home_ink_title, home_ink_body: form.home_ink_body, home_ig_followers: form.home_ig_followers,
       });
       toast.success('Home page text saved.');
     } catch { toast.error('Failed. Run the home text SQL migration in Supabase if this keeps failing.'); }
@@ -474,13 +474,14 @@ function BrandSettings() {
       {/* HOME PAGE TEXT */}
       <div style={section}>
         <div style={secHead}>Home Page Text</div>
-        <div style={helpText}>Edit the wording on the homepage — the "Featured Acquisitions" label, the centered quote, and the dark "Why We Curate" band.</div>
+        <div style={helpText}>Edit the wording on the homepage — the "Featured Acquisitions" label, the centered quote, the dark "Why We Curate" band, and your Instagram follower count.</div>
         <div><label style={lbl}>Featured Products — Small Label</label><input style={inp} value={form.home_featured_label} onChange={e => setForm(f => ({ ...f, home_featured_label: e.target.value }))} placeholder="Featured Acquisitions" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <div><label style={lbl}>Featured Products — Heading</label><input style={inp} value={form.home_featured_title} onChange={e => setForm(f => ({ ...f, home_featured_title: e.target.value }))} placeholder="Pieces of Distinction" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <div><label style={lbl}>Quote Section</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={3} value={form.home_quote_text} onChange={e => setForm(f => ({ ...f, home_quote_text: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <div><label style={lbl}>Dark Band — Small Label</label><input style={inp} value={form.home_ink_eyebrow} onChange={e => setForm(f => ({ ...f, home_ink_eyebrow: e.target.value }))} placeholder="Why We Curate" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <div><label style={lbl}>Dark Band — Heading</label><input style={inp} value={form.home_ink_title} onChange={e => setForm(f => ({ ...f, home_ink_title: e.target.value }))} placeholder="Because beautiful traditions deserve to live on." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <div><label style={lbl}>Dark Band — Paragraph</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={4} value={form.home_ink_body} onChange={e => setForm(f => ({ ...f, home_ink_body: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Instagram Followers (shown in the "Follow Our Curation" section)</label><input style={inp} value={form.home_ig_followers} onChange={e => setForm(f => ({ ...f, home_ig_followers: e.target.value }))} placeholder="30,000" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <button onClick={saveHomeText} disabled={savingHome} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: savingHome ? 0.6 : 1 }}>
           {savingHome ? 'Saving...' : 'Save Home Page Text'}
         </button>

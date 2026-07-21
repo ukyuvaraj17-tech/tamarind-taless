@@ -42,6 +42,7 @@ export function BrandProvider({ children }) {
     home_ink_eyebrow: 'Why We Curate',
     home_ink_title: 'Because beautiful traditions deserve to live on.',
     home_ink_body: 'Across India, remarkable craftsmanship continues to thrive, often in places few people ever see. Alongside these living traditions are vintage treasures that carry the memories of another time. Tamarind Taless exists to bring both together in one thoughtful collection.',
+    home_ig_followers: '30,000',
     // Category taxonomy (masters/groups shown in the nav mega-menu and Shop filter).
     // null = use the built-in default in data/products.js until an admin customizes it.
     category_taxonomy: null,
