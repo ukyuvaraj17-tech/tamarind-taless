@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useCart } from '../context/CartContext';
 import { useBrand } from '../context/BrandContext';
+import { useAuth } from '../context/AuthContext';
 import { fmt, CATEGORY_GROUPS } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
 import ProductCard from '../components/ProductCard';
@@ -21,6 +22,7 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { brand } = useBrand();
+  const { currentUser, userProfile } = useAuth();
   const groups = brand.category_taxonomy?.length ? brand.category_taxonomy : CATEGORY_GROUPS;
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -92,6 +94,27 @@ export default function ProductPage() {
     const nowSaved = toggleSaved(product);
     setSaved(nowSaved);
     toast.success(nowSaved ? 'Saved for later.' : 'Removed from saved.');
+  }
+
+  // Opens WhatsApp immediately (so it isn't blocked as a popup) and logs the enquiry to
+  // Supabase in the background so it shows up under Admin > Enquiries.
+  function handleEnquire(reason) {
+    const messages = {
+      soldOut: `Hi, I'm interested in "${product.name}" but see it's currently sold out. Is it available, or do you have something similar?`,
+      priceOnEnquiry: `I am interested in ${product.name}, ${product.material || ''}, ${product.origin || ''}. Please share details and pricing.`,
+      inStock: `I am interested in ${product.name}, ${fmt(product.price)}. Please share more details.`,
+    };
+    const message = messages[reason];
+    window.open(`https://wa.me/918796988216?text=${encodeURIComponent(message)}`, '_blank');
+    supabase.from('enquiries').insert({
+      user_id: currentUser?.id || null,
+      user_name: userProfile?.name || 'Website Visitor',
+      user_email: currentUser?.email || null,
+      product: product.name,
+      message: reason === 'soldOut' ? 'Enquired about a sold-out piece via WhatsApp.' : message,
+      type: 'WhatsApp',
+      status: 'Received',
+    }).then(({ error }) => { if (error) console.error('Failed to log enquiry:', error); });
   }
 
   const touchX = React.useRef(null);
@@ -270,13 +293,16 @@ export default function ProductPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {isSoldOut ? (
-              <button className="btn btn-full" style={{ background: 'var(--card)', color: 'var(--text-muted)', cursor: 'not-allowed', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', padding: 15, border: '1px solid var(--line)' }} disabled>Sold Out</button>
+              <>
+                <button className="btn btn-full" style={{ background: 'var(--card)', color: 'var(--text-muted)', cursor: 'not-allowed', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', padding: 15, border: '1px solid var(--line)' }} disabled>Sold Out</button>
+                <button className="btn btn-full btn-wa" onClick={() => handleEnquire('soldOut')}>Enquire on WhatsApp</button>
+              </>
             ) : isEnquiryOnly ? (
-              <a href={`https://wa.me/918796988216?text=${encodeURIComponent('I am interested in ' + product.name + ', ' + (product.material || '') + ', ' + (product.origin || '') + '. Please share details and pricing.')}`} target="_blank" rel="noreferrer" className="btn btn-full btn-wa" style={{ textDecoration: 'none' }}>Enquire on WhatsApp</a>
+              <button className="btn btn-full btn-wa" onClick={() => handleEnquire('priceOnEnquiry')}>Enquire on WhatsApp</button>
             ) : (
               <>
                 <button className="btn btn-full btn-dark" onClick={() => addToCart(product)}>Add to Cart</button>
-                <a href={`https://wa.me/918796988216?text=${encodeURIComponent('I am interested in ' + product.name + ', ' + fmt(product.price) + '. Please share more details.')}`} target="_blank" rel="noreferrer" className="btn btn-full btn-wa" style={{ textDecoration: 'none' }}>Enquire on WhatsApp</a>
+                <button className="btn btn-full btn-wa" onClick={() => handleEnquire('inStock')}>Enquire on WhatsApp</button>
               </>
             )}
           </div>
