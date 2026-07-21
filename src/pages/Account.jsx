@@ -217,7 +217,21 @@ function GiftCardsTab({ userProfile, updateProfile, navigate }) {
   const [showModal, setShowModal] = useState(false);
   const [code, setCode] = useState('');
   const [saving, setSaving] = useState(false);
+  const [balances, setBalances] = useState({});
+  const [loadingBalances, setLoadingBalances] = useState(true);
   const cards = userProfile?.gift_cards || [];
+
+  useEffect(() => {
+    const codes = cards.map(c => c.code);
+    if (codes.length === 0) { setLoadingBalances(false); return; }
+    supabase.from('gift_cards').select('code, balance').in('code', codes).then(({ data }) => {
+      const map = {};
+      (data || []).forEach(g => { map[g.code] = g.balance; });
+      setBalances(map);
+      setLoadingBalances(false);
+    });
+    // eslint-disable-next-line
+  }, [userProfile?.gift_cards]);
 
   async function linkCard() {
     const trimmed = code.trim().toUpperCase();
@@ -225,8 +239,10 @@ function GiftCardsTab({ userProfile, updateProfile, navigate }) {
     if (cards.some(c => c.code === trimmed)) { toast.error('That code is already linked to your account.'); return; }
     setSaving(true);
     try {
+      const { data, error } = await supabase.from('gift_cards').select('code, balance').eq('code', trimmed).maybeSingle();
+      if (error || !data) { toast.error('That code was not found.'); return; }
       await updateProfile({ gift_cards: [...cards, { code: trimmed, added_at: new Date().toISOString() }] });
-      toast.success('Gift card linked to your account.');
+      toast.success(`Gift card linked — ${fmt(data.balance)} available.`);
       setCode(''); setShowModal(false);
     } catch { toast.error('Failed to link gift card.'); }
     finally { setSaving(false); }
@@ -244,7 +260,7 @@ function GiftCardsTab({ userProfile, updateProfile, navigate }) {
         <button className="btn btn-outline btn-sm" onClick={() => setShowModal(true)}>Add New</button>
       </div>
       <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)', marginBottom: 20 }}>
-        Received a Tamarind Taless gift card? Link its code here to keep it on file. To redeem it, mention the code when you check out or message us on WhatsApp — our team applies it to your order directly.
+        Received a Tamarind Taless gift card? Link its code here to keep it on file and see its remaining balance. Apply it directly at checkout when you're ready to use it.
       </div>
 
       {cards.length === 0 ? (
@@ -258,6 +274,9 @@ function GiftCardsTab({ userProfile, updateProfile, navigate }) {
             <div key={c.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--line)', background: 'var(--card)', padding: '14px 18px', flexWrap: 'wrap', gap: 10 }}>
               <div>
                 <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '.05em', color: 'var(--iv)' }}>{c.code}</div>
+                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--gd)', marginTop: 2 }}>
+                  {loadingBalances ? 'Checking balance…' : balances[c.code] !== undefined ? `${fmt(balances[c.code])} available` : 'Balance unavailable'}
+                </div>
                 <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, fontStyle: 'italic', color: 'rgba(106,99,80,.7)' }}>Added {new Date(c.added_at).toLocaleDateString('en-IN')}</div>
               </div>
               <button onClick={() => removeCard(c.code)} className="btn btn-danger btn-sm">Remove</button>

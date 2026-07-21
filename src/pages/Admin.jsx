@@ -14,7 +14,7 @@ function categoriesFor(groups) {
   return [...groups.flatMap(g => g.items), COLLECTOR_LABEL];
 }
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
-const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Coupons', 'Brand Settings'];
+const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Coupons', 'Gift Cards', 'Brand Settings'];
 const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, allow_enquiry: true, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [] };
 
 // ── SHARED CLOUDINARY UPLOAD (single file — logo / hero / video fields) ──
@@ -473,6 +473,99 @@ function CouponsManager() {
   );
 }
 
+// ── GIFT CARDS ─────────────────────────────────────────────
+function GiftCardsManager() {
+  const { brand, updateBrand } = useBrand();
+  const [issued, setIssued] = React.useState([]);
+  const [loadingIssued, setLoadingIssued] = React.useState(true);
+  const [form, setForm] = React.useState({
+    giftcard_min: brand.giftcard_min ?? 500,
+    giftcard_max: brand.giftcard_max ?? 50000,
+    giftcard_description: brand.giftcard_description || '',
+  });
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    supabase.from('gift_cards').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+      setIssued(data || []);
+      setLoadingIssued(false);
+    });
+  }, []);
+
+  async function toggleEnabled() {
+    try {
+      await updateBrand({ giftcard_enabled: brand.giftcard_enabled === false });
+      toast.success(brand.giftcard_enabled === false ? 'Gift cards enabled.' : 'Gift cards disabled.');
+    } catch { toast.error('Failed.'); }
+  }
+
+  async function saveSettings() {
+    setSaving(true);
+    try {
+      await updateBrand({
+        giftcard_min: Number(form.giftcard_min) || 500,
+        giftcard_max: Number(form.giftcard_max) || 50000,
+        giftcard_description: form.giftcard_description,
+      });
+      toast.success('Gift card settings saved.');
+    } catch { toast.error('Failed. Run the gift card SQL migration in Supabase if this keeps failing.'); }
+    finally { setSaving(false); }
+  }
+
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', caretColor: 'var(--gd)' };
+  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)' };
+  const section = { background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 24 };
+  const secHead = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(33,29,20,.7)', marginBottom: 4 };
+
+  return (
+    <div style={{ maxWidth: 760 }}>
+      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 24, textTransform: 'uppercase' }}>Gift Cards</div>
+
+      <div style={section}>
+        <div style={secHead}>Settings</div>
+        <div style={helpText}>Customers pick their own amount at /gift-card and buy it like a product. Each purchase creates a real, spendable balance under a unique code — customers (or you, on their behalf) can apply it at checkout, and the balance is deducted automatically. The image shown on the Gift Card page hero is set in Brand Settings → Per-Page Hero Images, alongside your other page banners.</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input type="checkbox" id="gce" checked={brand.giftcard_enabled !== false} onChange={toggleEnabled} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+          <label htmlFor="gce" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Gift cards page enabled</label>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div><label style={lbl}>Minimum Amount (Rs.)</label><input style={inp} type="number" value={form.giftcard_min} onChange={e => setForm(f => ({ ...f, giftcard_min: e.target.value }))} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+          <div><label style={lbl}>Maximum Amount (Rs.)</label><input style={inp} type="number" value={form.giftcard_max} onChange={e => setForm(f => ({ ...f, giftcard_max: e.target.value }))} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        </div>
+        <div><label style={lbl}>Page Description</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={2} value={form.giftcard_description} onChange={e => setForm(f => ({ ...f, giftcard_description: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <button onClick={saveSettings} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: saving ? 0.6 : 1 }}>
+          {saving ? 'Saving...' : 'Save Settings'}
+        </button>
+      </div>
+
+      <div style={secHead}>Issued Gift Cards ({issued.length})</div>
+      {loadingIssued ? (
+        <div style={{ textAlign: 'center', padding: 40 }}><span className="spinner"></span></div>
+      ) : issued.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>No gift cards purchased yet.</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+            <thead><tr>{['Code', 'Balance', 'Initial Value', 'Recipient', 'Purchased'].map(h => <th key={h} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(33,29,20,0.12)', color: 'rgba(106,99,80,0.5)' }}>{h}</th>)}</tr></thead>
+            <tbody>
+              {issued.map(g => (
+                <tr key={g.id}>
+                  <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 14, color: 'var(--iv)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{g.code}</td>
+                  <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: Number(g.balance) > 0 ? 'var(--success)' : 'rgba(106,99,80,0.4)', fontWeight: 500, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{fmt(g.balance)}</td>
+                  <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.7)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{fmt(g.initial_value)}</td>
+                  <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, color: 'rgba(106,99,80,0.7)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{g.recipient_name ? `${g.recipient_name} (${g.recipient_email})` : '—'}</td>
+                  <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, color: 'rgba(106,99,80,0.5)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{g.created_at ? new Date(g.created_at).toLocaleDateString('en-IN') : '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── BRAND SETTINGS ────────────────────────────────────────
 function BrandSettings() {
   const { brand, updateBrand } = useBrand();
@@ -481,11 +574,9 @@ function BrandSettings() {
     home_featured_label: brand.home_featured_label || '', home_featured_title: brand.home_featured_title || '',
     home_quote_text: brand.home_quote_text || '', home_ink_eyebrow: brand.home_ink_eyebrow || '',
     home_ink_title: brand.home_ink_title || '', home_ink_body: brand.home_ink_body || '', home_ig_followers: brand.home_ig_followers || '',
-    giftcard_min: brand.giftcard_min ?? 500, giftcard_max: brand.giftcard_max ?? 50000, giftcard_description: brand.giftcard_description || '',
   });
   const [savingHome, setSavingHome] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
-  const [savingGiftCard, setSavingGiftCard] = React.useState(false);
   const [logoUrl, setLogoUrl] = React.useState('');
 
   // Per-page hero image URL inputs
@@ -555,24 +646,6 @@ function BrandSettings() {
       toast.success('Home page text saved.');
     } catch { toast.error('Failed. Run the home text SQL migration in Supabase if this keeps failing.'); }
     finally { setSavingHome(false); }
-  }
-
-  async function toggleGiftCardEnabled() {
-    try { await updateBrand({ giftcard_enabled: brand.giftcard_enabled === false }); toast.success(brand.giftcard_enabled === false ? 'Gift cards enabled.' : 'Gift cards disabled.'); }
-    catch { toast.error('Failed.'); }
-  }
-
-  async function saveGiftCardSettings() {
-    setSavingGiftCard(true);
-    try {
-      await updateBrand({
-        giftcard_min: Number(form.giftcard_min) || 500,
-        giftcard_max: Number(form.giftcard_max) || 50000,
-        giftcard_description: form.giftcard_description,
-      });
-      toast.success('Gift card settings saved.');
-    } catch { toast.error('Failed. Run the gift card SQL migration in Supabase if this keeps failing.'); }
-    finally { setSavingGiftCard(false); }
   }
 
   function addGroup() {
@@ -761,24 +834,6 @@ function BrandSettings() {
           </button>
           <button onClick={resetTaxonomy} style={{ background: 'none', border: '1px solid rgba(33,29,20,.3)', color: 'var(--iv)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '13px 20px', cursor: 'pointer' }}>Reset to Default</button>
         </div>
-      </div>
-
-      {/* GIFT CARDS */}
-      <div style={section}>
-        <div style={secHead}>Gift Cards</div>
-        <div style={helpText}>Customers pick their own amount and buy it like a product — it goes through the same cart, checkout and WhatsApp order flow, and shows up under Orders. Redemption (using a gift card as payment on a future order) is handled manually by you, the same way orders already work.</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <input type="checkbox" id="gce" checked={brand.giftcard_enabled !== false} onChange={toggleGiftCardEnabled} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
-          <label htmlFor="gce" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Gift cards page enabled</label>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div><label style={lbl}>Minimum Amount (Rs.)</label><input style={inp} type="number" value={form.giftcard_min} onChange={e => setForm(f => ({ ...f, giftcard_min: e.target.value }))} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
-          <div><label style={lbl}>Maximum Amount (Rs.)</label><input style={inp} type="number" value={form.giftcard_max} onChange={e => setForm(f => ({ ...f, giftcard_max: e.target.value }))} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
-        </div>
-        <div><label style={lbl}>Page Description</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={2} value={form.giftcard_description} onChange={e => setForm(f => ({ ...f, giftcard_description: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
-        <button onClick={saveGiftCardSettings} disabled={savingGiftCard} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: savingGiftCard ? 0.6 : 1 }}>
-          {savingGiftCard ? 'Saving...' : 'Save Gift Card Settings'}
-        </button>
       </div>
 
       <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
@@ -1132,8 +1187,11 @@ export default function Admin() {
         {/* COUPONS */}
         {tab === 6 && <CouponsManager />}
 
+        {/* GIFT CARDS */}
+        {tab === 7 && <GiftCardsManager />}
+
         {/* BRAND SETTINGS */}
-        {tab === 7 && <BrandSettings />}
+        {tab === 8 && <BrandSettings />}
       </div>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
