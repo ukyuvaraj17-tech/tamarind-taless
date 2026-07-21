@@ -65,7 +65,7 @@ export default function Care() {
         image={brand.hero_care}
         position={brand.hero_care_position}
         eyebrow="Preservation Guide"
-        title={<>Care &amp; <em style={{ fontStyle: 'italic', color: 'var(--gold-pale)' }}>Preservation</em></>}
+        title={<>Care &amp; <em style={{ fontStyle: 'italic', color: 'var(--gd)', textShadow: '0 1px 3px rgba(242,239,228,.9), 0 2px 22px rgba(242,239,228,.55)' }}>Preservation</em></>}
         subtitle="Your piece has survived centuries. With the right care, it will survive centuries more."
       />
 

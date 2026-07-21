@@ -39,7 +39,7 @@ export default function Services() {
         image={brand.hero_services}
         position={brand.hero_services_position}
         eyebrow="What We Offer"
-        title={<>Our <em style={{ fontStyle: 'italic', color: 'var(--gold-pale)' }}>Services</em></>}
+        title={<>Our <em style={{ fontStyle: 'italic', color: 'var(--gd)', textShadow: '0 1px 3px rgba(242,239,228,.9), 0 2px 22px rgba(242,239,228,.55)' }}>Services</em></>}
         subtitle="Heritage curation, sourcing, and styling for collectors, designers, and spaces that deserve something extraordinary."
       />
 
