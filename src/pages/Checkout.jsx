@@ -87,7 +87,7 @@ export default function Checkout() {
         user_name: userProfile?.name || form.name,
         user_phone: form.phone || userProfile?.phone,
         address: { ...addr, billing: billAddr },
-        items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
+        items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null })),
         subtotal: cartSubtotal, shipping, total,
         payment_method: payMethod,
         status: 'Pending',
@@ -97,7 +97,7 @@ export default function Checkout() {
       if (error) throw error;
 
       // WhatsApp seller notification
-      const waItems = cart.map(i => `${i.name} x${i.qty}`).join(', ');
+      const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
       const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
       window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
 
@@ -221,12 +221,12 @@ export default function Checkout() {
           <div className="card-white" style={{ position: 'sticky', top: 86 }}>
             <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--iv)', marginBottom: 18, textTransform: 'uppercase' }}>Your Order</div>
             {cart.map(item => (
-              <div key={item.id} style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
+              <div key={item.id + (item.size || '')} style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
                 <div style={{ width: 46, height: 46, background: item.bg, flexShrink: 0, overflow: 'hidden' }}>
                   {item.images?.[0] && <img src={item.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>{item.name}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>{item.name}{item.size ? ` — ${item.size}` : ''}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(106,99,80,.88)' }}>Qty: {item.qty}</span>
                     <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>{fmt(item.price * item.qty)}</span>

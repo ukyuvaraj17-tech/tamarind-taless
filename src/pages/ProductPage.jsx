@@ -33,6 +33,7 @@ export default function ProductPage() {
   const [lightbox, setLightbox] = useState(false);
   const [zoomed, setZoomed] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null);
 
   // Lock page scroll while the lightbox is open — without this, scrolling the
   // underlying page on mobile made the fixed lightbox appear to jump/misalign.
@@ -56,6 +57,7 @@ export default function ProductPage() {
     let cancelled = false;
     setLoading(true);
     setActiveImg(0);
+    setSelectedSize(null);
     supabase.from('products').select('*').eq('id', id).single().then(({ data }) => {
       if (cancelled) return;
       setProduct(data || null);
@@ -99,10 +101,11 @@ export default function ProductPage() {
   // Opens WhatsApp immediately (so it isn't blocked as a popup) and logs the enquiry to
   // Supabase in the background so it shows up under Admin > Enquiries.
   function handleEnquire(reason) {
+    const sizeNote = chosenVariant ? ` (Size: ${chosenVariant.size})` : '';
     const messages = {
-      soldOut: `Hi, I'm interested in "${product.name}" but see it's currently sold out. Is it available, or do you have something similar?`,
-      priceOnEnquiry: `I am interested in ${product.name}, ${product.material || ''}, ${product.origin || ''}. Please share details and pricing.`,
-      inStock: `I am interested in ${product.name}, ${fmt(product.price)}. Please share more details.`,
+      soldOut: `Hi, I'm interested in "${product.name}"${selectedSize ? ` (Size: ${selectedSize})` : ''} but see it's currently sold out. Is it available, or do you have something similar?`,
+      priceOnEnquiry: `I am interested in ${product.name}${sizeNote}, ${product.material || ''}, ${product.origin || ''}. Please share details and pricing.`,
+      inStock: `I am interested in ${product.name}${sizeNote}, ${fmt(displayPrice)}. Please share more details.`,
     };
     const message = messages[reason];
     window.open(`https://wa.me/918796988216?text=${encodeURIComponent(message)}`, '_blank');
@@ -144,7 +147,13 @@ export default function ProductPage() {
   }
 
   const isEnquiryOnly = product.enquiry_only || product.enquiryOnly;
-  const isSoldOut = product.stock === 0;
+  const hasVariants = (product.variants || []).length > 0;
+  const chosenVariant = hasVariants ? product.variants.find(v => v.size === selectedSize) : null;
+  const allVariantsSoldOut = hasVariants && product.variants.every(v => Number(v.stock) === 0);
+  const isSoldOut = hasVariants ? (chosenVariant ? Number(chosenVariant.stock) === 0 : allVariantsSoldOut) : product.stock === 0;
+  const displayPrice = chosenVariant ? chosenVariant.price : product.price;
+  const displayWeight = chosenVariant ? chosenVariant.weight : product.weight;
+  const displayDimensions = chosenVariant ? chosenVariant.dimensions : product.dimensions;
   const images = product.images || [];
   const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -253,13 +262,46 @@ export default function ProductPage() {
             </button>
           </div>
 
+          {hasVariants && (
+            <div style={{ margin: '20px 0' }}>
+              <div style={{ ...S.label, marginBottom: 10 }}>Select Size</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {product.variants.map(v => {
+                  const sizeSoldOut = Number(v.stock) === 0;
+                  const active = selectedSize === v.size;
+                  return (
+                    <button
+                      key={v.size}
+                      onClick={() => !sizeSoldOut && setSelectedSize(v.size)}
+                      disabled={sizeSoldOut}
+                      style={{
+                        padding: '10px 18px',
+                        fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '.06em',
+                        border: `1px solid ${active ? 'var(--gd)' : 'var(--line)'}`,
+                        background: active ? 'var(--gd)' : 'transparent',
+                        color: sizeSoldOut ? 'var(--text-muted)' : (active ? 'var(--text-dark)' : 'var(--iv)'),
+                        cursor: sizeSoldOut ? 'not-allowed' : 'pointer',
+                        textDecoration: sizeSoldOut ? 'line-through' : 'none',
+                        opacity: sizeSoldOut ? 0.5 : 1,
+                        transition: 'all .15s',
+                      }}
+                    >{v.size}</button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div style={{ margin: '22px 0 24px', paddingBottom: 20, borderBottom: '1px solid var(--line)' }}>
             {isSoldOut ? (
               <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 15, letterSpacing: '.15em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sold Out</div>
             ) : isEnquiryOnly ? (
               <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: 'var(--gd)', fontStyle: 'italic' }}>Price available on enquiry</div>
             ) : (
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 32, color: 'var(--crimson)', fontWeight: 400 }}>{fmt(product.price)}</div>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 32, color: 'var(--crimson)', fontWeight: 400 }}>
+                {fmt(displayPrice)}
+                {hasVariants && !chosenVariant && <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginLeft: 12 }}>Starting Price</span>}
+              </div>
             )}
           </div>
 
@@ -275,12 +317,12 @@ export default function ProductPage() {
             <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: 24, whiteSpace: 'pre-line' }}>{product.together}</p>
           )}
 
-          {(product.material || product.dimensions || product.weight || product.origin) && (
+          {(product.material || displayDimensions || displayWeight || product.origin) && (
             <div style={{ background: 'var(--card)', padding: '18px 20px', marginBottom: 26, border: '1px solid var(--line)' }}>
               <div style={{ ...S.label, marginBottom: 12 }}>Specifications</div>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <tbody>
-                  {[['Material', product.material], ['Dimensions', product.dimensions], ['Weight', product.weight], ['Source', product.origin]].filter(([, v]) => v).map(([k, v]) => (
+                  {[['Material', product.material], ['Dimensions', displayDimensions], ['Weight', displayWeight], ['Source', product.origin]].filter(([, v]) => v).map(([k, v]) => (
                     <tr key={k} style={{ borderBottom: '1px solid var(--line)' }}>
                       <td style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '.1em', color: 'var(--gd)', padding: '9px 0', textTransform: 'uppercase', width: '36%' }}>{k}</td>
                       <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', padding: '9px 0' }}>{v}</td>
@@ -301,7 +343,12 @@ export default function ProductPage() {
               <button className="btn btn-full btn-wa" onClick={() => handleEnquire('priceOnEnquiry')}>Enquire on WhatsApp</button>
             ) : (
               <>
-                <button className="btn btn-full btn-dark" onClick={() => addToCart(product)}>Add to Cart</button>
+                <button className="btn btn-full btn-dark" onClick={() => {
+                  if (hasVariants && !chosenVariant) { toast.error('Please select a size.'); return; }
+                  addToCart(hasVariants
+                    ? { ...product, price: chosenVariant.price, weight: chosenVariant.weight, dimensions: chosenVariant.dimensions, stock: chosenVariant.stock, size: chosenVariant.size }
+                    : product);
+                }}>Add to Cart</button>
                 <button className="btn btn-full btn-wa" onClick={() => handleEnquire('inStock')}>Enquire on WhatsApp</button>
               </>
             )}

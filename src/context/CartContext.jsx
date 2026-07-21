@@ -20,40 +20,50 @@ export function CartProvider({ children }) {
     localStorage.setItem('tt_cart', JSON.stringify(cart));
   }, [cart]);
 
+  // Two different sizes of the same product are separate cart lines -- keyed by
+  // id+size, not just id, so picking "Small" vs "Medium" doesn't merge them.
+  function lineKey(item) {
+    return item.id + (item.size ? '::' + item.size : '');
+  }
+
   function addToCart(product) {
     if (product.stock === 0) {
       toast.error('This piece is no longer available.');
       return;
     }
+    const label = product.name + (product.size ? ` (${product.size})` : '');
     setCart((prev) => {
-      const existing = prev.find((i) => i.id === product.id);
+      const key = lineKey(product);
+      const existing = prev.find((i) => lineKey(i) === key);
       if (existing) {
         if (existing.qty >= product.stock) {
           toast.error(`Only ${product.stock} available.`);
           return prev;
         }
-        toast.success(`${product.name} quantity updated.`);
+        toast.success(`${label} quantity updated.`);
         return prev.map((i) =>
-          i.id === product.id ? { ...i, qty: i.qty + 1 } : i
+          lineKey(i) === key ? { ...i, qty: i.qty + 1 } : i
         );
       }
-      toast.success(`${product.name} added to cart.`);
+      toast.success(`${label} added to cart.`);
       return [...prev, { ...product, qty: 1 }];
     });
   }
 
-  function removeFromCart(id) {
-    setCart((prev) => prev.filter((i) => i.id !== id));
+  function removeFromCart(item) {
+    const key = lineKey(item);
+    setCart((prev) => prev.filter((i) => lineKey(i) !== key));
     toast.success('Item removed from cart.');
   }
 
-  function updateQty(id, qty) {
+  function updateQty(item, qty) {
     if (qty <= 0) {
-      removeFromCart(id);
+      removeFromCart(item);
       return;
     }
+    const key = lineKey(item);
     setCart((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, qty } : i))
+      prev.map((i) => (lineKey(i) === key ? { ...i, qty } : i))
     );
   }
 

@@ -15,7 +15,7 @@ function categoriesFor(groups) {
 }
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Brand Settings'];
-const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '' };
+const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [] };
 
 // ── SHARED CLOUDINARY UPLOAD (single file — logo / hero / video fields) ──
 const CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
@@ -603,6 +603,16 @@ export default function Admin() {
 
   function setF(k, v) { setForm(f => ({ ...f, [k]: v })); }
 
+  function addVariant() {
+    setForm(f => ({ ...f, variants: [...(f.variants || []), { size: '', price: '', weight: '', dimensions: '', stock: '' }] }));
+  }
+  function updateVariant(i, key, val) {
+    setForm(f => ({ ...f, variants: f.variants.map((v, idx) => idx === i ? { ...v, [key]: val } : v) }));
+  }
+  function removeVariant(i) {
+    setForm(f => ({ ...f, variants: f.variants.filter((_, idx) => idx !== i) }));
+  }
+
   async function saveProduct() {
     if (!form.name.trim()) { toast.error('Product name is required.'); return; }
     setSaving(true);
@@ -611,6 +621,9 @@ export default function Admin() {
         ...form,
         price: form.enquiry_only ? null : (Number(form.price) || null),
         stock: Number(form.stock) || 0,
+        variants: (form.variants || [])
+          .filter(v => (v.size || '').trim())
+          .map(v => ({ size: v.size.trim(), price: Number(v.price) || 0, weight: v.weight || '', dimensions: v.dimensions || '', stock: Number(v.stock) || 0 })),
       };
       delete data.id;
       if (editId) {
@@ -636,7 +649,7 @@ export default function Admin() {
   }
 
   function editProduct(p) {
-    setForm({ ...EMPTY, ...p, images: p.images || [], image_position: p.image_position || '50% 50%', pinterest_url: p.pinterest_url || '' });
+    setForm({ ...EMPTY, ...p, images: p.images || [], image_position: p.image_position || '50% 50%', pinterest_url: p.pinterest_url || '', variants: p.variants || [] });
     setEditId(p.id); setTab(2);
   }
 
@@ -747,6 +760,26 @@ export default function Admin() {
                 {!form.enquiry_only && <div><label style={lbl}>Price (Rs.)</label><input style={inp} type="number" value={form.price} onChange={e => setF('price', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder="e.g. 45000" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>}
                 <div><label style={lbl}>Badge</label><input style={inp} value={form.badge} onChange={e => setF('badge', e.target.value)} placeholder="Featured / Rare / Collector" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Pinterest Pin URL (optional)</label><input style={inp} value={form.pinterest_url} onChange={e => setF('pinterest_url', e.target.value)} placeholder="Paste the pin's URL from Pinterest — leave blank to auto-generate a Pin It link" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+
+                {/* SIZE VARIANTS */}
+                <div style={{ gridColumn: '1/-1', borderTop: '1px dashed rgba(33,29,20,.2)', paddingTop: 18, marginTop: 4 }}>
+                  <label style={lbl}>Size Variants (optional)</label>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)', marginBottom: 14 }}>
+                    Add sizes if this piece comes in more than one size — like Small / Medium / Large — each with its own price, weight, dimensions and stock. Customers pick a size on the product page and see that size's details. Leave empty for a single-size product (the Price/Weight/Dimensions/Stock fields above are used instead).
+                  </div>
+                  {(form.variants || []).map((v, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input style={{ ...inp, flex: '1 1 110px' }} value={v.size} onChange={e => updateVariant(i, 'size', e.target.value)} placeholder="Size (e.g. Small)" />
+                      <input style={{ ...inp, flex: '1 1 100px' }} type="number" value={v.price} onChange={e => updateVariant(i, 'price', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder="Price (Rs.)" />
+                      <input style={{ ...inp, flex: '1 1 90px' }} value={v.weight} onChange={e => updateVariant(i, 'weight', e.target.value)} placeholder="Weight" />
+                      <input style={{ ...inp, flex: '1 1 120px' }} value={v.dimensions} onChange={e => updateVariant(i, 'dimensions', e.target.value)} placeholder="Dimensions" />
+                      <input style={{ ...inp, flex: '0 1 80px' }} type="number" min="0" value={v.stock} onChange={e => updateVariant(i, 'stock', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder="Stock" />
+                      <button type="button" onClick={() => removeVariant(i)} title="Remove size" style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', width: 34, height: 34, flexShrink: 0, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={addVariant} style={{ background: 'none', border: '1px dashed rgba(33,29,20,.35)', color: 'var(--gd)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '9px 16px', cursor: 'pointer', marginTop: 4 }}>+ Add Size</button>
+                </div>
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <input type="checkbox" id="av" checked={form.available} onChange={e => setF('available', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
                   <label htmlFor="av" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Visible on website</label>
