@@ -57,7 +57,7 @@ export default function Home() {
           <p className="subline" style={{ color: brand.hero_image ? '#F2EFE4' : 'var(--text-muted)', textShadow: brand.hero_image ? '0 1px 12px rgba(0,0,0,.5)' : 'none', fontSize:'clamp(1rem,1.8vw,1.25rem)', maxWidth:540 }}>Curating vintage heirlooms, handcrafted treasures, and timeless artistry that celebrate India's rich cultural heritage, one story at a time.</p>
           <div style={{ display:'flex', gap:'.9rem', flexWrap:'wrap', justifyContent:'center' }}>
             <button className="btn btn-dark" onClick={() => navigate('/shop')}>Explore Collection</button>
-            <button className="btn btn-outline" style={brand.hero_image ? { color: '#1A1712', borderColor: 'rgba(26,23,18,.4)', background: 'rgba(242,239,228,.85)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' } : undefined} onClick={() => navigate('/about')}>Our Journey</button>
+            <button className="btn btn-outline" style={brand.hero_image ? { color: '#1A1712', borderColor: '#1A1712', background: 'transparent' } : undefined} onClick={() => navigate('/about')}>Our Journey</button>
           </div>
         </div>
       </section>
