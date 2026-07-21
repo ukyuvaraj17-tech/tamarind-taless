@@ -150,9 +150,9 @@ function RouteLoader() {
   return (
     <div className="route-loader-overlay" style={{
       position: 'fixed', inset: 0, zIndex: 99998,
-      background: 'var(--bg)',
+      background: 'transparent',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      opacity: active ? 1 : 0, pointerEvents: active ? 'auto' : 'none',
+      opacity: active ? 1 : 0, pointerEvents: 'none',
       transition: 'opacity .3s ease',
     }}>
       <div className="route-ring">

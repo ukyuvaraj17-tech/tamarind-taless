@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useCart } from '../context/CartContext';
+import { useBrand } from '../context/BrandContext';
 import { fmt, CATEGORY_GROUPS } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
 import ProductCard from '../components/ProductCard';
@@ -19,6 +20,8 @@ export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { brand } = useBrand();
+  const groups = brand.category_taxonomy?.length ? brand.category_taxonomy : CATEGORY_GROUPS;
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
   const [relatedTier, setRelatedTier] = useState('cat'); // 'cat' | 'group' | 'recent'
@@ -74,7 +77,7 @@ export default function ProductPage() {
 
         // No other pieces in the exact same category — widen to the same taxonomy group
         // (e.g. other Paintings, or other By Materials pieces) before falling back to "recent".
-        const group = CATEGORY_GROUPS.find(g => g.items.some(item => item.toLowerCase() === productCat));
+        const group = groups.find(g => g.items.some(item => item.toLowerCase() === productCat));
         const groupCats = group ? group.items.map(c => c.toLowerCase()) : [];
         const sameGroup = groupCats.length ? all.filter(p => groupCats.includes((p.cat || '').trim().toLowerCase())) : [];
         if (sameGroup.length > 0) { setRelated(sameGroup.slice(0, 4)); setRelatedTier('group'); setRelatedGroupLabel(group?.label || ''); return; }

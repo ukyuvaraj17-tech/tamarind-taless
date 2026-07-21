@@ -29,10 +29,22 @@ export function BrandProvider({ children }) {
     about_image_position: '50% 50%',
     // Splash / loading screen logo (shown while the site loads)
     splash_logo: '',
+    // Gallery page video (replaces the old collection-tiles grid)
+    gallery_video: '',
     // Registered office address shown in the footer
     registered_office: '',
     // Home showcase control
     featured_count: 3,
+    // Home page editable section text
+    home_featured_label: 'Featured Acquisitions',
+    home_featured_title: 'Pieces of Distinction',
+    home_quote_text: 'Every piece that finds its way to Tamarind Taless has already lived a story. We simply help it begin another.',
+    home_ink_eyebrow: 'Why We Curate',
+    home_ink_title: 'Because beautiful traditions deserve to live on.',
+    home_ink_body: 'Across India, remarkable craftsmanship continues to thrive, often in places few people ever see. Alongside these living traditions are vintage treasures that carry the memories of another time. Tamarind Taless exists to bring both together in one thoughtful collection.',
+    // Category taxonomy (masters/groups shown in the nav mega-menu and Shop filter).
+    // null = use the built-in default in data/products.js until an admin customizes it.
+    category_taxonomy: null,
   });
   const [loading, setLoading] = useState(true);
 

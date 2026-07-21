@@ -22,6 +22,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const ddRef = useRef(null);
+  const groups = brand.category_taxonomy?.length ? brand.category_taxonomy : CATEGORY_GROUPS;
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
@@ -84,8 +85,8 @@ export default function Navbar() {
             </button>
             {openDd === 'col' && (
               <div style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--nav)', border: '1px solid var(--line)', boxShadow: '0 12px 40px rgba(30,27,20,.12)', animation: 'fadeIn .15s ease', zIndex: 200, display: 'flex' }}>
-                {CATEGORY_GROUPS.map((group, gi) => (
-                  <div key={group.label} style={{ minWidth: 190, borderRight: gi < CATEGORY_GROUPS.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                {groups.map((group, gi) => (
+                  <div key={group.label} style={{ minWidth: 190, borderRight: gi < groups.length - 1 ? '1px solid var(--line)' : 'none' }}>
                     <Link to={`/shop?group=${encodeURIComponent(group.label)}`} style={{ display: 'block', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gold-muted)', padding: '14px 18px 8px', textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'none' }}
                       onMouseEnter={e => e.currentTarget.style.color = 'var(--gd)'}
                       onMouseLeave={e => e.currentTarget.style.color = 'var(--gold-muted)'}
@@ -175,7 +176,7 @@ export default function Navbar() {
       {/* MOBILE MENU */}
       <div style={{ position: 'fixed', top: 64, left: 0, right: 0, background: 'var(--nav)', zIndex: 999, borderBottom: '1px solid var(--line)', transform: menuOpen ? 'translateY(0)' : 'translateY(-110%)', opacity: menuOpen ? 1 : 0, transition: 'transform .35s cubic-bezier(.25,.46,.45,.94), opacity .3s', maxHeight: '80vh', overflowY: 'auto' }}>
         {[['Shop All','/shop'],['Gallery','/gallery'],
-          ...CATEGORY_GROUPS.flatMap(g => g.items.map(item => [item, `/shop?category=${encodeURIComponent(item)}`])),
+          ...groups.flatMap(g => g.items.map(item => [item, `/shop?category=${encodeURIComponent(item)}`])),
           [COLLECTOR_LABEL, `/shop?collection=${encodeURIComponent(COLLECTOR_LABEL)}`],
           ['About','/about'],['Services','/services'],['Stories','/stories'],['Care Guide','/care'],['Contact','/contact'],[currentUser?'My Account':'Login',currentUser?'/account':'/login'],[`Cart (${cartCount})`,'/cart']].map(([l,p]) => (
           <Link key={l+p} to={p} style={{ display: 'block', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.17em', textTransform: 'uppercase', color: 'rgba(106,99,80,.75)', padding: '13px 22px', borderBottom: '1px solid rgba(211,204,185,.8)', cursor: 'none', textDecoration: 'none' }}>{l}</Link>

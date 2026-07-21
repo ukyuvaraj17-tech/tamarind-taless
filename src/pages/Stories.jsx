@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import { useBrand } from '../context/BrandContext';
 import PageHero from '../components/PageHero';
+import Verse from '../components/Verse';
 
 export default function Stories() {
   const { brand } = useBrand();
@@ -25,6 +26,8 @@ export default function Stories() {
         subtitle="Artisan journeys, heritage knowledge, and the stories behind the pieces we curate."
         minHeight="clamp(480px, 60vw, 640px)"
       />
+
+      <Verse text="Every journey reminds us that India's greatest treasures are often hidden in the quietest corners." background="var(--card)" />
 
       <section className="section" style={{ background: 'var(--bg)' }}>
         <div className="container">

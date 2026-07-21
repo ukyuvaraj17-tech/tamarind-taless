@@ -42,6 +42,7 @@ export default function Shop() {
   const [loading, setLoading]     = useState(true);
   const [catDdOpen, setCatDdOpen] = useState(false);
   const catDdRef = React.useRef(null);
+  const groups = brand.category_taxonomy?.length ? brand.category_taxonomy : CATEGORY_GROUPS;
 
   useEffect(() => {
     if (!catDdOpen) return;
@@ -87,7 +88,7 @@ export default function Shop() {
   if (collectionFilter) {
     filtered = filtered.filter(p => matchesCategory(p, collectionFilter));
   } else if (groupFilter) {
-    const group = CATEGORY_GROUPS.find(g => g.label.toLowerCase() === groupFilter.toLowerCase());
+    const group = groups.find(g => g.label.toLowerCase() === groupFilter.toLowerCase());
     if (group) filtered = filtered.filter(p => group.items.some(item => matchesCategory(p, item)));
   } else if (catFilter !== 'All') {
     filtered = filtered.filter(p => matchesCategory(p, catFilter));
@@ -143,8 +144,8 @@ export default function Shop() {
                 </button>
                 {catDdOpen && (
                   <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, background: 'var(--nav)', border: '1px solid var(--line)', boxShadow: '0 12px 40px rgba(30,27,20,.14)', zIndex: 200, display: 'flex', minWidth: 640 }} className="shop-cat-dd">
-                    {CATEGORY_GROUPS.map((group, gi) => (
-                      <div key={group.label} style={{ flex: 1, minWidth: 150, borderRight: gi < CATEGORY_GROUPS.length - 1 ? '1px solid var(--line)' : 'none', padding: '14px 0' }}>
+                    {groups.map((group, gi) => (
+                      <div key={group.label} style={{ flex: 1, minWidth: 150, borderRight: gi < groups.length - 1 ? '1px solid var(--line)' : 'none', padding: '14px 0' }}>
                         <button onClick={() => handleGroupClick(group.label)} style={{
                           fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase',
                           color: groupFilter === group.label ? 'var(--gd)' : 'var(--gold-muted)', padding: '0 16px 10px',

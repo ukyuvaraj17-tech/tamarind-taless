@@ -44,8 +44,8 @@ export function About() {
       {/* STORY */}
       <section className="section" style={{ background:'var(--bg)' }}>
         <div className="container">
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:72, alignItems:'center' }} className="about-grid">
-            <div ref={add(0)} className="reveal" style={{ aspectRatio:'3/4', background: brand.about_image ? `url(${brand.about_image})` : 'linear-gradient(145deg,#F2EFE4,#E2DCC8 50%,#D3CCB9)', backgroundSize:'cover', backgroundPosition: brand.about_image_position || 'center', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:72, alignItems:'start' }} className="about-grid">
+            <div ref={add(0)} className="reveal" style={{ aspectRatio:'3/4', background: brand.about_image ? `url(${brand.about_image})` : 'linear-gradient(145deg,#F2EFE4,#E2DCC8 50%,#D3CCB9)', backgroundSize:'cover', backgroundPosition: brand.about_image_position || 'center', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', position:'sticky', top:96 }}>
               {!brand.about_image && (
                 <div style={{ textAlign:'center', padding:32 }}>
                   <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:11, letterSpacing:'.2em', textTransform:'uppercase', color:'rgba(33,29,20,.5)', marginBottom:10 }}>No Image Set</div>
@@ -56,10 +56,14 @@ export function About() {
             <div>
               <hr className="hairline" style={{ marginBottom:14 }} />
               <p className="section-label reveal" ref={add(1)}>Our Story</p>
-              <h2 style={{ ...S.h2 }} ref={add(2)} className="reveal d1">Every piece carries <em style={{ color:'var(--gd)' }}>a living memory</em></h2>
-              <p style={S.body} ref={add(3)} className="reveal d2">Tamarind Taless was founded by women with a deep reverence for South India's sacred artistic traditions. We believe that the bronze casting of Kerala, the ritual wood carving of coastal Karnataka, the mural traditions of temple walls, and the lost-wax metalwork of Tamil Nadu are not merely art forms. They are living memories encoded in material.</p>
-              <p style={{ ...S.body, marginTop:14 }} ref={add(4)} className="reveal d3">Each piece in our collection is acquired with care and reverence. We travel, research, and verify provenance, and only bring forward pieces we believe deserve to continue their journey.</p>
-              <p style={{ ...S.body, marginTop:14 }} ref={add(5)} className="reveal d4">We are based in Noida and Coimbatore, two cities at the intersection of modern India and its ancient inheritances.</p>
+              <h2 style={{ ...S.h2, marginBottom:20 }} ref={add(2)} className="reveal d1">Collected, <em style={{ color:'var(--gd)' }}>one story at a time</em></h2>
+              <p style={{ ...S.body, fontSize:18, fontStyle:'italic', color:'var(--iv)' }} ref={add(3)} className="reveal d2">We believe the most meaningful spaces and possessions are not simply acquired. They are collected, one story at a time.</p>
+              <p style={{ ...S.body, marginTop:18 }} ref={add(4)} className="reveal d3">Tamarind Taless began with two sisters and a shared love for India's heritage.</p>
+              <p style={{ ...S.body, marginTop:14 }} ref={add(5)} className="reveal d3">We are Sandhya and Vidya, and for as long as we can remember, we've been drawn to things that carry a story. A centuries old bronze, a handwoven saree, a forgotten heirloom, a painting weathered by time, or a craft that has quietly survived through generations. We never saw them as mere objects. To us, they carried memories, artistry, and a quiet sense of belonging.</p>
+              <p style={{ ...S.body, marginTop:14 }} ref={add(6)} className="reveal d4">What began as a personal passion slowly grew into Tamarind Taless.</p>
+              <p style={{ ...S.body, marginTop:14 }} ref={add(7)} className="reveal d4">Today, our journey takes us across India, where we meet artisans, collectors, and heritage families in search of pieces that deserve to be cherished for generations to come. Some are vintage treasures with lives of their own. Others are handcrafted by artisans who continue traditions passed down over centuries. Together, they celebrate the richness and diversity of India's artistic and cultural legacy.</p>
+              <p style={{ ...S.body, marginTop:14 }} ref={add(8)} className="reveal d4">At Tamarind Taless, we are not simply curating beautiful things. We are preserving stories, celebrating craftsmanship, and creating a space where India's heritage continues to find a place in contemporary lives and homes.</p>
+              <p style={{ ...S.body, marginTop:22, fontStyle:'italic', color:'var(--gd)', fontSize:18 }} ref={add(9)} className="reveal d4">If these stories speak to you as deeply as they speak to us, we're so glad you're here.<br/>Welcome to Tamarind Taless.</p>
             </div>
           </div>
         </div>
@@ -125,12 +129,13 @@ export function Contact() {
     if (!form.name || !form.email || !form.message) { toast.error('Please fill in all required fields.'); return; }
     setSending(true);
     try {
-      await supabase.from('enquiries').insert({
+      const { error } = await supabase.from('enquiries').insert({
         user_id: currentUser?.id || null,
         user_name: form.name, user_email: form.email,
         product: form.subject || 'General Enquiry',
         message: form.message, type: 'Email', status: 'Received',
       });
+      if (error) throw error;
       setSent(true);
       toast.success('Enquiry sent. We will be in touch within 24 hours.');
       setForm({ name:'', email:'', subject:'', message:'' });

@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useBrand } from '../context/BrandContext';
 import { useNavigate } from 'react-router-dom';
-import { fmt, categories } from '../data/products';
+import { fmt, categories, CATEGORY_GROUPS } from '../data/products';
 import ImageUploader from '../components/ImageUploader';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,62 @@ const CATS = categories.filter(c => c !== 'All');
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Brand Settings'];
 const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '' };
+
+// ── SHARED CLOUDINARY UPLOAD (single file — logo / hero / video fields) ──
+const CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
+const CAN_UPLOAD = CLOUD_NAME && UPLOAD_PRESET && CLOUD_NAME !== 'your_cloud_name';
+
+async function uploadSingleToCloudinary(file, resourceType) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+  formData.append('folder', 'tamarind-tales/brand');
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, { method: 'POST', body: formData });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
+  return data.secure_url;
+}
+
+// Paste-URL input + optional direct-upload button, for any single logo/hero/video field
+function MediaUrlField({ value, onChange, onSave, placeholder, resourceType = 'image', accept = 'image/*', inputStyle, saveLabel = 'Save' }) {
+  const [uploading, setUploading] = React.useState(false);
+  const fileRef = React.useRef();
+
+  async function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadSingleToCloudinary(file, resourceType);
+      onSave(url);
+      toast.success('Uploaded.');
+    } catch (err) { toast.error('Upload failed: ' + err.message); }
+    finally { setUploading(false); e.target.value = ''; }
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ ...inputStyle, flex: 1, minWidth: 180 }}
+        onFocus={e => e.target.style.borderColor = 'var(--gd)'}
+        onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'}
+      />
+      <button onClick={() => onSave(value)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>{saveLabel}</button>
+      {CAN_UPLOAD && (
+        <>
+          <input ref={fileRef} type="file" accept={accept} style={{ display: 'none' }} onChange={handleFile} />
+          <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ background: uploading ? 'rgba(33,29,20,0.4)' : 'rgba(30,27,20,0.08)', border: '1px dashed rgba(33,29,20,0.35)', color: 'var(--iv)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '10px 16px', cursor: uploading ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
+            {uploading ? 'Uploading…' : 'Upload File'}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
 
 // 3x3 focal-point grid — maps a friendly label to a CSS object-position value
 const IMAGE_POSITIONS = [
@@ -40,7 +96,7 @@ function ImagePositionPicker({ image, value, onChange, aspect = '1/1', width = 3
   const [expanded, setExpanded] = React.useState(false);
   return (
     <div>
-      <label style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>
+      <label style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 }}>
         Image Focal Point — which part of the photo should stay visible when cropped
       </label>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -48,9 +104,9 @@ function ImagePositionPicker({ image, value, onChange, aspect = '1/1', width = 3
           {image ? (
             <img src={image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: pos }} />
           ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 13, fontStyle: 'italic', color: 'rgba(106,99,80,0.5)', textAlign: 'center', padding: 20 }}>Add an image to preview crop</div>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontStyle: 'italic', color: 'rgba(106,99,80,0.5)', textAlign: 'center', padding: 20 }}>Add an image to preview crop</div>
           )}
-          {image && <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(30,27,20,0.6)', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 7px' }}>Click to enlarge</div>}
+          {image && <div style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(30,27,20,0.6)', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 7px' }}>Click to enlarge</div>}
         </div>
         <PositionGrid pos={pos} onChange={onChange} />
       </div>
@@ -62,9 +118,9 @@ function ImagePositionPicker({ image, value, onChange, aspect = '1/1', width = 3
               <img src={image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: pos }} />
             </div>
             <div>
-              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 16 }}>Set Focal Point</div>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 16 }}>Set Focal Point</div>
               <PositionGrid pos={pos} onChange={onChange} size={54} />
-              <button onClick={() => setExpanded(false)} style={{ marginTop: 20, background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '11px 22px', cursor: 'pointer' }}>Done</button>
+              <button onClick={() => setExpanded(false)} style={{ marginTop: 20, background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '11px 22px', cursor: 'pointer' }}>Done</button>
             </div>
           </div>
         </div>
@@ -129,21 +185,21 @@ function StoriesManager() {
     fetchStories();
   }
 
-  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: 'var(--gd)' };
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', caretColor: 'var(--gd)' };
 
   // ── LIST VIEW ──
   if (view === 'list') {
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>Stories ({stories.length})</div>
-          <button onClick={startNew} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Story</button>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>Stories ({stories.length})</div>
+          <button onClick={startNew} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Story</button>
         </div>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40 }}><span className="spinner"></span></div>
         ) : stories.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>No stories yet. Click "Add New Story" to publish your first one.</div>
+          <div style={{ textAlign: 'center', padding: 50, fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>No stories yet. Click "Add New Story" to publish your first one.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {stories.map(s => (
@@ -151,16 +207,16 @@ function StoriesManager() {
                 {s.images?.[0] && <img src={s.images[0]} alt="" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(33,29,20,0.2)' }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gd)', background: 'rgba(33,29,20,.12)', padding: '2px 8px' }}>{s.category}</span>
-                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: s.published ? 'var(--success)' : 'rgba(106,99,80,0.4)' }}>{s.published ? 'Published' : 'Draft'}</span>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gd)', background: 'rgba(33,29,20,.12)', padding: '2px 8px' }}>{s.category}</span>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: s.published ? 'var(--success)' : 'rgba(106,99,80,0.4)' }}>{s.published ? 'Published' : 'Draft'}</span>
                   </div>
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', marginBottom: 2 }}>{s.title}</div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>{s.author} · {new Date(s.created_at).toLocaleDateString()}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>{s.author} · {new Date(s.created_at).toLocaleDateString()}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                  <button onClick={() => togglePublish(s)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.3)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>{s.published ? 'Unpublish' : 'Publish'}</button>
-                  <button onClick={() => startEdit(s)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Edit</button>
-                  <button onClick={() => deleteStory(s.id)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Delete</button>
+                  <button onClick={() => togglePublish(s)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.3)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>{s.published ? 'Unpublish' : 'Publish'}</button>
+                  <button onClick={() => startEdit(s)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Edit</button>
+                  <button onClick={() => deleteStory(s.id)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Delete</button>
                 </div>
               </div>
             ))}
@@ -174,8 +230,8 @@ function StoriesManager() {
   return (
     <div style={{ maxWidth: 680 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>{editId ? 'Edit Story' : 'New Story'}</div>
-        <button onClick={() => setView('list')} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 16px', cursor: 'pointer' }}>Back to List</button>
+        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>{editId ? 'Edit Story' : 'New Story'}</div>
+        <button onClick={() => setView('list')} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 16px', cursor: 'pointer' }}>Back to List</button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -202,14 +258,14 @@ function StoriesManager() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <input type="checkbox" checked={form.published} onChange={e => setF('published', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--gd)' }} />
-          <label style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>Published (visible on the public Stories page)</label>
+          <label style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)' }}>Published (visible on the public Stories page)</label>
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-          <button onClick={saveStory} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+          <button onClick={saveStory} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Saving...' : editId ? 'Update Story' : 'Publish Story'}
           </button>
-          {editId && <button onClick={() => { setForm({ ...EMPTY_STORY }); setEditId(null); setView('list'); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
+          {editId && <button onClick={() => { setForm({ ...EMPTY_STORY }); setEditId(null); setView('list'); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
         </div>
       </div>
     </div>
@@ -219,29 +275,42 @@ function StoriesManager() {
 // ── BRAND SETTINGS ────────────────────────────────────────
 function BrandSettings() {
   const { brand, updateBrand } = useBrand();
-  const [form, setForm] = React.useState({ brand_name: brand.brand_name || '', tagline: brand.tagline || '', registered_office: brand.registered_office || '' });
+  const [form, setForm] = React.useState({
+    brand_name: brand.brand_name || '', tagline: brand.tagline || '', registered_office: brand.registered_office || '',
+    home_featured_label: brand.home_featured_label || '', home_featured_title: brand.home_featured_title || '',
+    home_quote_text: brand.home_quote_text || '', home_ink_eyebrow: brand.home_ink_eyebrow || '',
+    home_ink_title: brand.home_ink_title || '', home_ink_body: brand.home_ink_body || '',
+  });
+  const [savingHome, setSavingHome] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [logoUrl, setLogoUrl] = React.useState('');
 
   // Per-page hero image URL inputs
   const [heroUrls, setHeroUrls] = React.useState({
-    hero_image: '', hero_shop: '', hero_about: '', hero_services: '', hero_stories: '', hero_care: '', hero_gallery: '', about_image: '', splash_logo: '',
+    hero_image: '', hero_shop: '', hero_about: '', hero_services: '', hero_stories: '', hero_care: '', hero_gallery: '', about_image: '', splash_logo: '', gallery_video: '',
   });
 
-  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', caretColor: 'var(--gd)' };
-  const section = { background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 16 };
-  const secHead = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(33,29,20,.7)', marginBottom: 4 };
-  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 13.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)' };
+  // Category taxonomy (masters/groups shown in the navbar mega-menu + Shop filter)
+  const [taxonomy, setTaxonomy] = React.useState(() => (brand.category_taxonomy?.length ? brand.category_taxonomy : CATEGORY_GROUPS));
+  const [newGroupName, setNewGroupName] = React.useState('');
+  const [newItemInputs, setNewItemInputs] = React.useState({});
+  const [savingTaxonomy, setSavingTaxonomy] = React.useState(false);
 
-  async function saveLogoUrl() {
-    if (!logoUrl.trim()) return;
-    try { await updateBrand({ logo_url: logoUrl.trim() }); toast.success('Logo saved.'); setLogoUrl(''); }
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', caretColor: 'var(--gd)' };
+  const section = { background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 16 };
+  const secHead = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(33,29,20,.7)', marginBottom: 4 };
+  const helpText = { fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)' };
+
+  async function saveLogoUrl(url) {
+    const v = (url ?? logoUrl).trim();
+    if (!v) return;
+    try { await updateBrand({ logo_url: v }); toast.success('Logo saved.'); setLogoUrl(''); }
     catch { toast.error('Failed.'); }
   }
 
-  async function saveHeroField(field) {
-    const val = heroUrls[field]?.trim();
+  async function saveHeroField(field, url) {
+    const val = (url ?? heroUrls[field])?.trim();
     if (!val) return;
     try {
       await updateBrand({ [field]: val });
@@ -272,6 +341,48 @@ function BrandSettings() {
     catch { toast.error('Failed.'); }
   }
 
+  async function saveHomeText() {
+    setSavingHome(true);
+    try {
+      await updateBrand({
+        home_featured_label: form.home_featured_label, home_featured_title: form.home_featured_title,
+        home_quote_text: form.home_quote_text, home_ink_eyebrow: form.home_ink_eyebrow,
+        home_ink_title: form.home_ink_title, home_ink_body: form.home_ink_body,
+      });
+      toast.success('Home page text saved.');
+    } catch { toast.error('Failed. Run the home text SQL migration in Supabase if this keeps failing.'); }
+    finally { setSavingHome(false); }
+  }
+
+  function addGroup() {
+    const name = newGroupName.trim();
+    if (!name) return;
+    if (taxonomy.some(g => g.label.toLowerCase() === name.toLowerCase())) { toast.error('A master with that name already exists.'); return; }
+    setTaxonomy(t => [...t, { label: name, items: [] }]);
+    setNewGroupName('');
+  }
+  function removeGroup(label) {
+    setTaxonomy(t => t.filter(g => g.label !== label));
+  }
+  function addItem(groupLabel) {
+    const val = (newItemInputs[groupLabel] || '').trim();
+    if (!val) return;
+    setTaxonomy(t => t.map(g => g.label === groupLabel ? { ...g, items: g.items.includes(val) ? g.items : [...g.items, val] } : g));
+    setNewItemInputs(s => ({ ...s, [groupLabel]: '' }));
+  }
+  function removeItem(groupLabel, item) {
+    setTaxonomy(t => t.map(g => g.label === groupLabel ? { ...g, items: g.items.filter(i => i !== item) } : g));
+  }
+  async function saveTaxonomy() {
+    setSavingTaxonomy(true);
+    try { await updateBrand({ category_taxonomy: taxonomy }); toast.success('Category structure saved.'); }
+    catch { toast.error('Failed. Run the category_taxonomy SQL migration in Supabase if this keeps failing.'); }
+    finally { setSavingTaxonomy(false); }
+  }
+  function resetTaxonomy() {
+    setTaxonomy(CATEGORY_GROUPS);
+  }
+
   // Reusable hero image upload block
   function HeroImageField({ field, title, description, aspect = '16/5' }) {
     return (
@@ -281,35 +392,28 @@ function BrandSettings() {
         {brand[field] && (
           <ImagePositionPicker image={brand[field]} value={brand[`${field}_position`]} onChange={v => savePositionField(field, v)} aspect={aspect} width={aspect === '3/4' ? 260 : 460} />
         )}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            value={heroUrls[field]}
-            onChange={e => setHeroUrls(h => ({ ...h, [field]: e.target.value }))}
-            placeholder="Paste Cloudinary image URL..."
-            style={{ ...inp, flex: 1 }}
-            onFocus={e => e.target.style.borderColor = 'var(--gd)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'}
-          />
-          <button onClick={() => saveHeroField(field)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save</button>
-        </div>
-        {brand[field] && <button onClick={() => removeHeroField(field)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Image</button>}
+        <MediaUrlField
+          value={heroUrls[field]}
+          onChange={v => setHeroUrls(h => ({ ...h, [field]: v }))}
+          onSave={url => saveHeroField(field, url)}
+          placeholder="Paste Cloudinary image URL..."
+          inputStyle={inp}
+        />
+        {brand[field] && <button onClick={() => removeHeroField(field)} style={{ marginTop: 8, background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Image</button>}
       </div>
     );
   }
 
   return (
     <div style={{ maxWidth: 620 }}>
-      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>Brand Settings</div>
+      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>Brand Settings</div>
 
       {/* LOGO */}
       <div style={section}>
         <div style={secHead}>Logo Image</div>
         {brand.logo_url && <img src={brand.logo_url} alt="Logo" style={{ height: 48, objectFit: 'contain', maxWidth: 200, marginBottom: 4, display: 'block', border: '1px solid rgba(33,29,20,.15)', padding: 6 }} />}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="Paste Cloudinary logo URL..." style={{ ...inp, flex: 1 }} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
-          <button onClick={saveLogoUrl} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save Logo</button>
-        </div>
-        {brand.logo_url && <button onClick={() => updateBrand({ logo_url: '' })} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Logo</button>}
+        <MediaUrlField value={logoUrl} onChange={setLogoUrl} onSave={saveLogoUrl} placeholder="Paste Cloudinary logo URL..." inputStyle={inp} saveLabel="Save Logo" />
+        {brand.logo_url && <button onClick={() => updateBrand({ logo_url: '' })} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove Logo</button>}
       </div>
 
       {/* SPLASH / LOADING LOGO */}
@@ -317,11 +421,31 @@ function BrandSettings() {
         <div style={secHead}>Loading Screen Logo</div>
         <div style={helpText}>Shown full-screen while the website loads. If empty, the main logo is used.</div>
         {brand.splash_logo && <img src={brand.splash_logo} alt="Splash logo" style={{ height: 64, objectFit: 'contain', maxWidth: 200, marginBottom: 4, display: 'block', border: '1px solid rgba(33,29,20,.15)', padding: 6 }} />}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input value={heroUrls.splash_logo || ''} onChange={e => setHeroUrls(h => ({ ...h, splash_logo: e.target.value }))} placeholder="Paste Cloudinary logo URL..." style={{ ...inp, flex: 1 }} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
-          <button onClick={() => saveHeroField('splash_logo')} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Save</button>
-        </div>
-        {brand.splash_logo && <button onClick={() => removeHeroField('splash_logo')} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove</button>}
+        <MediaUrlField
+          value={heroUrls.splash_logo || ''}
+          onChange={v => setHeroUrls(h => ({ ...h, splash_logo: v }))}
+          onSave={url => saveHeroField('splash_logo', url)}
+          placeholder="Paste Cloudinary logo URL..."
+          inputStyle={inp}
+        />
+        {brand.splash_logo && <button onClick={() => removeHeroField('splash_logo')} style={{ marginTop: 8, background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove</button>}
+      </div>
+
+      {/* GALLERY VIDEO */}
+      <div style={section}>
+        <div style={secHead}>Gallery Page Video</div>
+        <div style={helpText}>Shown on the Gallery page instead of the old collection grid. Upload a video file or paste a Cloudinary video URL.</div>
+        {brand.gallery_video && <video src={brand.gallery_video} controls style={{ width: '100%', maxWidth: 360, display: 'block', marginBottom: 4, background: '#000', border: '1px solid rgba(33,29,20,.15)' }} />}
+        <MediaUrlField
+          value={heroUrls.gallery_video || ''}
+          onChange={v => setHeroUrls(h => ({ ...h, gallery_video: v }))}
+          onSave={url => saveHeroField('gallery_video', url)}
+          placeholder="Paste Cloudinary video URL..."
+          resourceType="video"
+          accept="video/*"
+          inputStyle={inp}
+        />
+        {brand.gallery_video && <button onClick={() => removeHeroField('gallery_video')} style={{ marginTop: 8, background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove</button>}
       </div>
 
       {/* BRAND TEXT */}
@@ -330,7 +454,7 @@ function BrandSettings() {
         <div><label style={lbl}>Brand Name</label><input style={inp} value={form.brand_name} onChange={e => setForm(f => ({ ...f, brand_name: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <div><label style={lbl}>Tagline</label><input style={inp} value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
         <div><label style={lbl}>Registered Office (shown in the footer)</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={2} value={form.registered_office} onChange={e => setForm(f => ({ ...f, registered_office: e.target.value }))} placeholder="e.g. 12/3 Example Street, Noida, Uttar Pradesh 201301" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
-        <button onClick={saveBrand} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: saving ? 0.6 : 1 }}>
+        <button onClick={saveBrand} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: saving ? 0.6 : 1 }}>
           {saving ? 'Saving...' : 'Save Brand Text'}
         </button>
       </div>
@@ -347,7 +471,77 @@ function BrandSettings() {
         </div>
       </div>
 
-      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
+      {/* HOME PAGE TEXT */}
+      <div style={section}>
+        <div style={secHead}>Home Page Text</div>
+        <div style={helpText}>Edit the wording on the homepage — the "Featured Acquisitions" label, the centered quote, and the dark "Why We Curate" band.</div>
+        <div><label style={lbl}>Featured Products — Small Label</label><input style={inp} value={form.home_featured_label} onChange={e => setForm(f => ({ ...f, home_featured_label: e.target.value }))} placeholder="Featured Acquisitions" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Featured Products — Heading</label><input style={inp} value={form.home_featured_title} onChange={e => setForm(f => ({ ...f, home_featured_title: e.target.value }))} placeholder="Pieces of Distinction" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Quote Section</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={3} value={form.home_quote_text} onChange={e => setForm(f => ({ ...f, home_quote_text: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Dark Band — Small Label</label><input style={inp} value={form.home_ink_eyebrow} onChange={e => setForm(f => ({ ...f, home_ink_eyebrow: e.target.value }))} placeholder="Why We Curate" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Dark Band — Heading</label><input style={inp} value={form.home_ink_title} onChange={e => setForm(f => ({ ...f, home_ink_title: e.target.value }))} placeholder="Because beautiful traditions deserve to live on." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <div><label style={lbl}>Dark Band — Paragraph</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={4} value={form.home_ink_body} onChange={e => setForm(f => ({ ...f, home_ink_body: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <button onClick={saveHomeText} disabled={savingHome} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: savingHome ? 0.6 : 1 }}>
+          {savingHome ? 'Saving...' : 'Save Home Page Text'}
+        </button>
+      </div>
+
+      {/* CATEGORY / MASTER MANAGEMENT */}
+      <div style={section}>
+        <div style={secHead}>Product Categories (Masters)</div>
+        <div style={helpText}>Manage the masters (groups) and categories shown in the navbar's "By Collection" menu and the Shop filter bar. Add or remove masters, and add or remove categories inside each one.</div>
+
+        {taxonomy.map(group => (
+          <div key={group.label} style={{ border: '1px solid rgba(33,29,20,.15)', padding: '14px 16px', background: 'rgba(255,255,255,.4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: '.08em', color: 'var(--iv)', textTransform: 'uppercase' }}>{group.label}</span>
+              <button onClick={() => removeGroup(group.label)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 10px', cursor: 'pointer' }}>Remove Master</button>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+              {group.items.map(item => (
+                <span key={item} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(33,29,20,.06)', border: '1px solid rgba(33,29,20,.15)', padding: '5px 10px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>
+                  {item}
+                  <button onClick={() => removeItem(group.label, item)} aria-label={`Remove ${item}`} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', fontWeight: 700, fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
+                </span>
+              ))}
+              {!group.items.length && <span style={{ ...helpText, fontSize: 13 }}>No categories yet.</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                style={{ ...inp, flex: 1 }}
+                placeholder="New category name..."
+                value={newItemInputs[group.label] || ''}
+                onChange={e => setNewItemInputs(s => ({ ...s, [group.label]: e.target.value }))}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem(group.label); } }}
+                onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'}
+              />
+              <button onClick={() => addItem(group.label)} style={{ background: 'var(--iv)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer' }}>Add</button>
+            </div>
+          </div>
+        ))}
+        {!taxonomy.length && <div style={helpText}>No masters yet — add one below.</div>}
+
+        <div style={{ display: 'flex', gap: 8, paddingTop: 10, borderTop: '1px dashed rgba(33,29,20,.25)' }}>
+          <input
+            style={{ ...inp, flex: 1 }}
+            placeholder="New master name (e.g. Textiles)..."
+            value={newGroupName}
+            onChange={e => setNewGroupName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addGroup(); } }}
+            onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'}
+          />
+          <button onClick={addGroup} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Add Master</button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button onClick={saveTaxonomy} disabled={savingTaxonomy} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: savingTaxonomy ? 0.6 : 1 }}>
+            {savingTaxonomy ? 'Saving...' : 'Save Category Structure'}
+          </button>
+          <button onClick={resetTaxonomy} style={{ background: 'none', border: '1px solid rgba(33,29,20,.3)', color: 'var(--iv)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '13px 20px', cursor: 'pointer' }}>Reset to Default</button>
+        </div>
+      </div>
+
+      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
 
       <HeroImageField field="hero_image" title="Home Page Hero" description="Full-screen background behind the main homepage headline." />
       <HeroImageField field="hero_shop" title="Shop Page Hero" description="Background banner at the top of the Shop / Collection page." />
@@ -459,8 +653,8 @@ export default function Admin() {
     toast.success('Delivery date set.');
   }
 
-  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
-  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.2)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', transition: 'border-color 0.25s' };
+  const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
+  const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.2)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', transition: 'border-color 0.25s' };
   const stats = [['Products', products.length], ['Orders', orders.length], ['Pending', orders.filter(o => o.status === 'Pending').length], ['Enquiries', enquiries.length]];
 
   return (
@@ -469,49 +663,49 @@ export default function Admin() {
       <div style={{ background: 'rgba(0,0,0,0.25)', borderBottom: '1px solid rgba(33,29,20,0.1)', padding: '15px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: 'var(--iv)' }}>Tamarind Taless</div>
-          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.28em', color: 'var(--gd)' }}>ADMIN</div>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.28em', color: 'var(--gd)' }}>ADMIN</div>
         </div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.35)' }}>{currentUser?.email}</span>
-          <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.color = 'var(--gd)'} onMouseLeave={e => e.target.style.color = 'rgba(106,99,80,0.4)'}>View Site</button>
-          <button onClick={() => { logout(); navigate('/admin/login'); }} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.2)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.45)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => { e.target.style.borderColor = 'var(--gd)'; e.target.style.color = 'var(--gd)'; }} onMouseLeave={e => { e.target.style.borderColor = 'rgba(33,29,20,0.2)'; e.target.style.color = 'rgba(106,99,80,0.45)'; }}>Sign Out</button>
+          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.35)' }}>{currentUser?.email}</span>
+          <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.color = 'var(--gd)'} onMouseLeave={e => e.target.style.color = 'rgba(106,99,80,0.4)'}>View Site</button>
+          <button onClick={() => { logout(); navigate('/admin/login'); }} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.2)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.45)', padding: '6px 14px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => { e.target.style.borderColor = 'var(--gd)'; e.target.style.color = 'var(--gd)'; }} onMouseLeave={e => { e.target.style.borderColor = 'rgba(33,29,20,0.2)'; e.target.style.color = 'rgba(106,99,80,0.45)'; }}>Sign Out</button>
         </div>
       </div>
 
       <div className="admin-body-pad" style={{ padding: '28px 30px 60px' }}>
         {/* TABS */}
         <div style={{ display: 'flex', borderBottom: '1px solid rgba(33,29,20,0.1)', marginBottom: 28, overflowX: 'auto' }}>
-          {TABS.map((t, i) => <button key={i} onClick={() => setTab(i)} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '12px 18px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === i ? 'var(--gd)' : 'transparent'}`, color: tab === i ? 'var(--cr)' : 'rgba(106,99,80,0.38)', cursor: 'pointer', marginBottom: -1, whiteSpace: 'nowrap' }}>{t}</button>)}
+          {TABS.map((t, i) => <button key={i} onClick={() => setTab(i)} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '12px 18px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === i ? 'var(--gd)' : 'transparent'}`, color: tab === i ? 'var(--cr)' : 'rgba(106,99,80,0.38)', cursor: 'pointer', marginBottom: -1, whiteSpace: 'nowrap' }}>{t}</button>)}
         </div>
 
         {/* DASHBOARD */}
-        {tab === 0 && <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>{stats.map(([l, v]) => <div key={l} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: 24 }}><div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color: 'var(--gd)', fontWeight: 300, lineHeight: 1 }}>{v}</div><div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.18em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', marginTop: 6 }}>{l}</div></div>)}</div>}
+        {tab === 0 && <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>{stats.map(([l, v]) => <div key={l} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: 24 }}><div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color: 'var(--gd)', fontWeight: 300, lineHeight: 1 }}>{v}</div><div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.18em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', marginTop: 6 }}>{l}</div></div>)}</div>}
 
         {/* PRODUCTS LIST */}
         {tab === 1 && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>All Products ({products.length})</div>
-              <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(2); }} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Product</button>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', textTransform: 'uppercase' }}>All Products ({products.length})</div>
+              <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(2); }} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '9px 18px', cursor: 'pointer' }}>Add New Product</button>
             </div>
             {loading ? <div style={{ textAlign: 'center', padding: 60, color: 'rgba(106,99,80,0.3)' }}>Loading...</div> : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
-                  <thead><tr>{['Image', 'Name', 'Category', 'Price', 'Stock', 'Visible', 'Actions'].map(h => <th key={h} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(33,29,20,0.12)', color: 'rgba(106,99,80,0.4)' }}>{h}</th>)}</tr></thead>
+                  <thead><tr>{['Image', 'Name', 'Category', 'Price', 'Stock', 'Visible', 'Actions'].map(h => <th key={h} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(33,29,20,0.12)', color: 'rgba(106,99,80,0.4)' }}>{h}</th>)}</tr></thead>
                   <tbody>
                     {products.map(p => (
                       <tr key={p.id}>
                         <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><div style={{ width: 52, height: 52, background: p.bg, overflow: 'hidden' }}>{p.images?.[0] && <img src={p.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</div></td>
-                        <td style={{ padding: '10px 12px', color: 'var(--iv)', fontSize: 15, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.name}</td>
-                        <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', color: 'var(--gd)', textTransform: 'uppercase', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.cat}</td>
-                        <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)', fontWeight: 500, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.enquiry_only ? <span style={{ fontStyle: 'italic', fontSize: 15, color: 'rgba(106,99,80,0.5)' }}>Enquiry</span> : fmt(p.price)}</td>
-                        <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.stock === 0 ? <span style={{ background: 'var(--bg-hover)', color: 'var(--text-muted)', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>Sold</span> : p.stock === 1 ? <span style={{ background: 'var(--tr)', color: '#fff', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>Last 1</span> : <span style={{ color: 'rgba(106,99,80,0.6)', fontSize: 14 }}>{p.stock}</span>}</td>
-                        <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: p.available ? 'var(--success)' : 'var(--error)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.available ? 'Live' : 'Hidden'}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--iv)', fontSize: 16, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.name}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.12em', color: 'var(--gd)', textTransform: 'uppercase', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.cat}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', fontWeight: 500, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.enquiry_only ? <span style={{ fontStyle: 'italic', fontSize: 16, color: 'rgba(106,99,80,0.5)' }}>Enquiry</span> : fmt(p.price)}</td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.stock === 0 ? <span style={{ background: 'var(--bg-hover)', color: 'var(--text-muted)', padding: '2px 8px', fontSize: 12, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>Sold</span> : p.stock === 1 ? <span style={{ background: 'var(--tr)', color: '#fff', padding: '2px 8px', fontSize: 12, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>Last 1</span> : <span style={{ color: 'rgba(106,99,80,0.6)', fontSize: 15 }}>{p.stock}</span>}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: p.available ? 'var(--success)' : 'var(--error)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.available ? 'Live' : 'Hidden'}</td>
                         <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            <button onClick={() => toggleFeatured(p)} title={p.featured ? 'Unpin from Homepage' : 'Pin to Homepage'} style={{ background: p.featured ? 'var(--gd)' : 'none', border: '1px solid rgba(33,29,20,0.25)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', color: p.featured ? 'var(--text-dark)' : 'var(--gd)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }}>{p.featured ? '★ Pinned' : '☆ Pin'}</button>
-                            <button onClick={() => editProduct(p)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.25)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', color: 'var(--gd)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.background = 'rgba(33,29,20,0.1)'} onMouseLeave={e => e.target.style.background = 'none'}>Edit</button>
-                            <button onClick={() => deleteProduct(p.id, p.name)} style={{ background: 'none', border: '1px solid rgba(192,120,64,0.4)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', color: 'var(--error)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.background = 'rgba(192,120,64,0.15)'} onMouseLeave={e => e.target.style.background = 'none'}>Delete</button>
+                            <button onClick={() => toggleFeatured(p)} title={p.featured ? 'Unpin from Homepage' : 'Pin to Homepage'} style={{ background: p.featured ? 'var(--gd)' : 'none', border: '1px solid rgba(33,29,20,0.25)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', color: p.featured ? 'var(--text-dark)' : 'var(--gd)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }}>{p.featured ? '★ Pinned' : '☆ Pin'}</button>
+                            <button onClick={() => editProduct(p)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.25)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', color: 'var(--gd)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.background = 'rgba(33,29,20,0.1)'} onMouseLeave={e => e.target.style.background = 'none'}>Edit</button>
+                            <button onClick={() => deleteProduct(p.id, p.name)} style={{ background: 'none', border: '1px solid rgba(192,120,64,0.4)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', color: 'var(--error)', padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase' }} onMouseEnter={e => e.target.style.background = 'rgba(192,120,64,0.15)'} onMouseLeave={e => e.target.style.background = 'none'}>Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -527,7 +721,7 @@ export default function Admin() {
         {/* ADD/EDIT PRODUCT */}
         {tab === 2 && (
           <div style={{ maxWidth: 720 }}>
-            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 24, textTransform: 'uppercase' }}>{editId ? 'Edit Product' : 'Add New Product'}</div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 24, textTransform: 'uppercase' }}>{editId ? 'Edit Product' : 'Add New Product'}</div>
             <div style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: '30px 28px' }}>
               <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Product Name *</label><input style={inp} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Naranbil Bhagavathy" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
@@ -563,11 +757,11 @@ export default function Admin() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
-                <button onClick={saveProduct} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button onClick={saveProduct} disabled={saving} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', opacity: saving ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 10 }}>
                   {saving ? <span style={{ width: 14, height: 14, border: '2px solid rgba(26,15,8,0.3)', borderTopColor: 'var(--br)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} /> : null}
                   {editId ? 'Update Product' : 'Add Product'}
                 </button>
-                {editId && <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(1); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
+                {editId && <button onClick={() => { setForm({ ...EMPTY }); setEditId(null); setTab(1); }} style={{ background: 'transparent', border: '1px solid rgba(106,99,80,0.25)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer' }}>Cancel</button>}
               </div>
             </div>
           </div>
@@ -576,40 +770,40 @@ export default function Admin() {
         {/* ORDERS */}
         {tab === 3 && (
           <div>
-            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
             {loading ? <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {orders.map(o => (
                   <div key={o.id} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: '22px 24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
                       <div>
-                        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.2em', color: 'var(--gd)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
-                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.7)', marginTop: 3 }}>{o.user_name}, {o.user_email}</div>
-                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.4)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '-'}</div>
+                        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 15, letterSpacing: '0.2em', color: 'var(--gd)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.7)', marginTop: 3 }}>{o.user_name}, {o.user_email}</div>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.4)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '-'}</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}>{fmt(o.total)}</div>
-                        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, color: o.payment_method === 'razorpay' ? 'var(--success)' : 'var(--gd)', textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
+                        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: o.payment_method === 'razorpay' ? 'var(--success)' : 'var(--gd)', textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
                       </div>
                     </div>
                     <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(33,29,20,0.08)' }}>
-                      {o.items?.map((item, i) => <span key={i} style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.5)', marginRight: 12 }}>{item.name} ×{item.qty}</span>)}
+                      {o.items?.map((item, i) => <span key={i} style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.5)', marginRight: 12 }}>{item.name} ×{item.qty}</span>)}
                     </div>
-                    {o.address && <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.4)', lineHeight: 1.6 }}>{o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state}, {o.address.pincode}</div>}
+                    {o.address && <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.4)', lineHeight: 1.6 }}>{o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state}, {o.address.pincode}</div>}
                     <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                       <div>
                         <label style={{ ...lbl, marginBottom: 6 }}>Status</label>
-                        <select value={o.status || 'Pending'} onChange={e => updateStatus(o.id, e.target.value, o)} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', outline: 'none', cursor: 'pointer' }}>
+                        <select value={o.status || 'Pending'} onChange={e => updateStatus(o.id, e.target.value, o)} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.1em', outline: 'none', cursor: 'pointer' }}>
                           {STATUSES.map(s => <option key={s} value={s} style={{ background: '#F2EFE4' }}>{s}</option>)}
                         </select>
                       </div>
                       <div>
                         <label style={{ ...lbl, marginBottom: 6 }}>Delivery Date</label>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <input type="date" id={`dd-${o.id}`} defaultValue={o.estimated_delivery ? new Date(o.estimated_delivery).toISOString?.().split('T')[0] : ''} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', colorScheme: 'light' }} />
-                          <button onClick={() => { const v = document.getElementById(`dd-${o.id}`)?.value; if (v) { const d = new Date(v); updateDelivery(o.id, d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), o); } }} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 14px', cursor: 'pointer' }}>Set &amp; Notify</button>
+                          <input type="date" id={`dd-${o.id}`} defaultValue={o.estimated_delivery ? new Date(o.estimated_delivery).toISOString?.().split('T')[0] : ''} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', colorScheme: 'light' }} />
+                          <button onClick={() => { const v = document.getElementById(`dd-${o.id}`)?.value; if (v) { const d = new Date(v); updateDelivery(o.id, d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), o); } }} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 14px', cursor: 'pointer' }}>Set &amp; Notify</button>
                         </div>
-                        {o.estimated_delivery && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--gd)', marginTop: 5, fontStyle: 'italic' }}>Set: {o.estimated_delivery}</div>}
+                        {o.estimated_delivery && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--gd)', marginTop: 5, fontStyle: 'italic' }}>Set: {o.estimated_delivery}</div>}
                       </div>
                     </div>
                   </div>
@@ -624,16 +818,16 @@ export default function Admin() {
         {tab === 4 && (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
-              <thead><tr>{['Product', 'Customer', 'Message', 'Date', 'Type', 'Status'].map(h => <th key={h} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(33,29,20,0.12)', color: 'rgba(106,99,80,0.4)' }}>{h}</th>)}</tr></thead>
+              <thead><tr>{['Product', 'Customer', 'Message', 'Date', 'Type', 'Status'].map(h => <th key={h} style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 12px', textAlign: 'left', borderBottom: '1px solid rgba(33,29,20,0.12)', color: 'rgba(106,99,80,0.4)' }}>{h}</th>)}</tr></thead>
               <tbody>
                 {enquiries.map(e => (
                   <tr key={e.id}>
-                    <td style={{ padding: '12px', color: 'rgba(106,99,80,0.7)', fontSize: 15, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.product || '-'}</td>
-                    <td style={{ padding: '12px', fontSize: 15, color: 'rgba(106,99,80,0.6)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.user_name}<br /><span style={{ opacity: 0.5, fontSize: 13 }}>{e.user_email}</span></td>
-                    <td style={{ padding: '12px', fontSize: 15, color: 'rgba(106,99,80,0.5)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.message || '-'}</td>
-                    <td style={{ padding: '12px', fontSize: 15, color: 'rgba(106,99,80,0.4)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '-'}</td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(107,142,80,0.1)', color: 'var(--success)', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.type || 'Email'}</span></td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(33,29,20,0.1)', color: 'var(--gd)', padding: '2px 8px', fontSize: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.status || 'Received'}</span></td>
+                    <td style={{ padding: '12px', color: 'rgba(106,99,80,0.7)', fontSize: 16, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.product || '-'}</td>
+                    <td style={{ padding: '12px', fontSize: 16, color: 'rgba(106,99,80,0.6)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.user_name}<br /><span style={{ opacity: 0.5, fontSize: 15 }}>{e.user_email}</span></td>
+                    <td style={{ padding: '12px', fontSize: 16, color: 'rgba(106,99,80,0.5)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.message || '-'}</td>
+                    <td style={{ padding: '12px', fontSize: 16, color: 'rgba(106,99,80,0.4)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '-'}</td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(107,142,80,0.1)', color: 'var(--success)', padding: '2px 8px', fontSize: 12, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.type || 'Email'}</span></td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(33,29,20,0.1)', color: 'var(--gd)', padding: '2px 8px', fontSize: 12, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.status || 'Received'}</span></td>
                   </tr>
                 ))}
                 {enquiries.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(106,99,80,0.2)' }}>No enquiries yet</td></tr>}

@@ -77,7 +77,7 @@ export default function ImageUploader({ images = [], onChange }) {
 
   const lbl = {
     fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11,
-    letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)',
+    letterSpacing: '0.14em', color: 'var(--gd)',
     textTransform: 'uppercase', display: 'block', marginBottom: 7
   };
 
@@ -122,14 +122,14 @@ export default function ImageUploader({ images = [], onChange }) {
       <div style={{ display: 'flex', gap: 0, marginBottom: 12 }}>
         <button
           onClick={() => setMode('url')}
-          style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'url' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'url' ? 'var(--br)' : 'rgba(106,99,80,0.5)' }}
+          style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'url' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'url' ? 'var(--br)' : 'var(--iv)' }}
         >
           Paste URL
         </button>
         {canUpload && (
           <button
             onClick={() => setMode('upload')}
-            style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'upload' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'upload' ? 'var(--br)' : 'rgba(106,99,80,0.5)' }}
+            style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'upload' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'upload' ? 'var(--br)' : 'var(--iv)' }}
           >
             Upload File
           </button>
@@ -156,7 +156,7 @@ export default function ImageUploader({ images = [], onChange }) {
               Add
             </button>
           </div>
-          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'rgba(106,99,80,0.28)', fontStyle: 'italic', marginTop: 7, lineHeight: 1.6 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'var(--iv)', fontStyle: 'italic', marginTop: 7, lineHeight: 1.6 }}>
             Upload image to cloudinary.com → right click image → Copy image address → paste above. Press Enter or click Add.
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function ImageUploader({ images = [], onChange }) {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            style={{ background: uploading ? 'rgba(33,29,20,0.4)' : 'rgba(30,27,20,0.08)', border: '1px dashed rgba(33,29,20,0.35)', color: uploading ? 'var(--gd)' : 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '12px 20px', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}
+            style={{ background: uploading ? 'rgba(33,29,20,0.4)' : 'rgba(30,27,20,0.08)', border: '1px dashed rgba(33,29,20,0.35)', color: uploading ? 'var(--gd)' : 'var(--iv)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '12px 20px', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}
           >
             {uploading ? (
               <><span style={{ width: 14, height: 14, border: '2px solid rgba(33,29,20,0.3)', borderTopColor: 'var(--gd)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} /> Uploading... {progress}%</>

@@ -9,7 +9,8 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = currentUser?.email === process.env.REACT_APP_ADMIN_EMAIL;
+  const adminEmail = process.env.REACT_APP_ADMIN_EMAIL;
+  const isAdmin = !!adminEmail && currentUser?.email === adminEmail;
 
   async function fetchProfile(userId) {
     try {
