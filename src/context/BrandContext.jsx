@@ -17,6 +17,7 @@ export function BrandProvider({ children }) {
     hero_stories: '',        // Stories
     hero_care: '',           // Care
     hero_gallery: '',        // Gallery
+    hero_giftcard: '',       // Gift Card
     about_image: '',         // About page side image
     // Focal point (crop position) for each image above
     hero_image_position: '50% 50%',
@@ -26,6 +27,7 @@ export function BrandProvider({ children }) {
     hero_stories_position: '50% 50%',
     hero_care_position: '50% 50%',
     hero_gallery_position: '50% 50%',
+    hero_giftcard_position: '50% 50%',
     about_image_position: '50% 50%',
     // Splash / loading screen logo (shown while the site loads)
     splash_logo: '',
@@ -46,6 +48,11 @@ export function BrandProvider({ children }) {
     // Category taxonomy (masters/groups shown in the nav mega-menu and Shop filter).
     // null = use the built-in default in data/products.js until an admin customizes it.
     category_taxonomy: null,
+    // Gift card page settings
+    giftcard_enabled: true,
+    giftcard_min: 500,
+    giftcard_max: 50000,
+    giftcard_description: "A Tamarind Taless gift card lets someone choose their own piece of India's heritage. Pick an amount, and we'll take care of the rest.",
   });
   const [loading, setLoading] = useState(true);
 

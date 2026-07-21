@@ -9,6 +9,7 @@ const MORE_LINKS = [
   { label: 'Stories', path: '/stories', desc: 'Artisan journeys & heritage notes' },
   { label: 'Care Guide', path: '/care', desc: 'How to preserve your pieces' },
   { label: 'Our Services', path: '/services', desc: 'Curation, styling & commissions' },
+  { label: 'Gift Cards', path: '/gift-card', desc: 'Give the gift of choice' },
   { label: 'Instagram', path: 'https://instagram.com/tamarindtaless', external: true, desc: '@tamarindtaless' },
 ];
 

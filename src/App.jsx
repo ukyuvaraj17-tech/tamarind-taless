@@ -27,6 +27,7 @@ import Stories from './pages/Stories';
 import Care from './pages/Care';
 import ProductPage from './pages/ProductPage';
 import Gallery from './pages/Gallery';
+import GiftCard from './pages/GiftCard';
 import './styles/globals.css';
 
 function ScrollToTop() {
@@ -220,6 +221,7 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/gallery" element={<Gallery />} />
+                <Route path="/gift-card" element={<GiftCard />} />
                 <Route path="/product/:id" element={<ProductPage />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />

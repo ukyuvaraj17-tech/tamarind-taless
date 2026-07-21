@@ -285,14 +285,16 @@ function BrandSettings() {
     home_featured_label: brand.home_featured_label || '', home_featured_title: brand.home_featured_title || '',
     home_quote_text: brand.home_quote_text || '', home_ink_eyebrow: brand.home_ink_eyebrow || '',
     home_ink_title: brand.home_ink_title || '', home_ink_body: brand.home_ink_body || '', home_ig_followers: brand.home_ig_followers || '',
+    giftcard_min: brand.giftcard_min ?? 500, giftcard_max: brand.giftcard_max ?? 50000, giftcard_description: brand.giftcard_description || '',
   });
   const [savingHome, setSavingHome] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [savingGiftCard, setSavingGiftCard] = React.useState(false);
   const [logoUrl, setLogoUrl] = React.useState('');
 
   // Per-page hero image URL inputs
   const [heroUrls, setHeroUrls] = React.useState({
-    hero_image: '', hero_shop: '', hero_about: '', hero_services: '', hero_stories: '', hero_care: '', hero_gallery: '', about_image: '', splash_logo: '', gallery_video: '',
+    hero_image: '', hero_shop: '', hero_about: '', hero_services: '', hero_stories: '', hero_care: '', hero_gallery: '', hero_giftcard: '', about_image: '', splash_logo: '', gallery_video: '',
   });
 
   // Category taxonomy (masters/groups shown in the navbar mega-menu + Shop filter)
@@ -357,6 +359,24 @@ function BrandSettings() {
       toast.success('Home page text saved.');
     } catch { toast.error('Failed. Run the home text SQL migration in Supabase if this keeps failing.'); }
     finally { setSavingHome(false); }
+  }
+
+  async function toggleGiftCardEnabled() {
+    try { await updateBrand({ giftcard_enabled: brand.giftcard_enabled === false }); toast.success(brand.giftcard_enabled === false ? 'Gift cards enabled.' : 'Gift cards disabled.'); }
+    catch { toast.error('Failed.'); }
+  }
+
+  async function saveGiftCardSettings() {
+    setSavingGiftCard(true);
+    try {
+      await updateBrand({
+        giftcard_min: Number(form.giftcard_min) || 500,
+        giftcard_max: Number(form.giftcard_max) || 50000,
+        giftcard_description: form.giftcard_description,
+      });
+      toast.success('Gift card settings saved.');
+    } catch { toast.error('Failed. Run the gift card SQL migration in Supabase if this keeps failing.'); }
+    finally { setSavingGiftCard(false); }
   }
 
   function addGroup() {
@@ -547,11 +567,30 @@ function BrandSettings() {
         </div>
       </div>
 
+      {/* GIFT CARDS */}
+      <div style={section}>
+        <div style={secHead}>Gift Cards</div>
+        <div style={helpText}>Customers pick their own amount and buy it like a product — it goes through the same cart, checkout and WhatsApp order flow, and shows up under Orders. Redemption (using a gift card as payment on a future order) is handled manually by you, the same way orders already work.</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input type="checkbox" id="gce" checked={brand.giftcard_enabled !== false} onChange={toggleGiftCardEnabled} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
+          <label htmlFor="gce" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Gift cards page enabled</label>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div><label style={lbl}>Minimum Amount (Rs.)</label><input style={inp} type="number" value={form.giftcard_min} onChange={e => setForm(f => ({ ...f, giftcard_min: e.target.value }))} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+          <div><label style={lbl}>Maximum Amount (Rs.)</label><input style={inp} type="number" value={form.giftcard_max} onChange={e => setForm(f => ({ ...f, giftcard_max: e.target.value }))} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        </div>
+        <div><label style={lbl}>Page Description</label><textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={2} value={form.giftcard_description} onChange={e => setForm(f => ({ ...f, giftcard_description: e.target.value }))} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} /></div>
+        <button onClick={saveGiftCardSettings} disabled={savingGiftCard} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: savingGiftCard ? 0.6 : 1 }}>
+          {savingGiftCard ? 'Saving...' : 'Save Gift Card Settings'}
+        </button>
+      </div>
+
       <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
 
       <HeroImageField field="hero_image" title="Home Page Hero" description="Full-screen background behind the main homepage headline." />
       <HeroImageField field="hero_shop" title="Shop Page Hero" description="Background banner at the top of the Shop / Collection page." />
       <HeroImageField field="hero_gallery" title="Gallery Page Hero" description="Background banner at the top of the Gallery page." />
+      <HeroImageField field="hero_giftcard" title="Gift Card Page Hero" description="Background banner at the top of the Gift Cards page." />
       <HeroImageField field="hero_about" title="About Page Hero" description="Background banner at the top of the About page." />
       <HeroImageField field="about_image" title="About Page Side Image" description="The image block next to the brand story text on the About page." aspect="3/4" />
       <HeroImageField field="hero_services" title="Services Page Hero" description="Background banner at the top of the Services page." />
