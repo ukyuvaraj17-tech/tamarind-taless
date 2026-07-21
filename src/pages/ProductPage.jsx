@@ -242,14 +242,14 @@ export default function ProductPage() {
 
           {product.story && (
             <div style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '20px 22px', marginBottom: 24 }}>
-              <p style={S.body}>{product.story}</p>
+              <p style={{ ...S.body, whiteSpace: 'pre-line' }}>{product.story}</p>
               {product.together && (
-                <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7, fontStyle: 'italic', marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>{product.together}</p>
+                <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7, fontStyle: 'italic', marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)', whiteSpace: 'pre-line' }}>{product.together}</p>
               )}
             </div>
           )}
           {!product.story && product.together && (
-            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: 24 }}>{product.together}</p>
+            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: 24, whiteSpace: 'pre-line' }}>{product.together}</p>
           )}
 
           {(product.material || product.dimensions || product.weight || product.origin) && (
