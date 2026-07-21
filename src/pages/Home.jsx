@@ -115,7 +115,7 @@ export default function Home() {
               {brand.home_ink_body || "Across India, remarkable craftsmanship continues to thrive, often in places few people ever see. Alongside these living traditions are vintage treasures that carry the memories of another time. Tamarind Taless exists to bring both together in one thoughtful collection."}
             </p>
             <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-              <button className="btn" style={{ background: '#F2EFE4', color: 'var(--gold)' }} onClick={() => navigate('/about')}>Our Journey</button>
+              <button className="btn" style={{ background: '#1A1712', color: '#F2EFE4' }} onClick={() => navigate('/about')}>Our Journey</button>
               <button className="btn btn-outline" style={{ color: '#F2EFE4', borderColor: 'rgba(242,239,228,.35)' }} onClick={() => navigate('/services')}>Our Services</button>
             </div>
           </div>
