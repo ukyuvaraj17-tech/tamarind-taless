@@ -699,13 +699,20 @@ function BrandSettings() {
   }
 
   // Reusable hero image upload block
-  function HeroImageField({ field, title, description, aspect = '16/5' }) {
+  function HeroImageField({ field, title, description, aspect = '16/5', mobileAspect }) {
     return (
       <div style={section}>
         <div style={secHead}>{title}</div>
         <div style={helpText}>{description}</div>
         {brand[field] && (
           <ImagePositionPicker image={brand[field]} value={brand[`${field}_position`]} onChange={v => savePositionField(field, v)} aspect={aspect} width={aspect === '3/4' ? 260 : 460} />
+        )}
+        {brand[field] && mobileAspect && (
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11.5, letterSpacing: '0.12em', color: 'var(--gd)', textTransform: 'uppercase', marginBottom: 4 }}>Mobile Crop</div>
+            <div style={helpText}>How this photo crops on phones — kept separate from the desktop crop above so the subject isn't cut off on a narrow screen.</div>
+            <ImagePositionPicker image={brand[field]} value={brand[`${field}_mobile_position`]} onChange={v => savePositionField(`${field}_mobile`, v)} aspect={mobileAspect} width={260} />
+          </div>
         )}
         <MediaUrlField
           value={heroUrls[field]}
@@ -882,7 +889,7 @@ function BrandSettings() {
 
       <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
 
-      <HeroImageField field="hero_image" title="Home Page Hero" description="Full-screen background behind the main homepage headline." />
+      <HeroImageField field="hero_image" title="Home Page Hero" description="Full-screen background behind the main homepage headline." mobileAspect="4/5" />
       <HeroImageField field="hero_shop" title="Shop Page Hero" description="Background banner at the top of the Shop / Collection page." />
       <HeroImageField field="hero_gallery" title="Gallery Page Hero" description="Background banner at the top of the Gallery page." />
       <HeroImageField field="hero_giftcard" title="Gift Card Page Hero" description="Background banner at the top of the Gift Cards page." />

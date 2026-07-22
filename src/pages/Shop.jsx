@@ -205,7 +205,7 @@ export default function Shop() {
           ) : (
             <div className="shop-masonry">
               {filtered.map((p) => (
-                <ProductCard key={p.id} product={p} height={320} />
+                <ProductCard key={p.id} product={p} />
               ))}
             </div>
           )}

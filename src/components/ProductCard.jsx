@@ -7,7 +7,7 @@ import BlurImage from './BlurImage';
 import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
-export default function ProductCard({ product: p, height = 260 }) {
+export default function ProductCard({ product: p }) {
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const [saved, setSaved] = useState(() => isSaved(p.id));
@@ -28,9 +28,7 @@ export default function ProductCard({ product: p, height = 260 }) {
     <div className="product-card pc" style={{ cursor: 'none' }}>
       {/* IMAGE BLOCK */}
       <div className="product-card-img" style={{
-        height,
         background: p.bg || 'linear-gradient(145deg, var(--card), var(--line))',
-        minHeight: height,
       }}>
         {img && <BlurImage src={cldThumb(img, 640)} alt={p.name} loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: p.image_position || '50% 50%' }} />}
 

@@ -7,11 +7,30 @@ import BlurImage from '../components/BlurImage';
 
 const MQ = ['Made in India','Curated in India','Women Led','Tamarind Taless'];
 
+// Tracks the 768px breakpoint so the hero can use a distinct mobile crop/height
+// instead of scaling the desktop wide-landscape treatment down.
+function useIsMobile(bp = 768) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(`(max-width: ${bp}px)`).matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${bp}px)`);
+    const handler = e => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [bp]);
+  return isMobile;
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const { brand } = useBrand();
   const [products, setProducts] = useState([]);
   const revealRefs = useRef([]);
+  const isMobile = useIsMobile(768);
+  const heroPosition = isMobile
+    ? (brand.hero_image_mobile_position || brand.hero_image_position || 'center')
+    : (brand.hero_image_position || 'center');
 
   useEffect(() => {
     supabase.from('products').select('*').eq('available', true).order('created_at', { ascending: false })
@@ -42,8 +61,8 @@ export default function Home() {
   return (
     <>
       {/* HERO — with optional shaded wallpaper image from admin */}
-      <section style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'clamp(4rem,10vw,8rem) clamp(1.5rem,5vw,3.5rem)', position:'relative', overflow:'hidden' }}>
-        {/* HERO BG IMAGE — set from Admin > Brand Settings */}
+      <section className="home-hero" style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'clamp(4rem,10vw,8rem) clamp(1.5rem,5vw,3.5rem)', position:'relative', overflow:'hidden' }}>
+        {/* HERO BG IMAGE — set from Admin > Brand Settings; mobile uses its own focal point so the subject isn't cropped to whatever the wide desktop framing left in the middle */}
         {brand.hero_image && (
           <BlurImage
             src={brand.hero_image}
@@ -51,14 +70,16 @@ export default function Home() {
             aria-hidden="true"
             style={{
               position:'absolute', inset:0, width:'100%', height:'100%',
-              objectFit:'cover', objectPosition: brand.hero_image_position || 'center',
+              objectFit:'cover', objectPosition: heroPosition,
               zIndex:0,
             }}
           />
         )}
-        {/* OVERLAY — dark scrim only when a photo is set, otherwise a quiet ink-tinted glow */}
+        {/* OVERLAY — dark scrim only when a photo is set, otherwise a quiet ink-tinted glow. Mobile gets a heavier scrim since the shorter crop leaves less room for the text to sit clear of the subject. */}
         <div aria-hidden="true" style={{ position:'absolute', inset:0, zIndex:1, background: brand.hero_image
-          ? 'linear-gradient(to bottom, rgba(30,27,20,.55) 0%, rgba(30,27,20,.35) 50%, rgba(30,27,20,.55) 100%)'
+          ? (isMobile
+              ? 'linear-gradient(to bottom, rgba(30,27,20,.64) 0%, rgba(30,27,20,.5) 45%, rgba(30,27,20,.66) 100%)'
+              : 'linear-gradient(to bottom, rgba(30,27,20,.55) 0%, rgba(30,27,20,.35) 50%, rgba(30,27,20,.55) 100%)')
           : 'radial-gradient(ellipse 60% 55% at 50% 50%, rgba(33,29,20,.05) 0%, transparent 65%), radial-gradient(ellipse 35% 30% at 20% 75%, rgba(33,29,20,.04) 0%, transparent 55%), radial-gradient(ellipse 30% 28% at 80% 25%, rgba(33,29,20,.04) 0%, transparent 50%)'
         }} />
         <div style={{ position:'relative', zIndex:2, maxWidth:820, margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', gap:'1.4rem', animation:'fadeUp .9s ease both' }}>
@@ -158,7 +179,7 @@ export default function Home() {
             <div className="grid-4 home-grid-4">
               {products.map((p,i) => (
                 <div key={p.id} ref={addReveal(12+i)} className={`reveal d${(i%4)+1}`}>
-                  <ProductCard product={p} height={220} />
+                  <ProductCard product={p} />
                 </div>
               ))}
             </div>
@@ -178,6 +199,7 @@ export default function Home() {
 
       <style>{`
         @media (max-width: 768px) {
+          .home-hero { min-height: 68vh !important; padding: 3.25rem 1.25rem !important; }
           .stats-grid-r { grid-template-columns: 1fr 1fr !important; }
           .stats-grid-r > div:nth-child(2) { border-right: none !important; }
           .shaded-grid { grid-template-columns: 1fr !important; gap: 32px !important; padding: 48px 20px !important; }

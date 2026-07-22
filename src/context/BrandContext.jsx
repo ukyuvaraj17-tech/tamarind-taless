@@ -21,6 +21,7 @@ export function BrandProvider({ children }) {
     about_image: '',         // About page side image
     // Focal point (crop position) for each image above
     hero_image_position: '50% 50%',
+    hero_image_mobile_position: '', // empty = fall back to hero_image_position on mobile too
     hero_shop_position: '50% 50%',
     hero_about_position: '50% 50%',
     hero_services_position: '50% 50%',
