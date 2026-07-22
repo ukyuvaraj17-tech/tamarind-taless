@@ -7,6 +7,7 @@ import { useBrand } from '../context/BrandContext';
 import { useAuth } from '../context/AuthContext';
 import { fmt, CATEGORY_GROUPS } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
+import { getDeliveryRange } from '../utils/delivery';
 import ProductCard from '../components/ProductCard';
 import BlurImage from '../components/BlurImage';
 import { FacebookIcon, TwitterXIcon, PinterestIcon, EmailIcon } from '../components/SocialIcons';
@@ -163,6 +164,7 @@ export default function ProductPage() {
   const displayPrice = chosenVariant ? chosenVariant.price : product.price;
   const displayWeight = chosenVariant ? chosenVariant.weight : product.weight;
   const displayDimensions = chosenVariant ? chosenVariant.dimensions : product.dimensions;
+  const delivery = getDeliveryRange(product, brand);
   const images = product.images || [];
   const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -339,6 +341,18 @@ export default function ProductPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {!isSoldOut && !isEnquiryOnly && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+              </svg>
+              <div>
+                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)' }}>Estimated delivery: </span>
+                <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontStyle: 'italic', color: 'var(--text-muted)' }}>{delivery.label}</span>
+              </div>
             </div>
           )}
 

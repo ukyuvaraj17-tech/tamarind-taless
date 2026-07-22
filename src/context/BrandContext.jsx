@@ -53,6 +53,10 @@ export function BrandProvider({ children }) {
     giftcard_min: 500,
     giftcard_max: 50000,
     giftcard_description: "A Tamarind Taless gift card lets someone choose their own piece of India's heritage. Pick an amount, and we'll take care of the rest.",
+    // Delivery estimate settings — cities in this list get each product's base
+    // delivery_min_days/delivery_max_days; anywhere else gets that plus delivery_extra_days.
+    delivery_metro_cities: 'Noida, Delhi, New Delhi, Gurgaon, Gurugram, Coimbatore, Chennai, Mumbai, Bangalore, Bengaluru, Hyderabad, Pune, Kolkata',
+    delivery_extra_days: 3,
   });
   const [loading, setLoading] = useState(true);
 

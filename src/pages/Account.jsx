@@ -6,6 +6,26 @@ import { useCart } from '../context/CartContext';
 import { fmt } from '../data/products';
 import toast from 'react-hot-toast';
 
+const NAV_ICONS = {
+  dashboard: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></>,
+  orders: <><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /><polyline points="3.29 7 12 12 20.71 7" /><line x1="12" y1="22" x2="12" y2="12" /></>,
+  wishlist: <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />,
+  giftcards: <><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" /></>,
+  coupons: <><path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></>,
+  enquiries: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />,
+  addresses: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></>,
+  details: <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></>,
+  logout: <><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></>,
+};
+
+function NavIcon({ name, size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      {NAV_ICONS[name]}
+    </svg>
+  );
+}
+
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'orders', label: 'Orders' },
@@ -60,19 +80,21 @@ export default function Account() {
   const wishlistCount = readWishlist().length;
 
   const navBtn = (active) => ({
-    display: 'block', width: '100%', textAlign: 'left', padding: '13px 16px',
-    fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '.06em',
-    background: active ? 'rgba(33,29,20,.05)' : 'transparent', color: active ? 'var(--gd)' : 'var(--iv)',
-    border: 'none', borderLeft: `2px solid ${active ? 'var(--gd)' : 'transparent'}`,
+    display: 'flex', alignItems: 'center', gap: 13, width: '100%', textAlign: 'left', padding: '17px 22px',
+    fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13.5, letterSpacing: '.07em',
+    background: active ? 'rgba(201,162,75,.09)' : 'transparent', color: active ? 'var(--gd)' : 'var(--iv)',
+    border: 'none', borderLeft: `3px solid ${active ? 'var(--gd)' : 'transparent'}`,
     borderBottom: '1px solid var(--line)', cursor: 'pointer', textTransform: 'uppercase',
+    transition: 'background .18s, color .18s',
   });
 
   return (
     <div style={{ paddingTop: 68, minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ background: 'var(--br)', padding: '50px 44px' }}>
-        <div className="container">
+      <div style={{ background: 'var(--br)', padding: '54px 44px', position: 'relative', overflow: 'hidden' }}>
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 55% 80% at 85% 50%, rgba(201,162,75,.06) 0%, transparent 60%)' }} />
+        <div className="container" style={{ position: 'relative' }}>
           <div className="section-label" style={{ color: 'var(--gd)' }}>Collector Account</div>
-          <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(30px,5vw,50px)', fontWeight: 300, color: 'var(--iv)', marginBottom: 4 }}>
+          <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(32px,5vw,52px)', fontWeight: 300, color: 'var(--iv)', marginBottom: 4 }}>
             {userProfile?.name || currentUser.email?.split('@')[0] || 'Collector'}
           </h1>
           <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.45)' }}>{currentUser.email}</div>
@@ -80,14 +102,20 @@ export default function Account() {
       </div>
 
       <div className="container" style={{ padding: '44px 44px' }}>
-        <div className="account-layout" style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 40, alignItems: 'start' }}>
+        <div className="account-layout" style={{ display: 'grid', gridTemplateColumns: '270px 1fr', gap: 44, alignItems: 'start' }}>
 
           {/* SIDEBAR */}
-          <div style={{ border: '1px solid var(--line)', background: 'var(--card)' }}>
+          <div className="account-sidebar" style={{ border: '1px solid var(--line)', background: 'var(--card)', boxShadow: '0 10px 34px rgba(30,27,20,.06)', position: 'sticky', top: 90 }}>
             {NAV_ITEMS.map(n => (
-              <button key={n.key} onClick={() => selectTab(n.key)} style={navBtn(tab === n.key)}>{n.label}</button>
+              <button key={n.key} onClick={() => selectTab(n.key)} style={navBtn(tab === n.key)}>
+                <NavIcon name={n.key} />
+                {n.label}
+              </button>
             ))}
-            <button onClick={handleLogout} style={{ ...navBtn(false), borderBottom: 'none', color: 'var(--tr)' }}>Log Out</button>
+            <button onClick={handleLogout} style={{ ...navBtn(false), borderBottom: 'none', color: 'var(--tr)' }}>
+              <NavIcon name="logout" />
+              Log Out
+            </button>
           </div>
 
           {/* CONTENT */}
@@ -159,6 +187,7 @@ export default function Account() {
       <style>{`
         @media (max-width: 768px) {
           .account-layout { grid-template-columns: 1fr !important; }
+          .account-sidebar { position: static !important; }
         }
       `}</style>
     </div>
@@ -168,16 +197,28 @@ export default function Account() {
 function DashboardTab({ userProfile, currentUser, orderCount, wishlistCount, onNav }) {
   return (
     <div>
-      <div className="card-white" style={{ marginBottom: 20 }}>
-        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', lineHeight: 1.8 }}>
-          Hello <strong>{userProfile?.name || currentUser.email}</strong>. From your account dashboard you can view your recent orders, manage your wishlist and addresses, link a gift card, browse active coupons, and edit your account details.
+      <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderTop: '2px solid var(--gd)', padding: '32px 30px', marginBottom: 26, boxShadow: '0 10px 30px rgba(30,27,20,.05)' }}>
+        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12 }}>Welcome Back</div>
+        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 19, color: 'var(--iv)', lineHeight: 1.75, fontStyle: 'italic', margin: 0 }}>
+          Hello <strong style={{ fontStyle: 'normal' }}>{userProfile?.name || currentUser.email}</strong>. From here you can view your orders, manage your wishlist and addresses, link a gift card, browse active coupons, and edit your account details.
         </p>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 16 }}>
         {[['Orders', orderCount, 'orders'], ['Wishlist', wishlistCount, 'wishlist']].map(([label, count, key]) => (
-          <button key={key} onClick={() => onNav(key)} style={{ textAlign: 'left', background: 'var(--card)', border: '1px solid var(--line)', padding: '18px 20px', cursor: 'pointer' }}>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 32, color: 'var(--gd)', fontWeight: 500 }}>{count}</div>
-            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11.5, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--iv)', marginTop: 4 }}>{label}</div>
+          <button key={key} onClick={() => onNav(key)} style={{
+            textAlign: 'left', background: 'var(--card)', border: '1px solid var(--line)', padding: '22px 24px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 16, transition: 'border-color .2s, box-shadow .2s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold50)'; e.currentTarget.style.boxShadow = '0 10px 26px rgba(30,27,20,.08)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.boxShadow = 'none'; }}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(201,162,75,.1)', color: 'var(--gd)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <NavIcon name={key} size={20} />
+            </div>
+            <div>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 30, color: 'var(--gd)', fontWeight: 500, lineHeight: 1 }}>{count}</div>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11.5, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--iv)', marginTop: 5 }}>{label}</div>
+            </div>
           </button>
         ))}
       </div>

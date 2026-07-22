@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useBrand } from '../context/BrandContext';
 import { fmt } from '../data/products';
+import { getCartDeliveryRange } from '../utils/delivery';
 import toast from 'react-hot-toast';
 
 export default function Checkout() {
   const { currentUser, userProfile, refreshProfile } = useAuth();
   const { cart, cartSubtotal, clearCart } = useCart();
+  const { brand } = useBrand();
   const navigate = useNavigate();
   const [payMethod, setPayMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
@@ -30,6 +33,8 @@ export default function Checkout() {
 
   const hasExisting = (userProfile?.addresses?.length || 0) > 0;
   const shipping = cartSubtotal > 50000 ? 0 : 500;
+  const shippingCity = (useExisting && hasExisting) ? userProfile.addresses[selectedAddrIdx]?.city : form.city;
+  const deliveryEstimate = getCartDeliveryRange(cart, brand, shippingCity);
   const discount = appliedCoupon
     ? (appliedCoupon.type === 'percent'
         ? Math.round(cartSubtotal * (Number(appliedCoupon.value) / 100))
@@ -154,6 +159,7 @@ export default function Checkout() {
         gift_card_code: appliedGiftCard?.code || null, gift_card_applied: giftCardApplied,
         payment_method: payMethod,
         status: 'Pending',
+        estimated_delivery: deliveryEstimate?.label || null,
       };
 
       const { error } = await supabase.from('orders').insert(orderData);
@@ -378,6 +384,16 @@ export default function Checkout() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--success)' }}><span>Gift Card</span><span>-{fmt(giftCardApplied)}</span></div>
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}><span>Total</span><span>{fmt(total)}</span></div>
+            {deliveryEstimate && (
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                </svg>
+                <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, fontStyle: 'italic', color: 'rgba(106,99,80,.88)' }}>
+                  Estimated delivery: <strong style={{ color: 'var(--iv)', fontStyle: 'normal' }}>{deliveryEstimate.label}</strong>{shippingCity ? '' : ' (enter your city for an exact estimate)'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

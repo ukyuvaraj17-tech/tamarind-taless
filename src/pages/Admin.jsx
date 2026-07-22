@@ -15,7 +15,7 @@ function categoriesFor(groups) {
 }
 const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Coupons', 'Gift Cards', 'Brand Settings'];
-const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, allow_enquiry: true, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [] };
+const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, allow_enquiry: true, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [], delivery_min_days: 5, delivery_max_days: 8 };
 
 // ── SHARED CLOUDINARY UPLOAD (single file — logo / hero / video fields) ──
 const CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
@@ -574,9 +574,11 @@ function BrandSettings() {
     home_featured_label: brand.home_featured_label || '', home_featured_title: brand.home_featured_title || '',
     home_quote_text: brand.home_quote_text || '', home_ink_eyebrow: brand.home_ink_eyebrow || '',
     home_ink_title: brand.home_ink_title || '', home_ink_body: brand.home_ink_body || '', home_ig_followers: brand.home_ig_followers || '',
+    delivery_metro_cities: brand.delivery_metro_cities || '', delivery_extra_days: brand.delivery_extra_days ?? 3,
   });
   const [savingHome, setSavingHome] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [savingDelivery, setSavingDelivery] = React.useState(false);
   const [logoUrl, setLogoUrl] = React.useState('');
 
   // Per-page hero image URL inputs
@@ -646,6 +648,18 @@ function BrandSettings() {
       toast.success('Home page text saved.');
     } catch { toast.error('Failed. Run the home text SQL migration in Supabase if this keeps failing.'); }
     finally { setSavingHome(false); }
+  }
+
+  async function saveDeliverySettings() {
+    setSavingDelivery(true);
+    try {
+      await updateBrand({
+        delivery_metro_cities: form.delivery_metro_cities,
+        delivery_extra_days: Number(form.delivery_extra_days) || 0,
+      });
+      toast.success('Delivery settings saved.');
+    } catch { toast.error('Failed. Run the delivery SQL migration in Supabase if this keeps failing.'); }
+    finally { setSavingDelivery(false); }
   }
 
   function addGroup() {
@@ -781,6 +795,23 @@ function BrandSettings() {
         </button>
       </div>
 
+      {/* DELIVERY ESTIMATES */}
+      <div style={section}>
+        <div style={secHead}>Delivery Estimates</div>
+        <div style={helpText}>Each product has its own base delivery window (set on the product's Add/Edit page). Cities listed below get that estimate as-is; anywhere else automatically gets the extra days added on top. This is an estimate you control, not a live courier tracking figure.</div>
+        <div>
+          <label style={lbl}>Fast-Delivery Cities (comma-separated)</label>
+          <textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={3} value={form.delivery_metro_cities} onChange={e => setForm(f => ({ ...f, delivery_metro_cities: e.target.value }))} placeholder="Noida, Delhi, Coimbatore, Chennai, Mumbai, Bangalore..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+        </div>
+        <div style={{ maxWidth: 260 }}>
+          <label style={lbl}>Extra Days for Other Cities</label>
+          <input style={inp} type="number" min="0" value={form.delivery_extra_days} onChange={e => setForm(f => ({ ...f, delivery_extra_days: e.target.value }))} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+        </div>
+        <button onClick={saveDeliverySettings} disabled={savingDelivery} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', padding: '13px 28px', cursor: 'pointer', alignSelf: 'flex-start', opacity: savingDelivery ? 0.6 : 1 }}>
+          {savingDelivery ? 'Saving...' : 'Save Delivery Settings'}
+        </button>
+      </div>
+
       {/* CATEGORY / MASTER MANAGEMENT */}
       <div style={section}>
         <div style={secHead}>Product Categories (Masters)</div>
@@ -911,6 +942,8 @@ export default function Admin() {
         ...form,
         price: form.enquiry_only ? null : (Number(form.price) || null),
         stock: Number(form.stock) || 0,
+        delivery_min_days: Number(form.delivery_min_days) || 5,
+        delivery_max_days: Number(form.delivery_max_days) || 8,
         variants: (form.variants || [])
           .filter(v => (v.size || '').trim())
           .map(v => ({ size: v.size.trim(), price: Number(v.price) || 0, weight: v.weight || '', dimensions: v.dimensions || '', stock: Number(v.stock) || 0 })),
@@ -939,7 +972,7 @@ export default function Admin() {
   }
 
   function editProduct(p) {
-    setForm({ ...EMPTY, ...p, images: p.images || [], image_position: p.image_position || '50% 50%', pinterest_url: p.pinterest_url || '', variants: p.variants || [], allow_enquiry: p.allow_enquiry !== false });
+    setForm({ ...EMPTY, ...p, images: p.images || [], image_position: p.image_position || '50% 50%', pinterest_url: p.pinterest_url || '', variants: p.variants || [], allow_enquiry: p.allow_enquiry !== false, delivery_min_days: p.delivery_min_days ?? 5, delivery_max_days: p.delivery_max_days ?? 8 });
     setEditId(p.id); setTab(2);
   }
 
@@ -1043,6 +1076,8 @@ export default function Admin() {
                 <div><label style={lbl}>Dimensions</label><input style={inp} value={form.dimensions} onChange={e => setF('dimensions', e.target.value)} placeholder='10" H x 4" W' onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div><label style={lbl}>Weight</label><input style={inp} value={form.weight} onChange={e => setF('weight', e.target.value)} placeholder="e.g. 1.2 kg" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div><label style={lbl}>Stock (0 = Sold Out)</label><input style={inp} type="number" min="0" value={form.stock} onChange={e => setF('stock', e.target.value)} onWheel={e => e.currentTarget.blur()} onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Delivery — Min Days</label><input style={inp} type="number" min="0" value={form.delivery_min_days} onChange={e => setF('delivery_min_days', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder="e.g. 5" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
+                <div><label style={lbl}>Delivery — Max Days</label><input style={inp} type="number" min="0" value={form.delivery_max_days} onChange={e => setF('delivery_max_days', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder="e.g. 8" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <input type="checkbox" id="eq" checked={form.enquiry_only} onChange={e => setF('enquiry_only', e.target.checked)} style={{ accentColor: 'var(--gd)', width: 16, height: 16, cursor: 'pointer' }} />
                   <label htmlFor="eq" style={{ ...lbl, marginBottom: 0, cursor: 'pointer' }}>Enquiry Only (hide price, show WhatsApp button)</label>

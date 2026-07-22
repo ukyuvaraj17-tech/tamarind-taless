@@ -39,28 +39,35 @@ export default function Register() {
   }
 
   const inp = (field) => ({
-    width: '100%', padding: '11px 0', border: 'none',
+    width: '100%', padding: '12px 0', border: 'none',
     borderBottom: `1px solid ${errors[field] ? 'var(--error)' : 'rgba(33,29,20,.80)'}`,
     background: 'transparent',
     fontFamily: "'Cormorant Garamond', serif",
-    fontSize: 15, color: 'var(--iv)', outline: 'none',
+    fontSize: 16, color: 'var(--iv)', outline: 'none',
     caretColor: 'var(--gd)',
   });
 
-  const lbl = { fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', display: 'block', marginBottom: 7 };
+  const lbl = { fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', display: 'block', marginBottom: 8 };
 
   return (
-    <div style={{ paddingTop: 64, minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px' }}>
-      <div style={{ maxWidth: 420, width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <hr className="hairline" style={{ margin: '0 auto 16px' }} aria-hidden="true" />
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: 'var(--iv)', fontWeight: 400 }}>Tamarind Taless</div>
-          <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '9.5px', letterSpacing: '.35em', textTransform: 'uppercase', color: 'var(--gd)', marginTop: 4 }}>Join the Collection</div>
+    <div style={{
+      paddingTop: 64, minHeight: '100vh',
+      background: 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(201,162,75,.07) 0%, transparent 60%), var(--bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px',
+    }}>
+      <div style={{ maxWidth: 430, width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <hr className="hairline" style={{ margin: '0 auto 18px' }} aria-hidden="true" />
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, color: 'var(--iv)', fontWeight: 400, letterSpacing: '.01em' }}>Tamarind Taless</div>
+          <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '9.5px', letterSpacing: '.4em', textTransform: 'uppercase', color: 'var(--gd)', marginTop: 6 }}>Join the Collection</div>
         </div>
 
-        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '32px 28px' }}>
+        <div style={{
+          background: 'var(--card)', border: '1px solid var(--line)', borderTop: '2px solid var(--gd)',
+          padding: '38px 34px', boxShadow: '0 24px 60px rgba(30,27,20,.10)',
+        }}>
           {/* GOOGLE */}
-          <button onClick={loginWithGoogle} style={{ width: '100%', padding: 12, border: '1px solid var(--line)', background: 'rgba(30,27,20,.03)', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', cursor: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, marginBottom: 22, transition: 'border-color .25s, color .25s' }}
+          <button onClick={loginWithGoogle} style={{ width: '100%', padding: 13, border: '1px solid var(--line)', background: 'rgba(30,27,20,.03)', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', cursor: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, marginBottom: 24, transition: 'border-color .25s, color .25s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold50)'; e.currentTarget.style.color = 'var(--iv)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.color = 'var(--iv50)'; }}
           >
@@ -68,9 +75,9 @@ export default function Register() {
             Continue with Google
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }}></div>
-            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.14em', color: 'rgba(106,99,80,.88)' }}>OR</span>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.16em', color: 'rgba(106,99,80,.88)' }}>OR</span>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }}></div>
           </div>
 
@@ -82,7 +89,7 @@ export default function Register() {
               { label: 'Password',  key: 'password', type: 'password', ph: 'At least 6 characters' },
               { label: 'Confirm Password', key: 'confirm', type: 'password', ph: 'Repeat your password' },
             ].map(({ label, key, type, ph }) => (
-              <div key={key} style={{ marginBottom: 18 }}>
+              <div key={key} style={{ marginBottom: 20 }}>
                 <label style={lbl}>{label}</label>
                 <input type={type} value={form[key]} placeholder={ph} onChange={e => set(key, e.target.value)} style={inp(key)}
                   onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'}
@@ -91,12 +98,12 @@ export default function Register() {
                 {errors[key] && <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: 'var(--error)', marginTop: 4 }}>{errors[key]}</div>}
               </div>
             ))}
-            <button type="submit" className="btn btn-dark btn-full" style={{ marginTop: 8 }} disabled={loading}>
+            <button type="submit" className="btn btn-dark btn-full" style={{ marginTop: 8, padding: '15px 0', letterSpacing: '.2em' }} disabled={loading}>
               {loading ? <span className="spinner"></span> : 'Create Account'}
             </button>
           </form>
 
-          <div style={{ textAlign: 'center', marginTop: 18, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)' }}>
+          <div style={{ textAlign: 'center', marginTop: 22, fontFamily: "'Cormorant Garamond', serif", fontSize: 15.5, color: 'rgba(106,99,80,.88)' }}>
             Already registered? <Link to="/login" style={{ color: 'var(--gd)', fontStyle: 'italic', cursor: 'none', textDecoration: 'none' }}>Sign in</Link>
           </div>
         </div>

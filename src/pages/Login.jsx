@@ -41,30 +41,37 @@ export default function Login() {
   }
 
   const inp = {
-    width: '100%', padding: '11px 0', border: 'none',
+    width: '100%', padding: '12px 0', border: 'none',
     borderBottom: '1px solid rgba(33,29,20,.80)',
     background: 'transparent',
     fontFamily: "'Cormorant Garamond', serif",
-    fontSize: 15, color: 'var(--iv)',
+    fontSize: 16, color: 'var(--iv)',
     outline: 'none', transition: 'border-color 0.3s',
     caretColor: 'var(--gd)',
   };
 
   return (
-    <div style={{ paddingTop: 64, minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px' }}>
-      <div style={{ maxWidth: 420, width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <hr className="hairline" style={{ margin: '0 auto 16px' }} aria-hidden="true" />
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: 'var(--iv)', fontWeight: 400 }}>Tamarind Taless</div>
-          <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '9.5px', letterSpacing: '.35em', textTransform: 'uppercase', color: 'var(--gd)', marginTop: 4 }}>Collector Login</div>
+    <div style={{
+      paddingTop: 64, minHeight: '100vh',
+      background: 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(201,162,75,.07) 0%, transparent 60%), var(--bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px',
+    }}>
+      <div style={{ maxWidth: 430, width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <hr className="hairline" style={{ margin: '0 auto 18px' }} aria-hidden="true" />
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, color: 'var(--iv)', fontWeight: 400, letterSpacing: '.01em' }}>Tamarind Taless</div>
+          <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '9.5px', letterSpacing: '.4em', textTransform: 'uppercase', color: 'var(--gd)', marginTop: 6 }}>Collector Login</div>
         </div>
 
-        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '32px 28px' }}>
-          {error && <div style={{ background: 'rgba(192,120,64,.08)', borderLeft: '3px solid var(--error)', padding: '10px 14px', marginBottom: 20, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--error)', lineHeight: 1.5 }}>{error}</div>}
-          {resetSent && <div style={{ background: 'rgba(107,142,80,.1)', borderLeft: '3px solid var(--success)', padding: '10px 14px', marginBottom: 20, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--success)' }}>Password reset email sent. Check your inbox.</div>}
+        <div style={{
+          background: 'var(--card)', border: '1px solid var(--line)', borderTop: '2px solid var(--gd)',
+          padding: '38px 34px', boxShadow: '0 24px 60px rgba(30,27,20,.10)',
+        }}>
+          {error && <div style={{ background: 'rgba(192,120,64,.08)', borderLeft: '3px solid var(--error)', padding: '10px 14px', marginBottom: 22, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--error)', lineHeight: 1.5 }}>{error}</div>}
+          {resetSent && <div style={{ background: 'rgba(107,142,80,.1)', borderLeft: '3px solid var(--success)', padding: '10px 14px', marginBottom: 22, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--success)' }}>Password reset email sent. Check your inbox.</div>}
 
           {/* GOOGLE */}
-          <button onClick={handleGoogle} disabled={gLoading} style={{ width: '100%', padding: 12, border: '1px solid var(--line)', background: 'rgba(30,27,20,.03)', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', cursor: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, marginBottom: 22, transition: 'border-color .25s, color .25s' }}
+          <button onClick={handleGoogle} disabled={gLoading} style={{ width: '100%', padding: 13, border: '1px solid var(--line)', background: 'rgba(30,27,20,.03)', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', cursor: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, marginBottom: 24, transition: 'border-color .25s, color .25s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold50)'; e.currentTarget.style.color = 'var(--iv)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.color = 'var(--iv50)'; }}
           >
@@ -76,39 +83,39 @@ export default function Login() {
             )}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }}></div>
-            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.14em', color: 'rgba(106,99,80,.88)' }}>OR</span>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.16em', color: 'rgba(106,99,80,.88)' }}>OR</span>
             <div style={{ flex: 1, height: 1, background: 'var(--line)' }}></div>
           </div>
 
           <form onSubmit={handleEmail}>
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', display: 'block', marginBottom: 7 }}>Email Address</label>
+            <div style={{ marginBottom: 22 }}>
+              <label style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', display: 'block', marginBottom: 8 }}>Email Address</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" style={inp}
                 onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'}
                 onBlur={e => e.target.style.borderBottomColor = 'rgba(33,29,20,.80)'}
               />
             </div>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', display: 'block', marginBottom: 7 }}>Password</label>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', color: 'rgba(106,99,80,.88)', display: 'block', marginBottom: 8 }}>Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Your password" style={inp}
                 onFocus={e => e.target.style.borderBottomColor = 'var(--gd)'}
                 onBlur={e => e.target.style.borderBottomColor = 'rgba(33,29,20,.80)'}
               />
             </div>
-            <div style={{ textAlign: 'right', marginBottom: 22 }}>
+            <div style={{ textAlign: 'right', marginBottom: 24 }}>
               <span onClick={handleReset} style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'var(--gd)', cursor: 'none', fontStyle: 'italic' }}
                 onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                 onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
               >Forgot Password?</span>
             </div>
-            <button type="submit" className="btn btn-dark btn-full" disabled={loading}>
+            <button type="submit" className="btn btn-dark btn-full" disabled={loading} style={{ padding: '15px 0', letterSpacing: '.2em' }}>
               {loading ? <span className="spinner"></span> : 'Sign In'}
             </button>
           </form>
 
-          <div style={{ textAlign: 'center', marginTop: 18, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)' }}>
+          <div style={{ textAlign: 'center', marginTop: 22, fontFamily: "'Cormorant Garamond', serif", fontSize: 15.5, color: 'rgba(106,99,80,.88)' }}>
             New collector? <Link to="/register" style={{ color: 'var(--gd)', fontStyle: 'italic', cursor: 'none', textDecoration: 'none' }}>Create an account</Link>
           </div>
         </div>
