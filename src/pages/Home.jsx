@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useBrand } from '../context/BrandContext';
 import { supabase } from '../supabase';
 import ProductCard from '../components/ProductCard';
+import BlurImage from '../components/BlurImage';
 
 const MQ = ['Made in India','Curated in India','Women Led','Tamarind Taless'];
 
@@ -44,7 +45,16 @@ export default function Home() {
       <section style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'clamp(4rem,10vw,8rem) clamp(1.5rem,5vw,3.5rem)', position:'relative', overflow:'hidden' }}>
         {/* HERO BG IMAGE — set from Admin > Brand Settings */}
         {brand.hero_image && (
-          <div aria-hidden="true" style={{ position:'absolute', inset:0, backgroundImage:`url(${brand.hero_image})`, backgroundSize:'cover', backgroundPosition: brand.hero_image_position || 'center', backgroundRepeat:'no-repeat', zIndex:0 }} />
+          <BlurImage
+            src={brand.hero_image}
+            alt=""
+            aria-hidden="true"
+            style={{
+              position:'absolute', inset:0, width:'100%', height:'100%',
+              objectFit:'cover', objectPosition: brand.hero_image_position || 'center',
+              zIndex:0,
+            }}
+          />
         )}
         {/* OVERLAY — dark scrim only when a photo is set, otherwise a quiet ink-tinted glow */}
         <div aria-hidden="true" style={{ position:'absolute', inset:0, zIndex:1, background: brand.hero_image

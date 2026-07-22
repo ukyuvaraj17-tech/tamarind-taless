@@ -1,4 +1,5 @@
 import React from 'react';
+import BlurImage from './BlurImage';
 
 // Reusable hero banner with optional Cloudinary background image + dark overlay
 // Used on Shop, About, Services, Stories, Care page headers
@@ -17,12 +18,16 @@ export default function PageHero({ image, position, eyebrow, title, subtitle, mi
       textAlign: center ? 'center' : 'left',
     }}>
       {image && (
-        <div aria-hidden="true" style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url(${image})`,
-          backgroundSize: 'cover', backgroundPosition: position || 'center',
-          zIndex: 0,
-        }} />
+        <BlurImage
+          src={image}
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: position || 'center',
+            zIndex: 0,
+          }}
+        />
       )}
       <div aria-hidden="true" style={{
         position: 'absolute', inset: 0, zIndex: 1,

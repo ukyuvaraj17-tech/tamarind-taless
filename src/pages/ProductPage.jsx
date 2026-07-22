@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { fmt, CATEGORY_GROUPS } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
 import ProductCard from '../components/ProductCard';
+import BlurImage from '../components/BlurImage';
 import { FacebookIcon, TwitterXIcon, PinterestIcon, EmailIcon } from '../components/SocialIcons';
 import toast from 'react-hot-toast';
 
@@ -173,7 +174,7 @@ export default function ProductPage() {
             onTouchEnd={e => onTouchEnd(e, images.length)}
           >
             {images[activeImg] ? (
-              <img key={activeImg} src={images[activeImg]} alt={product.name} className="pp-img-fade" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: product.image_position || '50% 50%' }} />
+              <BlurImage key={activeImg} src={images[activeImg]} alt={product.name} className="pp-img-fade" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: product.image_position || '50% 50%' }} />
             ) : (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'rgba(30,27,20,.15)', fontStyle: 'italic', padding: 32 }}>{product.name}</div>
             )}
@@ -402,7 +403,7 @@ export default function ProductPage() {
             onTouchEnd={e => onTouchEnd(e, images.length)}
           >
             <div style={{ maxWidth: '85%', maxHeight: '85vh', position: 'relative', overflow: zoomed ? 'auto' : 'visible' }} onClick={e => e.stopPropagation()}>
-              <img key={activeImg} src={images[activeImg]} alt={product.name} className="pp-img-fade"
+              <BlurImage key={activeImg} src={images[activeImg]} alt={product.name} className="pp-img-fade"
                 onClick={handleImageTap}
                 style={{
                   maxWidth: zoomed ? 'none' : '100%', maxHeight: zoomed ? 'none' : '85vh',

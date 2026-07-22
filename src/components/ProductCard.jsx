@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { fmt } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
+import BlurImage from './BlurImage';
 import toast from 'react-hot-toast';
 
 export default function ProductCard({ product: p, height = 260 }) {
@@ -30,7 +31,7 @@ export default function ProductCard({ product: p, height = 260 }) {
         background: p.bg || 'linear-gradient(145deg, var(--card), var(--line))',
         minHeight: height,
       }}>
-        {img && <img src={img} alt={p.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: p.image_position || '50% 50%' }} />}
+        {img && <BlurImage src={img} alt={p.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: p.image_position || '50% 50%' }} />}
 
         {/* OVERLAY */}
         <div className="product-card-overlay" onClick={goToProduct}>
