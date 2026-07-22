@@ -123,59 +123,6 @@ function SplashScreen() {
   );
 }
 
-// Route-transition "buffering" overlay: dark shade + pulsing logo shown briefly on every navigation.
-// Data-heavy pages (fetch from Supabase on mount) get a longer duration.
-const ROUTE_LOAD_MS = {
-  '/stories': 2000,
-  '/shop': 2000,
-  '/gallery': 2000,
-  '/account': 2000,
-  '/admin': 2000,
-};
-const DEFAULT_ROUTE_LOAD_MS = 1000;
-
-function RouteLoader() {
-  const { pathname } = useLocation();
-  const { brand } = useBrand();
-  const [active, setActive] = React.useState(false);
-  const isFirst = React.useRef(true);
-
-  React.useEffect(() => {
-    if (isFirst.current) { isFirst.current = false; return; } // initial load already shown by SplashScreen
-    const ms = ROUTE_LOAD_MS[pathname] ?? DEFAULT_ROUTE_LOAD_MS;
-    setActive(true);
-    const t = setTimeout(() => setActive(false), ms);
-    return () => clearTimeout(t);
-  }, [pathname]);
-
-  return (
-    <div className="route-loader-overlay" style={{
-      position: 'fixed', inset: 0, zIndex: 99998,
-      background: 'transparent',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      opacity: active ? 1 : 0, pointerEvents: 'none',
-      transition: 'opacity .3s ease',
-    }}>
-      <div className="route-ring">
-        {(brand.splash_logo || brand.logo_url) && <img src={brand.splash_logo || brand.logo_url} alt="" />}
-      </div>
-      <style>{`
-        .route-ring {
-          position: relative; width: 160px; height: 160px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .route-ring::before {
-          content: ''; position: absolute; inset: -7px; border-radius: 50%;
-          border: 4px solid transparent; border-top-color: var(--gd);
-          animation: routeRingSpin 1s linear infinite;
-        }
-        .route-ring img { width: 120px; height: 120px; object-fit: contain; }
-        @keyframes routeRingSpin { to { transform: rotate(360deg); } }
-      `}</style>
-    </div>
-  );
-}
-
 function NotFound() {
   return (
     <div style={{ paddingTop: 64, minHeight: '80vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -196,7 +143,6 @@ export default function App() {
         <BrandProvider>
           <CartProvider>
             <SplashScreen />
-            <RouteLoader />
             <CursorAndProgress />
             <Toaster
               position="bottom-right"
