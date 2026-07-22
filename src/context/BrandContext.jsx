@@ -33,6 +33,7 @@ export function BrandProvider({ children }) {
     splash_logo: '',
     // Gallery page video (replaces the old collection-tiles grid)
     gallery_video: '',
+    gallery_video_caption: '',
     // Registered office address shown in the footer
     registered_office: '',
     // Home showcase control

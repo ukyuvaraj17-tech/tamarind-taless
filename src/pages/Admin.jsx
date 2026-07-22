@@ -572,6 +572,7 @@ function BrandSettings() {
   const { brand, updateBrand } = useBrand();
   const [form, setForm] = React.useState({
     brand_name: brand.brand_name || '', tagline: brand.tagline || '', registered_office: brand.registered_office || '',
+    gallery_video_caption: brand.gallery_video_caption || '',
     home_featured_label: brand.home_featured_label || '', home_featured_title: brand.home_featured_title || '',
     home_quote_text: brand.home_quote_text || '', home_ink_eyebrow: brand.home_ink_eyebrow || '',
     home_ink_title: brand.home_ink_title || '', home_ink_body: brand.home_ink_body || '', home_ig_followers: brand.home_ig_followers || '',
@@ -618,6 +619,11 @@ function BrandSettings() {
 
   async function removeHeroField(field) {
     try { await updateBrand({ [field]: '' }); toast.success('Image removed.'); }
+    catch { toast.error('Failed.'); }
+  }
+
+  async function saveGalleryCaption() {
+    try { await updateBrand({ gallery_video_caption: form.gallery_video_caption }); toast.success('Caption saved.'); }
     catch { toast.error('Failed.'); }
   }
 
@@ -755,6 +761,12 @@ function BrandSettings() {
           inputStyle={inp}
         />
         {brand.gallery_video && <button onClick={() => removeHeroField('gallery_video')} style={{ marginTop: 8, background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer', alignSelf: 'flex-start' }}>Remove</button>}
+
+        <div style={{ marginTop: 16 }}>
+          <label style={lbl}>Video Caption (shown via the CC button on the Gallery page)</label>
+          <textarea style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} rows={2} value={form.gallery_video_caption} onChange={e => setForm(f => ({ ...f, gallery_video_caption: e.target.value }))} placeholder="e.g. A look inside our restoration studio, Coimbatore." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+          <button onClick={saveGalleryCaption} style={{ marginTop: 8, background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '7px 16px', cursor: 'pointer', alignSelf: 'flex-start' }}>Save Caption</button>
+        </div>
       </div>
 
       {/* BRAND TEXT */}
