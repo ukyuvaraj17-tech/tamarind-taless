@@ -6,7 +6,7 @@ import Verse from '../components/Verse';
 export default function Gallery() {
   const { brand } = useBrand();
   const videoRef = useRef(null);
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true);
 
   function toggleVideo() {
     const v = videoRef.current;
@@ -35,17 +35,17 @@ export default function Gallery() {
                 ref={videoRef}
                 key={brand.gallery_video}
                 src={brand.gallery_video}
-                autoPlay
-                muted
                 loop
                 playsInline
+                preload="metadata"
                 disablePictureInPicture
+                controlsList="nodownload"
                 onPlay={() => setPaused(false)}
                 onPause={() => setPaused(true)}
                 style={{ width: '100%', display: 'block', background: '#000', border: '1px solid var(--line)' }}
               />
               {paused && (
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.28)', pointerEvents: 'none' }}>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.28)' }}>
                   <div style={{ width: 76, height: 76, borderRadius: '50%', background: 'rgba(0,0,0,.55)', border: '1px solid rgba(242,239,228,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="#F2EFE4" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
                   </div>
