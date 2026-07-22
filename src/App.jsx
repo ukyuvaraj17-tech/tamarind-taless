@@ -113,7 +113,7 @@ function SplashScreen() {
         }
         .splash-ring::before {
           content: ''; position: absolute; inset: -7px; border-radius: 50%;
-          border: 4px solid transparent; border-top-color: var(--gd);
+          border: 4px solid transparent; border-top-color: var(--border);
           animation: splashRingSpin 1s linear infinite;
         }
         .splash-ring img { width: 120px; height: 120px; object-fit: contain; }

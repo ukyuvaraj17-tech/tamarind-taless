@@ -34,7 +34,7 @@ export default function ProductPage() {
   const [lightbox, setLightbox] = useState(false);
   const [zoomed, setZoomed] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedVariantIdx, setSelectedVariantIdx] = useState(null);
 
   // Lock page scroll while the lightbox is open — without this, scrolling the
   // underlying page on mobile made the fixed lightbox appear to jump/misalign.
@@ -58,11 +58,19 @@ export default function ProductPage() {
     let cancelled = false;
     setLoading(true);
     setActiveImg(0);
-    setSelectedSize(null);
+    setSelectedVariantIdx(null);
     supabase.from('products').select('*').eq('id', id).single().then(({ data }) => {
       if (cancelled) return;
       setProduct(data || null);
       setSaved(data ? isSaved(data.id) : false);
+      // Default to the first in-stock option so price/specs are accurate immediately,
+      // instead of forcing a click before showing real numbers. Selecting by index (not
+      // name) keeps this unambiguous even if two options happen to share the same name.
+      if (data?.variants?.length) {
+        let idx = data.variants.findIndex(v => Number(v.stock) > 0);
+        if (idx === -1) idx = 0;
+        setSelectedVariantIdx(idx);
+      }
       setLoading(false);
       window.scrollTo({ top: 0, behavior: 'instant' });
     });
@@ -102,9 +110,9 @@ export default function ProductPage() {
   // Opens WhatsApp immediately (so it isn't blocked as a popup) and logs the enquiry to
   // Supabase in the background so it shows up under Admin > Enquiries.
   function handleEnquire(reason) {
-    const sizeNote = chosenVariant ? ` (Size: ${chosenVariant.size})` : '';
+    const sizeNote = chosenVariant ? ` (Option: ${chosenVariant.size})` : '';
     const messages = {
-      soldOut: `Hi, I'm interested in "${product.name}"${selectedSize ? ` (Size: ${selectedSize})` : ''} but see it's currently sold out. Is it available, or do you have something similar?`,
+      soldOut: `Hi, I'm interested in "${product.name}"${chosenVariant ? ` (Option: ${chosenVariant.size})` : ''} but see it's currently sold out. Is it available, or do you have something similar?`,
       priceOnEnquiry: `I am interested in ${product.name}${sizeNote}, ${product.material || ''}, ${product.origin || ''}. Please share details and pricing.`,
       inStock: `I am interested in ${product.name}${sizeNote}, ${fmt(displayPrice)}. Please share more details.`,
     };
@@ -149,7 +157,7 @@ export default function ProductPage() {
 
   const isEnquiryOnly = product.enquiry_only || product.enquiryOnly;
   const hasVariants = (product.variants || []).length > 0;
-  const chosenVariant = hasVariants ? product.variants.find(v => v.size === selectedSize) : null;
+  const chosenVariant = hasVariants && selectedVariantIdx !== null ? product.variants[selectedVariantIdx] : null;
   const allVariantsSoldOut = hasVariants && product.variants.every(v => Number(v.stock) === 0);
   const isSoldOut = hasVariants ? (chosenVariant ? Number(chosenVariant.stock) === 0 : allVariantsSoldOut) : product.stock === 0;
   const displayPrice = chosenVariant ? chosenVariant.price : product.price;
@@ -265,15 +273,15 @@ export default function ProductPage() {
 
           {hasVariants && (
             <div style={{ margin: '20px 0' }}>
-              <div style={{ ...S.label, marginBottom: 10 }}>Select Size</div>
+              <div style={{ ...S.label, marginBottom: 10 }}>Select an Option</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {product.variants.map(v => {
+                {product.variants.map((v, i) => {
                   const sizeSoldOut = Number(v.stock) === 0;
-                  const active = selectedSize === v.size;
+                  const active = selectedVariantIdx === i;
                   return (
                     <button
-                      key={v.size}
-                      onClick={() => !sizeSoldOut && setSelectedSize(v.size)}
+                      key={i}
+                      onClick={() => !sizeSoldOut && setSelectedVariantIdx(i)}
                       disabled={sizeSoldOut}
                       style={{
                         padding: '10px 18px',
@@ -345,7 +353,7 @@ export default function ProductPage() {
             ) : (
               <>
                 <button className="btn btn-full btn-dark" onClick={() => {
-                  if (hasVariants && !chosenVariant) { toast.error('Please select a size.'); return; }
+                  if (hasVariants && !chosenVariant) { toast.error('Please select an option.'); return; }
                   addToCart(hasVariants
                     ? { ...product, price: chosenVariant.price, weight: chosenVariant.weight, dimensions: chosenVariant.dimensions, stock: chosenVariant.stock, size: chosenVariant.size }
                     : product);

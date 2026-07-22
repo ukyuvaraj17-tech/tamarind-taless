@@ -1051,15 +1051,15 @@ export default function Admin() {
                 <div><label style={lbl}>Badge</label><input style={inp} value={form.badge} onChange={e => setF('badge', e.target.value)} placeholder="Featured / Rare / Collector" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
                 <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Pinterest Pin URL (optional)</label><input style={inp} value={form.pinterest_url} onChange={e => setF('pinterest_url', e.target.value)} placeholder="Paste the pin's URL from Pinterest — leave blank to auto-generate a Pin It link" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.2)'} /></div>
 
-                {/* SIZE VARIANTS */}
+                {/* VARIANTS */}
                 <div style={{ gridColumn: '1/-1', borderTop: '1px dashed rgba(33,29,20,.2)', paddingTop: 18, marginTop: 4 }}>
-                  <label style={lbl}>Size Variants (optional)</label>
+                  <label style={lbl}>Variants (optional)</label>
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)', marginBottom: 14 }}>
-                    Add sizes if this piece comes in more than one size — like Small / Medium / Large — each with its own price, weight, dimensions and stock. Customers pick a size on the product page and see that size's details. Leave empty for a single-size product (the Price/Weight/Dimensions/Stock fields above are used instead).
+                    Use this if the piece comes in more than one option — actual sizes like Small / Medium / Large, or distinct named pieces sold under one listing (e.g. "Shiva" and "Ardhanarishvara" heads) — each with its own price, weight, dimensions and stock. Customers pick one on the product page and see that option's details, pre-selected to the first available by default. Leave empty for a single-option product (the Price/Weight/Dimensions/Stock fields above are used instead).
                   </div>
                   {(form.variants || []).map((v, i) => (
                     <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <input style={{ ...inp, flex: '1 1 110px' }} value={v.size} onChange={e => updateVariant(i, 'size', e.target.value)} placeholder="Size (e.g. Small)" />
+                      <input style={{ ...inp, flex: '1 1 110px' }} value={v.size} onChange={e => updateVariant(i, 'size', e.target.value)} placeholder="Option name (Small, or Shiva)" />
                       <input style={{ ...inp, flex: '1 1 100px' }} type="number" value={v.price} onChange={e => updateVariant(i, 'price', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder="Price (Rs.)" />
                       <input style={{ ...inp, flex: '1 1 90px' }} value={v.weight} onChange={e => updateVariant(i, 'weight', e.target.value)} placeholder="Weight" />
                       <input style={{ ...inp, flex: '1 1 120px' }} value={v.dimensions} onChange={e => updateVariant(i, 'dimensions', e.target.value)} placeholder="Dimensions" />
@@ -1067,7 +1067,7 @@ export default function Admin() {
                       <button type="button" onClick={() => removeVariant(i)} title="Remove size" style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', width: 34, height: 34, flexShrink: 0, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
                     </div>
                   ))}
-                  <button type="button" onClick={addVariant} style={{ background: 'none', border: '1px dashed rgba(33,29,20,.35)', color: 'var(--gd)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '9px 16px', cursor: 'pointer', marginTop: 4 }}>+ Add Size</button>
+                  <button type="button" onClick={addVariant} style={{ background: 'none', border: '1px dashed rgba(33,29,20,.35)', color: 'var(--gd)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '9px 16px', cursor: 'pointer', marginTop: 4 }}>+ Add Option</button>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
