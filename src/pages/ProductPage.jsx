@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
-import { useCart } from '../context/CartContext';
+import { useCartActions } from '../context/CartContext';
 import { useBrand } from '../context/BrandContext';
 import { useAuth } from '../context/AuthContext';
 import { fmt, CATEGORY_GROUPS } from '../data/products';
@@ -22,7 +22,7 @@ const S = {
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart } = useCartActions();
   const { brand } = useBrand();
   const { currentUser, userProfile } = useAuth();
   const groups = brand.category_taxonomy?.length ? brand.category_taxonomy : CATEGORY_GROUPS;

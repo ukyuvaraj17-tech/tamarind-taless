@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBrand } from '../context/BrandContext';
-import { useCart } from '../context/CartContext';
+import { useCartActions } from '../context/CartContext';
 import PageHero from '../components/PageHero';
 import { fmt } from '../data/products';
 import toast from 'react-hot-toast';
@@ -14,7 +14,7 @@ function makeGiftCode() {
 
 export default function GiftCard() {
   const { brand } = useBrand();
-  const { addToCart } = useCart();
+  const { addToCart } = useCartActions();
   const navigate = useNavigate();
   const [amount, setAmount] = useState(2500);
   const [custom, setCustom] = useState('');

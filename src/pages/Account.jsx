@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import { useCartActions } from '../context/CartContext';
 import { fmt } from '../data/products';
 import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
@@ -229,7 +229,7 @@ function DashboardTab({ userProfile, currentUser, orderCount, wishlistCount, onN
 
 function WishlistTab({ navigate }) {
   const [wl, setWl] = useState(readWishlist);
-  const { addToCart } = useCart();
+  const { addToCart } = useCartActions();
   function remove(id) { const u = wl.filter(p => p.id !== id); setWl(u); localStorage.setItem('tt_wl', JSON.stringify(u)); toast.success('Removed.'); }
   if (!wl.length) return <div className="empty-state"><div>Nothing saved yet</div><button className="btn btn-gold btn-sm" style={{ marginTop: 20 }} onClick={() => navigate('/shop')}>Explore Collection</button></div>;
   return (

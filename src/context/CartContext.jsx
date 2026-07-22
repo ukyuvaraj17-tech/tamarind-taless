@@ -1,11 +1,22 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabase';
 import toast from 'react-hot-toast';
 
-const CartContext = createContext();
+// Split into two contexts so a component that only needs to call addToCart
+// (every ProductCard, ProductPage, GiftCard) never re-renders when the cart's
+// contents change — only components reading actual cart data (Cart, Checkout,
+// the Navbar badge) do. All the action functions below are wrapped in
+// useCallback with no dependencies (they only ever use the functional
+// setCart(prev => ...) form), so CartActionsContext's value is stable for
+// the lifetime of the app and never triggers its subscribers to re-render.
+const CartDataContext = createContext();
+const CartActionsContext = createContext();
 
+export function useCartData() { return useContext(CartDataContext); }
+export function useCartActions() { return useContext(CartActionsContext); }
+// Back-compat combined hook for call sites that need both.
 export function useCart() {
-  return useContext(CartContext);
+  return { ...useContext(CartDataContext), ...useContext(CartActionsContext) };
 }
 
 export function CartProvider({ children }) {
@@ -46,6 +57,7 @@ export function CartProvider({ children }) {
           : `${removedCount} items in your cart are no longer available and were removed.`);
       }
     });
+    // eslint-disable-next-line
   }, []);
 
   // Two different sizes of the same product are separate cart lines -- keyed by
@@ -54,7 +66,7 @@ export function CartProvider({ children }) {
     return item.id + (item.size ? '::' + item.size : '');
   }
 
-  function addToCart(product) {
+  const addToCart = useCallback((product) => {
     if (product.stock === 0) {
       toast.error('This piece is no longer available.');
       return;
@@ -76,15 +88,15 @@ export function CartProvider({ children }) {
       toast.success(`${label} added to cart.`);
       return [...prev, { ...product, qty: 1 }];
     });
-  }
+  }, []);
 
-  function removeFromCart(item) {
+  const removeFromCart = useCallback((item) => {
     const key = lineKey(item);
     setCart((prev) => prev.filter((i) => lineKey(i) !== key));
     toast.success('Item removed from cart.');
-  }
+  }, []);
 
-  function updateQty(item, qty) {
+  const updateQty = useCallback((item, qty) => {
     if (qty <= 0) {
       removeFromCart(item);
       return;
@@ -93,28 +105,29 @@ export function CartProvider({ children }) {
     setCart((prev) =>
       prev.map((i) => (lineKey(i) === key ? { ...i, qty } : i))
     );
-  }
+  }, [removeFromCart]);
 
-  function clearCart() {
+  const clearCart = useCallback(() => {
     setCart([]);
-  }
+  }, []);
 
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
   const cartSubtotal = cart.reduce((s, i) => s + (i.price || 0) * i.qty, 0);
 
+  const dataValue = useMemo(
+    () => ({ cart, cartCount, cartSubtotal }),
+    [cart, cartCount, cartSubtotal]
+  );
+  const actionsValue = useMemo(
+    () => ({ addToCart, removeFromCart, updateQty, clearCart }),
+    [addToCart, removeFromCart, updateQty, clearCart]
+  );
+
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQty,
-        clearCart,
-        cartCount,
-        cartSubtotal,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+    <CartActionsContext.Provider value={actionsValue}>
+      <CartDataContext.Provider value={dataValue}>
+        {children}
+      </CartDataContext.Provider>
+    </CartActionsContext.Provider>
   );
 }

@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCartActions } from '../context/CartContext';
 import { fmt } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
 import BlurImage from './BlurImage';
 import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
-export default function ProductCard({ product: p }) {
-  const { addToCart } = useCart();
+function ProductCard({ product: p }) {
+  // useCartActions (not the combined useCart) so this card never re-renders
+  // just because someone else's Add to Cart click changed the cart's contents.
+  const { addToCart } = useCartActions();
   const navigate = useNavigate();
   const [saved, setSaved] = useState(() => isSaved(p.id));
   const isEnquiryOnly = p.enquiry_only || p.enquiryOnly;
@@ -97,3 +99,5 @@ export default function ProductCard({ product: p }) {
     </div>
   );
 }
+
+export default React.memo(ProductCard);
