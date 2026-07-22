@@ -4,6 +4,7 @@ import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { fmt } from '../data/products';
+import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
 const NAV_ICONS = {
@@ -236,7 +237,7 @@ function WishlistTab({ navigate }) {
       {wl.map(p => (
         <div key={p.id} className="product-card">
           <div style={{ height: 170, background: p.bg, cursor: 'none', overflow: 'hidden' }} onClick={() => navigate('/shop')}>
-            {p.images?.[0] && <img src={p.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+            {p.images?.[0] && <img src={cldThumb(p.images[0], 350)} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
           </div>
           <div className="product-card-body" style={{ padding: 13 }}>
             <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', marginBottom: 4 }}>{p.name}</div>

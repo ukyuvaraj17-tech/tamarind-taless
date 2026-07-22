@@ -3,6 +3,7 @@ import { supabase } from '../supabase';
 import { useBrand } from '../context/BrandContext';
 import PageHero from '../components/PageHero';
 import Verse from '../components/Verse';
+import { cldThumb } from '../utils/cloudinary';
 
 export default function Stories() {
   const { brand } = useBrand();
@@ -42,7 +43,7 @@ export default function Stories() {
                 return (
                   <article key={s.id}>
                     {s.images?.[0] && (
-                      <img src={s.images[0]} alt={s.title} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', marginBottom: 24, border: '1px solid var(--line)' }} />
+                      <img src={cldThumb(s.images[0], 900)} alt={s.title} loading="lazy" decoding="async" style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', marginBottom: 24, border: '1px solid var(--line)' }} />
                     )}
                     <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', background: 'var(--cr08)', color: 'var(--crimson)', padding: '3px 9px' }}>{s.category}</span>
                     <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 600, color: 'var(--iv)', lineHeight: 1.25, margin: '14px 0 10px', textDecoration: 'underline', textUnderlineOffset: 6 }}>{s.title}</h2>

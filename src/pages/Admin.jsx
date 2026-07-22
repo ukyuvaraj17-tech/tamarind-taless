@@ -5,6 +5,7 @@ import { useBrand } from '../context/BrandContext';
 import { useNavigate } from 'react-router-dom';
 import { fmt, categories, CATEGORY_GROUPS, COLLECTOR_LABEL } from '../data/products';
 import ImageUploader from '../components/ImageUploader';
+import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
 const CATS = categories.filter(c => c !== 'All');
@@ -209,7 +210,7 @@ function StoriesManager() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {stories.map(s => (
               <div key={s.id} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center' }}>
-                {s.images?.[0] && <img src={s.images[0]} alt="" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(33,29,20,0.2)' }} />}
+                {s.images?.[0] && <img src={cldThumb(s.images[0], 130)} alt="" loading="lazy" decoding="async" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(33,29,20,0.2)' }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
                     <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gd)', background: 'rgba(33,29,20,.12)', padding: '2px 8px' }}>{s.category}</span>
@@ -1039,7 +1040,7 @@ export default function Admin() {
                   <tbody>
                     {products.map(p => (
                       <tr key={p.id}>
-                        <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><div style={{ width: 52, height: 52, background: p.bg, overflow: 'hidden' }}>{p.images?.[0] && <img src={p.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</div></td>
+                        <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><div style={{ width: 52, height: 52, background: p.bg, overflow: 'hidden' }}>{p.images?.[0] && <img src={cldThumb(p.images[0], 110)} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}</div></td>
                         <td style={{ padding: '10px 12px', color: 'var(--iv)', fontSize: 16, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.name}</td>
                         <td style={{ padding: '10px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.12em', color: 'var(--gd)', textTransform: 'uppercase', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.cat}</td>
                         <td style={{ padding: '10px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', fontWeight: 500, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{p.enquiry_only ? <span style={{ fontStyle: 'italic', fontSize: 16, color: 'rgba(106,99,80,0.5)' }}>Enquiry</span> : fmt(p.price)}</td>

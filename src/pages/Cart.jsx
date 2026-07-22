@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { fmt } from '../data/products';
+import { cldThumb } from '../utils/cloudinary';
 
 export default function Cart() {
   const { cart, removeFromCart, updateQty, cartSubtotal } = useCart();
@@ -41,7 +42,7 @@ export default function Cart() {
                     style={{ width: 96, height: 96, background: item.bg, flexShrink: 0, cursor: 'none', overflow: 'hidden' }}
                     onClick={() => navigate('/shop')}
                   >
-                    {item.images?.[0] && <img src={item.images[0]} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                    {item.images?.[0] && <img src={cldThumb(item.images[0], 200)} alt={item.name} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'var(--gd)', marginBottom: 3 }}>{item.cat.toUpperCase()}</div>

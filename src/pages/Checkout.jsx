@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useBrand } from '../context/BrandContext';
 import { fmt } from '../data/products';
 import { getCartDeliveryRange } from '../utils/delivery';
+import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
 export default function Checkout() {
@@ -311,7 +312,7 @@ export default function Checkout() {
             {cart.map(item => (
               <div key={item.id + (item.size || '')} style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
                 <div style={{ width: 46, height: 46, background: item.bg, flexShrink: 0, overflow: 'hidden' }}>
-                  {item.images?.[0] && <img src={item.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  {item.images?.[0] && <img src={cldThumb(item.images[0], 120)} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)' }}>{item.name}{item.size ? ` — ${item.size}` : ''}</div>

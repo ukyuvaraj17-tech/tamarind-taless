@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { cldThumb } from '../utils/cloudinary';
 
 // ── CLOUDINARY IMAGE UPLOADER ─────────────────────────────
 // Two modes:
@@ -91,8 +92,10 @@ export default function ImageUploader({ images = [], onChange }) {
           {images.map((url, i) => (
             <div key={i} style={{ position: 'relative', width: 90, height: 90 }}>
               <img
-                src={url}
+                src={cldThumb(url, 180)}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 style={{
                   width: '100%', height: '100%', objectFit: 'cover',
                   border: i === 0 ? '2px solid var(--gd)' : '1px solid rgba(33,29,20,0.2)'
