@@ -46,7 +46,7 @@ export default function Stories() {
                       <img src={cldThumb(s.images[0], 900)} alt={s.title} loading="lazy" decoding="async" style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', marginBottom: 24, border: '1px solid var(--line)' }} />
                     )}
                     <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', background: 'var(--cr08)', color: 'var(--crimson)', padding: '3px 9px' }}>{s.category}</span>
-                    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 600, color: 'var(--iv)', lineHeight: 1.25, margin: '14px 0 10px' }}>{s.title}</h2>
+                    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 600, color: 'var(--iv)', lineHeight: 1.25, margin: '14px 0 10px', fontVariantNumeric: 'lining-nums' }}>{s.title}</h2>
                     <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 12.5, letterSpacing: '.03em', color: 'rgba(106,99,80,.75)', marginBottom: 18 }}>{s.author} · {new Date(s.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</div>
                     {s.subtitle && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 600, color: 'var(--iv)', lineHeight: 1.6, marginBottom: 14 }}>{s.subtitle}</p>}
                     <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontWeight: 500, color: 'var(--iv)', lineHeight: 1.75, whiteSpace: 'pre-line' }}>
