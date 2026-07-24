@@ -28,14 +28,14 @@ export default function Stories() {
         minHeight="clamp(480px, 60vw, 640px)"
       />
 
-      <Verse text="Every journey reminds us that India's greatest treasures are often hidden in the quietest corners." background="var(--card)" font="sans" />
+      <Verse text="Every journey reminds us that India's greatest treasures are often hidden in the quietest corners." background="var(--card)" />
 
       <section className="section" style={{ background: 'var(--bg)' }}>
         <div className="container">
           {loading ? (
             <div style={{ textAlign: 'center', padding: 60 }}><span className="spinner"></span></div>
           ) : stories.length === 0 ? (
-            <div className="empty-state" style={{ fontFamily: "'Inter', sans-serif", fontStyle: 'normal', fontWeight: 500 }}>No stories published yet. Check back soon.</div>
+            <div className="empty-state">No stories published yet. Check back soon.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 56, maxWidth: 720, margin: '0 auto' }}>
               {stories.map((s) => {
@@ -49,7 +49,7 @@ export default function Stories() {
                     <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 600, color: 'var(--iv)', lineHeight: 1.25, margin: '14px 0 10px' }}>{s.title}</h2>
                     <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.75)', marginBottom: 18 }}>{s.author} · {new Date(s.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</div>
                     {s.subtitle && <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 600, color: 'var(--iv)', lineHeight: 1.6, marginBottom: 14 }}>{s.subtitle}</p>}
-                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 400, color: 'var(--text-muted)', lineHeight: 1.75, whiteSpace: 'pre-line' }}>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontStyle: 'italic', fontWeight: 400, color: 'var(--text-muted)', lineHeight: 1.75, whiteSpace: 'pre-line' }}>
                       {isOpen ? s.story : (s.story?.slice(0, 260) + (s.story?.length > 260 ? '…' : ''))}
                     </p>
                     {s.images?.length > 1 && isOpen && (
