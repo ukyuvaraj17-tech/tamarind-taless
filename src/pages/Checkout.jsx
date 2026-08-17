@@ -230,6 +230,22 @@ export default function Checkout() {
     const billAddr = billingSame ? addr : { ...billing, phone: billing.phone || addr.phone };
     const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
 
+    // A coupon and/or gift card can cover the entire order -- Razorpay (like every
+    // payment gateway) can't process a ₹0 charge, so there's nothing to actually
+    // pay for. Confirm the order directly instead of opening a payment widget that
+    // would just reject the amount.
+    if (total <= 0) {
+      try {
+        const ok = await finalizeOrder({ addr, billAddr, orderId, waWindow: null, status: 'Paid' });
+        if (!ok) setLoading(false);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to place order. Please try again.');
+        setLoading(false);
+      }
+      return;
+    }
+
     // ── ONLINE PAYMENT (Razorpay) ──────────────────────────────────────
     // No WhatsApp popup here -- the real payment widget is the whole point of this
     // path, and a paid order already shows up in Admin with its real payment ID.

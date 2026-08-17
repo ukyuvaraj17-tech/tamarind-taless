@@ -29,6 +29,47 @@ function NavIcon({ name, size = 18 }) {
   );
 }
 
+// The real fulfillment stages an order moves through after payment (mirrors
+// Admin's STATUSES, minus the pre-payment "Pending" state and the terminal
+// "Cancelled" exception, both handled separately below).
+const ORDER_STAGES = ['Paid', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'];
+
+function OrderStageTracker({ status }) {
+  if (status === 'Cancelled') {
+    return (
+      <div style={{ padding: '16px 6px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--tr)' }}>
+        This order was cancelled.
+      </div>
+    );
+  }
+  // 'Pending' is a pre-payment/legacy state -- hasn't reached the first real stage yet.
+  const currentIdx = status === 'Pending' ? -1 : ORDER_STAGES.indexOf(status);
+  return (
+    <div style={{ display: 'flex', padding: '20px 6px 8px', overflowX: 'auto' }}>
+      {ORDER_STAGES.map((stage, i) => {
+        const done = i <= currentIdx;
+        const isLast = i === ORDER_STAGES.length - 1;
+        return (
+          <React.Fragment key={stage}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 82 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                background: done ? 'var(--gd)' : 'var(--card)',
+                border: `2px solid ${done ? 'var(--gd)' : 'var(--line)'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {done && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#F2EFE4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+              </div>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, letterSpacing: '.05em', textTransform: 'uppercase', color: done ? 'var(--iv)' : 'var(--sm)', marginTop: 6, textAlign: 'center', lineHeight: 1.3 }}>{stage}</div>
+            </div>
+            {!isLast && <div style={{ flex: 1, height: 2, background: i < currentIdx ? 'var(--gd)' : 'var(--line)', marginTop: 10, minWidth: 20 }} />}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'orders', label: 'Orders' },
@@ -49,6 +90,7 @@ export default function Account() {
   const [orders, setOrders] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -75,7 +117,7 @@ export default function Account() {
 
   if (!currentUser) { navigate('/login'); return null; }
 
-  const statusCls = { Pending: 'badge-pending', Confirmed: 'badge-confirmed', Shipped: 'badge-shipped', Delivered: 'badge-delivered', Cancelled: 'badge-sold' };
+  const statusCls = { Pending: 'badge-pending', Paid: 'badge-confirmed', Confirmed: 'badge-confirmed', Shipped: 'badge-shipped', 'Out for Delivery': 'badge-shipped', Delivered: 'badge-delivered', Cancelled: 'badge-sold' };
   const wishlistCount = getWishlist().length;
 
   const navBtn = (active) => ({
@@ -136,17 +178,36 @@ export default function Account() {
                   <table className="data-table">
                     <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Delivery</th><th>Action</th></tr></thead>
                     <tbody>
-                      {orders.map(o => (
-                        <tr key={o.id}>
+                      {orders.map(o => {
+                        const isExpanded = expandedOrderId === o.id;
+                        return (
+                        <React.Fragment key={o.id}>
+                        <tr>
                           <td style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, color: 'var(--iv)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</td>
                           <td>{o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</td>
                           <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.items?.map(i => i.name).join(', ') || '-'}</td>
                           <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, fontWeight: 500 }}>{fmt(o.total)}</td>
                           <td><span className={`badge ${statusCls[o.status] || 'badge-pending'}`}>{o.status}</span></td>
                           <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: o.estimated_delivery ? 'var(--gd)' : 'var(--sm)', fontStyle: o.estimated_delivery ? 'normal' : 'italic' }}>{o.estimated_delivery || 'Pending'}</td>
-                          <td><a href={`https://wa.me/918796988216?text=Order status query for ${o.order_id || o.id.slice(-8)}`} target="_blank" rel="noreferrer" style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', color: 'var(--gd)' }}>Track</a></td>
+                          <td>
+                            <button onClick={() => setExpandedOrderId(isExpanded ? null : o.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', color: 'var(--gd)', padding: 0 }}>
+                              {isExpanded ? 'Hide' : 'Track'}
+                            </button>
+                          </td>
                         </tr>
-                      ))}
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan={7} style={{ background: 'var(--card)', borderBottom: '1px solid var(--line)', padding: '4px 12px 14px' }}>
+                              <OrderStageTracker status={o.status} />
+                              <a href={`https://wa.me/918796988216?text=Order status query for ${o.order_id || o.id.slice(-8)}`} target="_blank" rel="noreferrer" style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13.5, fontStyle: 'italic', color: 'rgba(106,99,80,.8)' }}>
+                                Questions about this order? Message us on WhatsApp
+                              </a>
+                            </td>
+                          </tr>
+                        )}
+                        </React.Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
