@@ -206,14 +206,11 @@ export default function Home() {
       <style>{`
         @media (max-width: 768px) {
           .home-hero { min-height: 68vh !important; padding: 3.25rem 1.25rem !important; }
-          .stats-grid-r { grid-template-columns: 1fr 1fr !important; }
-          .stats-grid-r > div:nth-child(2) { border-right: none !important; }
           .shaded-grid { grid-template-columns: 1fr !important; gap: 32px !important; padding: 48px 20px !important; }
           .home-grid-3 { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
           .home-grid-4 { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
         }
         @media (max-width: 420px) {
-          .stats-grid-r { grid-template-columns: 1fr 1fr !important; }
           .home-grid-3 { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
