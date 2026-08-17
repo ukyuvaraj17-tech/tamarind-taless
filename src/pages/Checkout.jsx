@@ -202,7 +202,7 @@ export default function Checkout() {
       })),
       subtotal: cartSubtotal, shipping, total,
       coupon_code: appliedCoupon?.code || null, discount,
-      gift_card_code: appliedGiftCard?.code || null, gift_card_applied: giftCardApplied,
+      gift_card_code: appliedGiftCard?.code || null, gift_card_applied: giftCardApplied ? 1 : 0,
       payment_method: 'razorpay',
       status,
       payment_id: paymentId || null,
