@@ -30,7 +30,6 @@ export default function Checkout() {
   const { cart, cartSubtotal, clearCart } = useCart();
   const { brand } = useBrand();
   const navigate = useNavigate();
-  const [payMethod, setPayMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
   const [useExisting, setUseExisting] = useState((userProfile?.addresses?.length || 0) > 0);
   const [selectedAddrIdx, setSelectedAddrIdx] = useState(0);
@@ -204,7 +203,7 @@ export default function Checkout() {
       subtotal: cartSubtotal, shipping, total,
       coupon_code: appliedCoupon?.code || null, discount,
       gift_card_code: appliedGiftCard?.code || null, gift_card_applied: giftCardApplied,
-      payment_method: payMethod,
+      payment_method: 'razorpay',
       status,
       payment_id: paymentId || null,
       razorpay_order_id: razorpayOrderId || null,
@@ -230,26 +229,6 @@ export default function Checkout() {
       : { name: form.name, phone: form.phone, line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode };
     const billAddr = billingSame ? addr : { ...billing, phone: billing.phone || addr.phone };
     const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
-
-    if (payMethod === 'whatsapp') {
-      // This payment method's whole mechanism IS the WhatsApp message -- open it
-      // synchronously, before any await, since popup blockers revoke the click's
-      // "user activation" the moment an await yields.
-      const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
-      const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
-      const waGift = appliedGiftCard ? `\nGift Card: ${appliedGiftCard.code} (-${fmt(giftCardApplied)})` : '';
-      const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}${waGift}\nTotal: ${fmt(total)}\nPayment: WhatsApp/COD`;
-      const waWindow = window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
-      try {
-        const ok = await finalizeOrder({ addr, billAddr, orderId, waWindow, status: 'Pending' });
-        if (!ok) setLoading(false);
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to place order. Please try again.');
-        setLoading(false);
-      }
-      return;
-    }
 
     // ── ONLINE PAYMENT (Razorpay) ──────────────────────────────────────
     // No WhatsApp popup here -- the real payment widget is the whole point of this
@@ -411,20 +390,18 @@ export default function Checkout() {
 
             {/* PAYMENT */}
             <div className="card-white">
-              <div className="section-label" style={{ marginBottom: 20 }}>Payment Method</div>
-              {[['razorpay','Pay Online','UPI, Cards, Net Banking via Razorpay'],['whatsapp','Confirm via WhatsApp','Order details sent to seller, payment arranged directly']].map(([val,title,sub]) => (
-                <div key={val} className={`payment-card ${payMethod === val ? 'selected' : ''}`} onClick={() => setPayMethod(val)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div className={`payment-radio ${payMethod === val ? 'checked' : ''}`}></div>
-                    <div>
-                      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', color: 'var(--iv)' }}>{title}</div>
-                      <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,.88)' }}>{sub}</div>
-                    </div>
+              <div className="section-label" style={{ marginBottom: 20 }}>Payment</div>
+              <div className="payment-card selected">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div className="payment-radio checked"></div>
+                  <div>
+                    <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', color: 'var(--iv)' }}>Pay Online</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,.88)' }}>UPI, Cards, Net Banking via Razorpay</div>
                   </div>
                 </div>
-              ))}
+              </div>
               <button className="btn btn-dark btn-full" style={{ marginTop: 20 }} onClick={placeOrder} disabled={loading}>
-                {loading ? <span className="spinner"></span> : payMethod === 'razorpay' ? 'Proceed to Payment' : 'Confirm via WhatsApp'}
+                {loading ? <span className="spinner"></span> : 'Proceed to Payment'}
               </button>
             </div>
           </div>
