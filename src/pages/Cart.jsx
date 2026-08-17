@@ -34,7 +34,7 @@ export default function Cart() {
             <button className="btn btn-gold" onClick={() => navigate('/shop')}>Explore Collection</button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr min(370px, 42%)', gap: 36, alignItems: 'start' }}>
+          <div className="cart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr min(370px, 42%)', gap: 36, alignItems: 'start' }}>
             {/* ITEMS */}
             <div>
               {cart.map((item) => {
