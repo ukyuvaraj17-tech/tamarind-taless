@@ -23,7 +23,7 @@ export default function Stories() {
         image={brand.hero_stories}
         position={brand.hero_stories_position}
         eyebrow="From Our World"
-        title={<em style={{ fontStyle: 'italic', color: 'var(--gd)', textShadow: '0 1px 3px rgba(242,239,228,.9), 0 2px 22px rgba(242,239,228,.55)' }}>Stories</em>}
+        title={<em style={{ fontStyle: 'italic' }}>Stories</em>}
         subtitle="Artisan journeys, heritage knowledge, and the stories behind the pieces we curate."
         minHeight="clamp(480px, 60vw, 640px)"
       />
