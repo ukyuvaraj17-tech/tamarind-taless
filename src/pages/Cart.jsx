@@ -2,14 +2,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { fmt } from '../data/products';
+import { fmt, knownStock } from '../data/products';
 import { cldThumb } from '../utils/cloudinary';
+import { getShippingCost, FREE_SHIPPING_THRESHOLD } from '../utils/delivery';
 
 export default function Cart() {
   const { cart, removeFromCart, updateQty, cartSubtotal } = useCart();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const shipping = cartSubtotal > 50000 ? 0 : 500;
+  const shipping = getShippingCost(cartSubtotal);
 
   return (
     <div style={{ paddingTop: 68, minHeight: '80vh', background: 'var(--bg)' }}>
@@ -36,8 +37,11 @@ export default function Cart() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr min(370px, 42%)', gap: 36, alignItems: 'start' }}>
             {/* ITEMS */}
             <div>
-              {cart.map((item) => (
-                <div key={item.id + (item.size || '')} style={{ display: 'flex', gap: 18, padding: '22px 0', borderBottom: '1px solid rgba(211,204,185,0.8)' }}>
+              {cart.map((item) => {
+                const stockNum = knownStock(item.stock);
+                const atStockLimit = stockNum !== null && item.qty >= stockNum;
+                return (
+                <div key={item.id + (item.size ? '::' + item.size : '')} style={{ display: 'flex', gap: 18, padding: '22px 0', borderBottom: '1px solid rgba(211,204,185,0.8)' }}>
                   <div
                     style={{ width: 96, height: 96, background: item.bg, flexShrink: 0, cursor: 'none', overflow: 'hidden' }}
                     onClick={() => navigate('/shop')}
@@ -45,7 +49,7 @@ export default function Cart() {
                     {item.images?.[0] && <img src={cldThumb(item.images[0], 200)} alt={item.name} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'var(--gd)', marginBottom: 3 }}>{item.cat.toUpperCase()}</div>
+                    <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', color: 'var(--gd)', marginBottom: 3 }}>{(item.cat || '').toUpperCase()}</div>
                     <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, color: 'var(--iv)', fontWeight: 500, marginBottom: 2 }}>{item.name}{item.size ? ` — ${item.size}` : ''}</div>
                     {item.isGiftCard ? (
                       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: 'rgba(106,99,80,.88)', fontStyle: 'italic', marginBottom: 11 }}>
@@ -65,8 +69,8 @@ export default function Cart() {
                         <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)', minWidth: 17, textAlign: 'center' }}>{item.qty}</span>
                         <button
                           onClick={() => updateQty(item, item.qty + 1)}
-                          disabled={item.qty >= item.stock}
-                          style={{ width: 27, height: 27, border: '1px solid var(--iv)', background: 'var(--card)', cursor: 'none', fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'var(--iv)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.2s', opacity: item.qty >= item.stock ? 0.4 : 1 }}
+                          disabled={atStockLimit}
+                          style={{ width: 27, height: 27, border: '1px solid var(--iv)', background: 'var(--card)', cursor: 'none', fontFamily: "'Cormorant Garamond', serif", fontSize: 16, color: 'var(--iv)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.2s', opacity: atStockLimit ? 0.4 : 1 }}
                           onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gd)'}
                           onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--iv)'}
                         >+</button>
@@ -81,7 +85,8 @@ export default function Cart() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
               <div style={{ paddingTop: 18 }}>
                 <button className="btn btn-outline btn-sm" onClick={() => navigate('/shop')}>Continue Shopping</button>
               </div>
@@ -100,7 +105,7 @@ export default function Cart() {
                 <span>Total</span><span>{fmt(cartSubtotal + shipping)}</span>
               </div>
               {shipping > 0 && (
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: 'rgba(106,99,80,.88)', fontStyle: 'italic', marginBottom: 14 }}>Free delivery on orders above Rs. 50,000</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 13, color: 'rgba(106,99,80,.88)', fontStyle: 'italic', marginBottom: 14 }}>Free delivery on orders above {fmt(FREE_SHIPPING_THRESHOLD)}</div>
               )}
               <button
                 className="btn btn-dark btn-full"

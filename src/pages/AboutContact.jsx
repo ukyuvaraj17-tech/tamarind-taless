@@ -124,6 +124,12 @@ export function Contact() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
+  // currentUser resolves asynchronously (session restore) -- a signed-in visitor who
+  // lands directly on this page can mount before it's ready, leaving email blank forever.
+  useEffect(() => {
+    if (currentUser?.email) setForm(f => f.email ? f : { ...f, email: currentUser.email });
+  }, [currentUser]);
+
   async function send(e) {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) { toast.error('Please fill in all required fields.'); return; }

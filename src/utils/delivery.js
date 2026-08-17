@@ -6,6 +6,14 @@
 
 const fmtDate = (d) => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 
+// Single source of truth for the free-shipping threshold -- previously hardcoded
+// separately in Cart.jsx and Checkout.jsx, which could silently drift apart.
+export const FREE_SHIPPING_THRESHOLD = 50000;
+export const SHIPPING_COST = 500;
+export function getShippingCost(subtotal) {
+  return subtotal > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+}
+
 export function isMetroCity(city, brand) {
   if (!city) return true; // unknown location: show the optimistic/base estimate
   const metros = (brand?.delivery_metro_cities || '')

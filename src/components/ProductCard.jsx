@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartActions } from '../context/CartContext';
-import { fmt } from '../data/products';
+import { fmt, isProductSoldOut, productAddToCartPayload } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
 import BlurImage from './BlurImage';
 import { cldThumb } from '../utils/cloudinary';
@@ -14,10 +14,12 @@ function ProductCard({ product: p }) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(() => isSaved(p.id));
   const isEnquiryOnly = p.enquiry_only || p.enquiryOnly;
-  const isSoldOut = p.stock === 0;
+  const isSoldOut = isProductSoldOut(p);
   const img = p.images?.[0];
 
   function goToProduct() { navigate(`/product/${p.id}`); }
+
+  function handleAdd() { addToCart(productAddToCartPayload(p)); }
 
   function handleSave(e) {
     e.stopPropagation();
@@ -84,7 +86,7 @@ function ProductCard({ product: p }) {
               </a>
             )}
             {!isSoldOut && !isEnquiryOnly && (
-              <button className="btn btn-dark btn-sm" style={{ fontSize: '10px', padding: '6px 10px' }} onClick={() => addToCart(p)}>
+              <button className="btn btn-dark btn-sm" style={{ fontSize: '10px', padding: '6px 10px' }} onClick={handleAdd}>
                 Add
               </button>
             )}

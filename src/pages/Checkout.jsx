@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useBrand } from '../context/BrandContext';
 import { fmt } from '../data/products';
-import { getCartDeliveryRange } from '../utils/delivery';
+import { getCartDeliveryRange, getShippingCost } from '../utils/delivery';
 import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
@@ -33,13 +33,21 @@ export default function Checkout() {
   const [applyingGiftCard, setApplyingGiftCard] = useState(false);
 
   const hasExisting = (userProfile?.addresses?.length || 0) > 0;
-  const shipping = cartSubtotal > 50000 ? 0 : 500;
+  const shipping = getShippingCost(cartSubtotal);
   const shippingCity = (useExisting && hasExisting) ? userProfile.addresses[selectedAddrIdx]?.city : form.city;
   const deliveryEstimate = getCartDeliveryRange(cart, brand, shippingCity);
+  // A coupon scoped to specific products/a bundle should only discount those items'
+  // share of the cart, not the whole subtotal (which may include unrelated pieces).
+  const couponBase = appliedCoupon
+    ? (appliedCoupon.applies_to === 'products' || appliedCoupon.applies_to === 'bundle'
+        ? cart.filter(i => !i.isGiftCard && (appliedCoupon.product_ids || []).includes(i.id))
+            .reduce((s, i) => s + i.price * i.qty, 0)
+        : cartSubtotal)
+    : 0;
   const discount = appliedCoupon
     ? (appliedCoupon.type === 'percent'
-        ? Math.round(cartSubtotal * (Number(appliedCoupon.value) / 100))
-        : Math.min(Number(appliedCoupon.value), cartSubtotal))
+        ? Math.round(couponBase * (Number(appliedCoupon.value) / 100))
+        : Math.min(Number(appliedCoupon.value), couponBase))
     : 0;
   const giftCardApplied = appliedGiftCard
     ? Math.min(Number(appliedGiftCard.balance), Math.max(cartSubtotal + shipping - discount, 0))
@@ -127,6 +135,7 @@ export default function Checkout() {
   }
 
   async function placeOrder() {
+    if (loading) return; // guard against a double-tap firing this twice before the disabled state re-renders
     if (!validate()) { toast.error('Please fill in all required fields.'); return; }
     setLoading(true);
     try {
@@ -134,6 +143,46 @@ export default function Checkout() {
         ? userProfile.addresses[selectedAddrIdx]
         : { name: form.name, phone: form.phone, line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode };
       const billAddr = billingSame ? addr : { ...billing, phone: billing.phone || addr.phone };
+      const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
+
+      // Open the seller-notification tab synchronously, before any await -- popup
+      // blockers revoke the click's "user activation" the moment an await yields,
+      // so opening it here (filled in once the message is ready) rather than after
+      // several awaited Supabase calls is what actually gets it through.
+      const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
+      const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
+      const waGift = appliedGiftCard ? `\nGift Card: ${appliedGiftCard.code} (-${fmt(giftCardApplied)})` : '';
+      const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}${waGift}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
+      const waWindow = window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
+
+      // Redeem the applied gift-card balance FIRST -- if the balance changed since
+      // "Apply" was clicked (or the code is no longer valid), abort before any order
+      // exists claiming a discount that was never actually deducted.
+      if (appliedGiftCard && giftCardApplied > 0) {
+        const { error: redeemError } = await supabase.rpc('redeem_gift_card', { p_code: appliedGiftCard.code, p_amount: giftCardApplied });
+        if (redeemError) {
+          waWindow?.close();
+          toast.error('Your gift card balance changed since it was applied -- please remove and re-apply it.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Likewise, create any newly-purchased gift card(s) before the order itself --
+      // if this fails, abort rather than charge the customer for a code that was
+      // never actually created.
+      const giftCardItems = cart.filter(i => i.isGiftCard);
+      if (giftCardItems.length > 0) {
+        const { error: gcError } = await supabase.from('gift_cards').insert(giftCardItems.map(i => ({
+          code: i.giftCode, initial_value: i.price, balance: i.price, order_id: orderId,
+          purchaser_email: currentUser?.email || form.email,
+          recipient_name: i.recipientName || null, recipient_email: i.recipientEmail || null, message: i.giftMessage || null,
+        })));
+        if (gcError) {
+          waWindow?.close();
+          throw gcError;
+        }
+      }
 
       // Save new address if checkbox checked (logged-in users only)
       const saveCb = document.getElementById('saveAddr');
@@ -143,13 +192,12 @@ export default function Checkout() {
         await refreshProfile();
       }
 
-      const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
       const orderData = {
         order_id: orderId,
         user_id: currentUser?.id || null,
         user_email: currentUser?.email || form.email,
         user_name: userProfile?.name || form.name,
-        user_phone: form.phone || userProfile?.phone,
+        user_phone: addr.phone || form.phone || userProfile?.phone,
         address: { ...addr, billing: billAddr },
         items: cart.map(i => ({
           id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null,
@@ -165,30 +213,6 @@ export default function Checkout() {
 
       const { error } = await supabase.from('orders').insert(orderData);
       if (error) throw error;
-
-      // Create a real, redeemable balance for any gift card(s) just purchased in this order.
-      const giftCardItems = cart.filter(i => i.isGiftCard);
-      if (giftCardItems.length > 0) {
-        await supabase.from('gift_cards').insert(giftCardItems.map(i => ({
-          code: i.giftCode, initial_value: i.price, balance: i.price, order_id: orderId,
-          purchaser_email: currentUser?.email || form.email,
-          recipient_name: i.recipientName || null, recipient_email: i.recipientEmail || null, message: i.giftMessage || null,
-        })));
-      }
-
-      // Atomically deduct the balance actually used to pay for this order (safe under
-      // concurrent checkouts -- the DB function only deducts if enough balance remains).
-      if (appliedGiftCard && giftCardApplied > 0) {
-        const { error: redeemError } = await supabase.rpc('redeem_gift_card', { p_code: appliedGiftCard.code, p_amount: giftCardApplied });
-        if (redeemError) console.error('Gift card redemption failed:', redeemError);
-      }
-
-      // WhatsApp seller notification
-      const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
-      const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
-      const waGift = appliedGiftCard ? `\nGift Card: ${appliedGiftCard.code} (-${fmt(giftCardApplied)})` : '';
-      const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}${waGift}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
-      window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
 
       localStorage.setItem('tt_last_order', JSON.stringify({ orderId, items: cart, total, addr }));
       clearCart();
@@ -310,7 +334,7 @@ export default function Checkout() {
           <div className="card-white" style={{ position: 'sticky', top: 86 }}>
             <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--iv)', marginBottom: 18, textTransform: 'uppercase' }}>Your Order</div>
             {cart.map(item => (
-              <div key={item.id + (item.size || '')} style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
+              <div key={item.id + (item.size ? '::' + item.size : '')} style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
                 <div style={{ width: 46, height: 46, background: item.bg, flexShrink: 0, overflow: 'hidden' }}>
                   {item.images?.[0] && <img src={cldThumb(item.images[0], 120)} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                 </div>

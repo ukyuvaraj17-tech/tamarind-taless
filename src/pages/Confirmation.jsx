@@ -35,7 +35,7 @@ export default function Confirmation() {
                     {item.name} (Qty {item.qty})
                   </div>
                 ))}
-                {order.total && (
+                {typeof order.total === 'number' && (
                   <div style={{ marginTop: 11, fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: 'var(--iv)', fontWeight: 500 }}>
                     Total: {fmt(order.total)}
                   </div>

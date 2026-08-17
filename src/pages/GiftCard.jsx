@@ -23,10 +23,13 @@ export default function GiftCard() {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const min = brand.giftcard_min || 500;
-  const max = brand.giftcard_max || 50000;
+  // ?? (not ||) so an admin who explicitly sets a min of 0 isn't silently overridden
+  // back to the default -- 0 is a deliberate, valid configuration, not "unset".
+  const min = brand.giftcard_min ?? 500;
+  const max = brand.giftcard_max ?? 50000;
   const activeAmount = custom ? Number(custom) : amount;
   const valid = activeAmount >= min && activeAmount <= max;
+  const visiblePresets = PRESETS.filter(v => v >= min && v <= max);
 
   function selectPreset(v) {
     setAmount(v);
@@ -48,7 +51,10 @@ export default function GiftCard() {
       name: `Gift Card (${fmt(activeAmount)})`,
       cat: 'Gift Card',
       price: activeAmount,
-      stock: 999,
+      // A gift-card cart line is one specific generated code -- capping stock at 1
+      // keeps the cart's qty stepper from letting someone "buy 2" of the same code
+      // (which would charge for two but only ever create one redeemable balance).
+      stock: 1,
       images: [],
       bg: 'linear-gradient(145deg,#2C1013,#4A1519 55%,#211D14)',
       isGiftCard: true,
@@ -92,7 +98,7 @@ export default function GiftCard() {
             <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 16 }}>Choose an Amount</div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
-              {PRESETS.map(v => (
+              {visiblePresets.map(v => (
                 <button
                   key={v}
                   onClick={() => selectPreset(v)}

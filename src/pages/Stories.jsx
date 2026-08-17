@@ -58,7 +58,7 @@ export default function Stories() {
                     {s.images?.length > 1 && isOpen && (
                       <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
                         {s.images.slice(1).map((img, j) => (
-                          <img key={j} src={img} alt="" style={{ width: 100, height: 100, objectFit: 'cover' }} />
+                          <img key={j} src={cldThumb(img, 200)} alt="" loading="lazy" decoding="async" style={{ width: 100, height: 100, objectFit: 'cover' }} />
                         ))}
                       </div>
                     )}

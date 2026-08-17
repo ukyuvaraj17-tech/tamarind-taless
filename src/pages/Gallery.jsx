@@ -23,7 +23,9 @@ function GalleryVideoPlayer({ src, caption }) {
   function toggleVideo() {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) v.play(); else v.pause();
+    // play() returns a promise that rejects (AbortError) if pause() interrupts it
+    // before it resolves -- a normal outcome of a quick double-click, not an error.
+    if (v.paused) v.play()?.catch(() => {}); else v.pause();
   }
 
   function handleSeek(e) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../supabase';
 import ProductCard from '../components/ProductCard';
-import { CATEGORY_GROUPS, COLLECTOR_LABEL } from '../data/products';
+import { CATEGORY_GROUPS, COLLECTOR_LABEL, isProductSoldOut } from '../data/products';
 import PageHero from '../components/PageHero';
 import { useBrand } from '../context/BrandContext';
 
@@ -83,22 +83,29 @@ export default function Shop() {
       .then(({ data }) => { if (data) setProducts(data); setLoading(false); });
   }, []);
 
-  // Apply all filters + sort
-  let filtered = [...products];
-  if (collectionFilter) {
-    filtered = filtered.filter(p => matchesCategory(p, collectionFilter));
-  } else if (groupFilter) {
-    const group = groups.find(g => g.label.toLowerCase() === groupFilter.toLowerCase());
-    if (group) filtered = filtered.filter(p => group.items.some(item => matchesCategory(p, item)));
-  } else if (catFilter !== 'All') {
-    filtered = filtered.filter(p => matchesCategory(p, catFilter));
-  }
-  if (stockFilter === 'in-stock')  filtered = filtered.filter(p => p.stock > 0);
-  if (stockFilter === 'out-stock') filtered = filtered.filter(p => p.stock === 0);
-  if (sort === 'oldest')     filtered = filtered.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-  if (sort === 'price-asc')  filtered = filtered.sort((a,b) => (a.price||0) - (b.price||0));
-  if (sort === 'price-desc') filtered = filtered.sort((a,b) => (b.price||0) - (a.price||0));
-  if (sort === 'enquiry')    filtered = filtered.sort((a,b) => (b.enquiry_only?1:0) - (a.enquiry_only?1:0));
+  // Apply all filters + sort -- memoized so opening the category dropdown or any
+  // other unrelated re-render doesn't re-filter/re-sort the whole catalogue.
+  const filtered = React.useMemo(() => {
+    let result = [...products];
+    if (collectionFilter) {
+      result = result.filter(p => matchesCategory(p, collectionFilter));
+    } else if (groupFilter) {
+      const group = groups.find(g => g.label.toLowerCase() === groupFilter.toLowerCase());
+      // An unmatched group (e.g. a stale/shared link to a group an admin has since
+      // renamed) should show zero results, not silently fall through to "All" while
+      // the filter button still claims that group is active.
+      result = group ? result.filter(p => group.items.some(item => matchesCategory(p, item))) : [];
+    } else if (catFilter !== 'All') {
+      result = result.filter(p => matchesCategory(p, catFilter));
+    }
+    if (stockFilter === 'in-stock')  result = result.filter(p => !isProductSoldOut(p));
+    if (stockFilter === 'out-stock') result = result.filter(p => isProductSoldOut(p));
+    if (sort === 'oldest')     result = result.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    if (sort === 'price-asc')  result = result.sort((a,b) => (a.price||0) - (b.price||0));
+    if (sort === 'price-desc') result = result.sort((a,b) => (b.price||0) - (a.price||0));
+    if (sort === 'enquiry')    result = result.sort((a,b) => (b.enquiry_only?1:0) - (a.enquiry_only?1:0));
+    return result;
+  }, [products, collectionFilter, groupFilter, catFilter, stockFilter, sort, groups]);
 
   const btnStyle = (active) => ({
     fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.14em',

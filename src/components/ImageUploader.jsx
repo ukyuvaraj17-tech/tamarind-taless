@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { cldThumb } from '../utils/cloudinary';
+import toast from 'react-hot-toast';
 
 // ── CLOUDINARY IMAGE UPLOADER ─────────────────────────────
 // Two modes:
@@ -12,6 +13,12 @@ export default function ImageUploader({ images = [], onChange }) {
   const [progress, setProgress] = useState(0);
   const [mode, setMode] = useState('url'); // 'url' or 'upload'
   const fileRef = useRef();
+  // A multi-file upload takes several seconds; if the admin removes/reorders an
+  // existing image via its own onChange call while the loop is still running, the
+  // upload's own closed-over `images` prop is stale by the time it finishes. Track
+  // the latest value in a ref so the final merge doesn't silently revert that edit.
+  const imagesRef = useRef(images);
+  useEffect(() => { imagesRef.current = images; }, [images]);
 
   const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
@@ -36,6 +43,7 @@ export default function ImageUploader({ images = [], onChange }) {
     setUploading(true);
 
     const uploaded = [];
+    const failed = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setProgress(Math.round((i / files.length) * 100));
@@ -52,16 +60,22 @@ export default function ImageUploader({ images = [], onChange }) {
         const data = await res.json();
         if (data.secure_url) {
           uploaded.push(data.secure_url);
+        } else {
+          failed.push(file.name);
         }
       } catch (err) {
         console.error('Upload failed for', file.name, err);
+        failed.push(file.name);
       }
     }
 
-    onChange([...images, ...uploaded]);
+    onChange([...imagesRef.current, ...uploaded]);
     setUploading(false);
     setProgress(0);
     e.target.value = '';
+    if (failed.length > 0) {
+      toast.error(failed.length === 1 ? `${failed[0]} failed to upload.` : `${failed.length} photos failed to upload.`);
+    }
   }
 
   function removeImage(idx) {

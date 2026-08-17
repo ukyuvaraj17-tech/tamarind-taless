@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabase';
+import { knownStock } from '../data/products';
 import toast from 'react-hot-toast';
 
 // Split into two contexts so a component that only needs to call addToCart
@@ -36,21 +37,27 @@ export function CartProvider({ children }) {
   // since have been deleted or unpublished by the admin. Re-check once against Supabase
   // on load and drop anything that's gone, so a removed product never lingers in a cart.
   useEffect(() => {
-    const initialCart = cart;
-    const realIds = [...new Set(initialCart.filter(i => !i.isGiftCard).map(i => i.id))];
+    const realIds = [...new Set(cart.filter(i => !i.isGiftCard).map(i => i.id))];
     if (realIds.length === 0) return;
     supabase.from('products').select('id, available, stock').in('id', realIds).then(({ data, error }) => {
       if (error || !data) return;
       const liveMap = new Map(data.map(p => [p.id, p]));
-      const kept = [];
       let removedCount = 0;
-      initialCart.forEach(item => {
-        if (item.isGiftCard) { kept.push(item); return; }
-        const live = liveMap.get(item.id);
-        if (!live || live.available === false) { removedCount++; return; }
-        kept.push({ ...item, stock: live.stock });
+      // Functional update against the LATEST cart, not the snapshot this effect
+      // started with -- an item added while this check was in flight has no entry
+      // in liveMap (it wasn't part of the query) and is left untouched rather than
+      // silently dropped by an overwrite built from a stale snapshot.
+      setCart(prev => {
+        const kept = [];
+        prev.forEach(item => {
+          if (item.isGiftCard) { kept.push(item); return; }
+          const live = liveMap.get(item.id);
+          if (!live) { kept.push(item); return; }
+          if (live.available === false) { removedCount++; return; }
+          kept.push({ ...item, stock: live.stock });
+        });
+        return kept;
       });
-      setCart(kept);
       if (removedCount > 0) {
         toast.error(removedCount === 1
           ? 'An item in your cart is no longer available and was removed.'
@@ -67,7 +74,12 @@ export function CartProvider({ children }) {
   }
 
   const addToCart = useCallback((product) => {
-    if (product.stock === 0) {
+    // Stock may be null/undefined (unset) rather than a real number -- only ever
+    // treat it as a hard limit when it's genuinely known, so an unset stock value
+    // never masquerades as "0 available" or blocks a legitimate add.
+    const stockNum = knownStock(product.stock);
+    const hasKnownStock = stockNum !== null;
+    if (hasKnownStock && stockNum === 0) {
       toast.error('This piece is no longer available.');
       return;
     }
@@ -76,8 +88,8 @@ export function CartProvider({ children }) {
       const key = lineKey(product);
       const existing = prev.find((i) => lineKey(i) === key);
       if (existing) {
-        if (existing.qty >= product.stock) {
-          toast.error(`Only ${product.stock} available.`);
+        if (hasKnownStock && existing.qty >= stockNum) {
+          toast.error(`Only ${stockNum} available.`);
           return prev;
         }
         toast.success(`${label} quantity updated.`);

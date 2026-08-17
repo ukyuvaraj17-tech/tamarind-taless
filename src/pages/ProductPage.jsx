@@ -11,6 +11,7 @@ import { getDeliveryRange } from '../utils/delivery';
 import ProductCard from '../components/ProductCard';
 import BlurImage from '../components/BlurImage';
 import { FacebookIcon, TwitterXIcon, PinterestIcon, EmailIcon } from '../components/SocialIcons';
+import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
 const S = {
@@ -80,30 +81,49 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!product) { setRelated([]); return; }
+    let cancelled = false;
     const productCat = (product.cat || '').trim().toLowerCase();
-    supabase.from('products').select('*')
-      .eq('available', true).neq('id', product.id)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        const all = data || [];
-        const sameCat = all.filter(p => (p.cat || '').trim().toLowerCase() === productCat);
-        if (sameCat.length > 0) { setRelated(sameCat.slice(0, 4)); setRelatedTier('cat'); return; }
 
-        // No other pieces in the exact same category — widen to the same taxonomy group
-        // (e.g. other Paintings, or other By Materials pieces) before falling back to "recent".
-        const group = groups.find(g => g.items.some(item => item.toLowerCase() === productCat));
-        const groupCats = group ? group.items.map(c => c.toLowerCase()) : [];
-        const sameGroup = groupCats.length ? all.filter(p => groupCats.includes((p.cat || '').trim().toLowerCase())) : [];
-        if (sameGroup.length > 0) { setRelated(sameGroup.slice(0, 4)); setRelatedTier('group'); setRelatedGroupLabel(group?.label || ''); return; }
+    // Three bounded, targeted queries (widening only as needed) instead of pulling
+    // every available product on every product-page view just to slice down to 4.
+    async function loadRelated() {
+      const { data: sameCat } = await supabase.from('products').select('*')
+        .eq('available', true).neq('id', product.id).ilike('cat', productCat)
+        .order('created_at', { ascending: false }).limit(4);
+      if (cancelled) return;
+      if (sameCat?.length > 0) { setRelated(sameCat); setRelatedTier('cat'); return; }
 
-        setRelated(all.slice(0, 4));
-        setRelatedTier('recent');
-      });
-  }, [product]);
+      // No other pieces in the exact same category — widen to the same taxonomy group
+      // (e.g. other Paintings, or other By Materials pieces) before falling back to "recent".
+      const group = groups.find(g => g.items.some(item => item.toLowerCase() === productCat));
+      if (group) {
+        const { data: sameGroup } = await supabase.from('products').select('*')
+          .eq('available', true).neq('id', product.id).in('cat', group.items)
+          .order('created_at', { ascending: false }).limit(4);
+        if (cancelled) return;
+        if (sameGroup?.length > 0) { setRelated(sameGroup); setRelatedTier('group'); setRelatedGroupLabel(group.label); return; }
+      }
+
+      const { data: recent } = await supabase.from('products').select('*')
+        .eq('available', true).neq('id', product.id)
+        .order('created_at', { ascending: false }).limit(4);
+      if (cancelled) return;
+      setRelated(recent || []);
+      setRelatedTier('recent');
+    }
+    loadRelated();
+    return () => { cancelled = true; };
+  }, [product, groups]);
 
   function handleSave() {
     if (!product) return;
-    const nowSaved = toggleSaved(product);
+    // Save whichever option is actually selected on screen, not the bare base
+    // product -- otherwise the wishlist can't tell this specific option's real
+    // price/stock apart from any other option of the same product.
+    const toSave = chosenVariant
+      ? { ...product, size: chosenVariant.size, price: chosenVariant.price ?? product.price, stock: chosenVariant.stock }
+      : product;
+    const nowSaved = toggleSaved(toSave);
     setSaved(nowSaved);
     toast.success(nowSaved ? 'Saved for later.' : 'Removed from saved.');
   }
@@ -204,7 +224,7 @@ export default function ProductPage() {
                 <div key={i} onClick={() => setActiveImg(i)}
                   style={{ width: 68, height: 68, overflow: 'hidden', cursor: 'pointer', border: `2px solid ${activeImg === i ? 'var(--gd)' : 'var(--line)'}`, opacity: activeImg === i ? 1 : 0.6, transition: 'all .2s' }}
                 >
-                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={cldThumb(url, 140)} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}
             </div>
@@ -413,7 +433,7 @@ export default function ProductPage() {
                 <div key={i} onClick={() => setActiveImg(i)}
                   style={{ width: 64, height: 64, flexShrink: 0, cursor: 'pointer', border: `2px solid ${activeImg === i ? 'var(--gd)' : 'var(--line)'}`, opacity: activeImg === i ? 1 : 0.55, transition: 'opacity .2s' }}
                 >
-                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={cldThumb(url, 140)} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}
             </div>

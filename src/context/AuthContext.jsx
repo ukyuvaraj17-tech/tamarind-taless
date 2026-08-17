@@ -23,6 +23,24 @@ export function AuthProvider({ children }) {
     } catch (e) { /* keep null */ }
   }
 
+  // Single source of truth for "does this user have a profile row yet" — called both
+  // on initial session restore and on every SIGNED_IN event, so a profile that failed
+  // to get created at signup (or was later deleted) gets repaired for returning users
+  // too, not just brand-new sign-ins.
+  async function ensureProfile(user) {
+    try {
+      const { data } = await supabase.from('profiles').select('id').eq('id', user.id).single();
+      if (!data) {
+        await supabase.from('profiles').insert({
+          id: user.id,
+          name: user.user_metadata?.name || user.email?.split('@')[0] || '',
+          phone: user.user_metadata?.phone || '',
+          addresses: []
+        });
+      }
+    } catch (e) { /* best-effort repair; fetchProfile below will just keep userProfile null */ }
+  }
+
   async function loginWithEmail(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
@@ -43,13 +61,9 @@ export function AuthProvider({ children }) {
       options: { data: { name, phone } }
     });
     if (error) throw error;
-    // Create profile
-    if (data.user) {
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        name, phone, addresses: []
-      });
-    }
+    // Profile creation is handled centrally by ensureProfile() when the resulting
+    // SIGNED_IN event fires, using this same name/phone (via user_metadata) — avoids
+    // a duplicate-insert race between this function and that handler.
     return data;
   }
 
@@ -83,10 +97,10 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       const user = session?.user || null;
       setCurrentUser(user);
-      if (user) fetchProfile(user.id);
+      if (user) { await ensureProfile(user); fetchProfile(user.id); }
       setLoading(false);
     });
 
@@ -96,19 +110,8 @@ export function AuthProvider({ children }) {
         const user = session?.user || null;
         setCurrentUser(user);
         if (user) {
+          await ensureProfile(user);
           fetchProfile(user.id);
-          // Create profile if new user
-          if (event === 'SIGNED_IN') {
-            const { data } = await supabase.from('profiles').select('id').eq('id', user.id).single();
-            if (!data) {
-              await supabase.from('profiles').insert({
-                id: user.id,
-                name: user.user_metadata?.name || user.email?.split('@')[0] || '',
-                phone: user.user_metadata?.phone || '',
-                addresses: []
-              });
-            }
-          }
         } else {
           setUserProfile(null);
         }
@@ -127,7 +130,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

@@ -8,6 +8,15 @@ import ImageUploader from '../components/ImageUploader';
 import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
+// estimated_delivery can hold either an admin-set exact date or an auto-generated
+// range label like "20 Aug – 25 Aug" (no year, not parseable) — never assume it's
+// a valid date string.
+function toDateInputValue(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+}
+
 const CATS = categories.filter(c => c !== 'All');
 // Same shape as the static `categories` export, but built from whatever taxonomy is
 // currently active (admin-customized via Brand Settings, or the built-in default).
@@ -166,13 +175,13 @@ function StoriesManager() {
     setSaving(true);
     try {
       const payload = { ...form, updated_at: new Date().toISOString() };
-      if (editId) {
-        await supabase.from('stories').update(payload).eq('id', editId);
-        toast.success('Story updated.');
-      } else {
-        await supabase.from('stories').insert(payload);
-        toast.success('Story published.');
-      }
+      // Supabase resolves (doesn't throw) on a query/RLS error, so the error must
+      // be checked explicitly -- otherwise a blocked write still shows "saved."
+      const { error } = editId
+        ? await supabase.from('stories').update(payload).eq('id', editId)
+        : await supabase.from('stories').insert(payload);
+      if (error) throw error;
+      toast.success(editId ? 'Story updated.' : 'Story published.');
       await fetchStories();
       setView('list');
     } catch (e) { toast.error('Failed to save story.'); }
@@ -181,13 +190,15 @@ function StoriesManager() {
 
   async function deleteStory(id) {
     if (!window.confirm('Delete this story permanently?')) return;
-    await supabase.from('stories').delete().eq('id', id);
+    const { error } = await supabase.from('stories').delete().eq('id', id);
+    if (error) { toast.error('Failed to delete story.'); return; }
     toast.success('Story deleted.');
     fetchStories();
   }
 
   async function togglePublish(s) {
-    await supabase.from('stories').update({ published: !s.published }).eq('id', s.id);
+    const { error } = await supabase.from('stories').update({ published: !s.published }).eq('id', s.id);
+    if (error) { toast.error('Failed to update story.'); return; }
     fetchStories();
   }
 
@@ -349,13 +360,15 @@ function CouponsManager() {
 
   async function deleteCoupon(id) {
     if (!window.confirm('Delete this coupon?')) return;
-    await supabase.from('coupons').delete().eq('id', id);
+    const { error } = await supabase.from('coupons').delete().eq('id', id);
+    if (error) { toast.error('Failed to delete coupon.'); return; }
     toast.success('Coupon deleted.');
     fetchCoupons();
   }
 
   async function toggleActive(c) {
-    await supabase.from('coupons').update({ active: !c.active }).eq('id', c.id);
+    const { error } = await supabase.from('coupons').update({ active: !c.active }).eq('id', c.id);
+    if (error) { toast.error('Failed to update coupon.'); return; }
     fetchCoupons();
   }
 
@@ -960,7 +973,7 @@ export default function Admin() {
     try {
       const data = {
         ...form,
-        price: form.enquiry_only ? null : (Number(form.price) || null),
+        price: form.enquiry_only ? null : (form.price !== '' && !isNaN(Number(form.price)) ? Number(form.price) : null),
         stock: Number(form.stock) || 0,
         delivery_min_days: Number(form.delivery_min_days) || 5,
         delivery_max_days: Number(form.delivery_max_days) || 8,
@@ -1200,7 +1213,7 @@ export default function Admin() {
                       <div>
                         <label style={{ ...lbl, marginBottom: 6 }}>Delivery Date</label>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <input type="date" id={`dd-${o.id}`} defaultValue={o.estimated_delivery ? new Date(o.estimated_delivery).toISOString?.().split('T')[0] : ''} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', colorScheme: 'light' }} />
+                          <input type="date" id={`dd-${o.id}`} defaultValue={toDateInputValue(o.estimated_delivery)} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', colorScheme: 'light' }} />
                           <button onClick={() => { const v = document.getElementById(`dd-${o.id}`)?.value; if (v) { const d = new Date(v); updateDelivery(o.id, d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), o); } }} style={{ background: 'var(--gd)', border: 'none', color: 'var(--text-dark)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 14px', cursor: 'pointer' }}>Set &amp; Notify</button>
                         </div>
                         {o.estimated_delivery && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--gd)', marginTop: 5, fontStyle: 'italic' }}>Set: {o.estimated_delivery}</div>}

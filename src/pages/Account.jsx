@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { useCartActions } from '../context/CartContext';
 import { fmt } from '../data/products';
 import { cldThumb } from '../utils/cloudinary';
+import { getWishlist, toggleSaved } from '../utils/wishlist';
+import { isProductSoldOut, productAddToCartPayload } from '../data/products';
 import toast from 'react-hot-toast';
 
 const NAV_ICONS = {
@@ -38,10 +40,6 @@ const NAV_ITEMS = [
   { key: 'details', label: 'Account Details' },
 ];
 
-function readWishlist() {
-  try { return JSON.parse(localStorage.getItem('tt_wl') || '[]'); } catch { return []; }
-}
-
 export default function Account() {
   const { currentUser, userProfile, logout, refreshProfile, updateProfile } = useAuth();
   const navigate = useNavigate();
@@ -61,7 +59,7 @@ export default function Account() {
       setOrders(oRes.data || []);
       setEnquiries(eRes.data || []);
       setLoadingOrders(false);
-    });
+    }).catch(() => setLoadingOrders(false)); // a network-level failure rejects instead of resolving with {error} -- without this the tab spins forever
   }, [currentUser]);
 
   function selectTab(key) {
@@ -78,7 +76,7 @@ export default function Account() {
   if (!currentUser) { navigate('/login'); return null; }
 
   const statusCls = { Pending: 'badge-pending', Confirmed: 'badge-confirmed', Shipped: 'badge-shipped', Delivered: 'badge-delivered', Cancelled: 'badge-sold' };
-  const wishlistCount = readWishlist().length;
+  const wishlistCount = getWishlist().length;
 
   const navBtn = (active) => ({
     display: 'flex', alignItems: 'center', gap: 13, width: '100%', textAlign: 'left', padding: '17px 22px',
@@ -228,9 +226,9 @@ function DashboardTab({ userProfile, currentUser, orderCount, wishlistCount, onN
 }
 
 function WishlistTab({ navigate }) {
-  const [wl, setWl] = useState(readWishlist);
+  const [wl, setWl] = useState(getWishlist);
   const { addToCart } = useCartActions();
-  function remove(id) { const u = wl.filter(p => p.id !== id); setWl(u); localStorage.setItem('tt_wl', JSON.stringify(u)); toast.success('Removed.'); }
+  function remove(product) { toggleSaved(product); setWl(wl.filter(p => p.id !== product.id)); toast.success('Removed.'); }
   if (!wl.length) return <div className="empty-state"><div>Nothing saved yet</div><button className="btn btn-gold btn-sm" style={{ marginTop: 20 }} onClick={() => navigate('/shop')}>Explore Collection</button></div>;
   return (
     <div className="grid-4">
@@ -243,8 +241,8 @@ function WishlistTab({ navigate }) {
             <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', marginBottom: 4 }}>{p.name}</div>
             <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--iv)', marginBottom: 9 }}>{p.enquiry_only ? <span style={{ fontStyle: 'italic', color: 'rgba(106,99,80,.88)', fontSize: 14 }}>Price on Enquiry</span> : fmt(p.price)}</div>
             <div style={{ display: 'flex', gap: 6 }}>
-              {!p.enquiry_only && p.stock > 0 && <button className="btn btn-sm btn-gold" style={{ flex: 1 }} onClick={() => addToCart(p)}>Add to Cart</button>}
-              <button className="btn btn-danger btn-sm" onClick={() => remove(p.id)}>Remove</button>
+              {!p.enquiry_only && !isProductSoldOut(p) && <button className="btn btn-sm btn-gold" style={{ flex: 1 }} onClick={() => addToCart(productAddToCartPayload(p))}>Add to Cart</button>}
+              <button className="btn btn-danger btn-sm" onClick={() => remove(p)}>Remove</button>
             </div>
           </div>
         </div>
@@ -271,7 +269,7 @@ function GiftCardsTab({ userProfile, updateProfile, navigate }) {
       (data || []).forEach(g => { map[g.code] = g.balance; });
       setBalances(map);
       setLoadingBalances(false);
-    });
+    }).catch(() => setLoadingBalances(false)); // a network-level failure rejects instead of resolving with {error} -- without this every card is stuck "Checking balance..."
     // eslint-disable-next-line
   }, [userProfile?.gift_cards]);
 
@@ -424,17 +422,19 @@ function AddressTab({ userProfile, currentUser, refreshProfile }) {
     setSaving(true);
     try {
       const newAddrs = [...addresses, form];
-      await supabase.from('profiles').update({ addresses: newAddrs }).eq('id', currentUser.id);
+      const { error } = await supabase.from('profiles').update({ addresses: newAddrs }).eq('id', currentUser.id);
+      if (error) throw error;
       await refreshProfile();
       setForm({ name: '', phone: '', line1: '', line2: '', city: '', state: '', pincode: '' });
       toast.success('Address saved.');
-    } catch { toast.error('Failed.'); }
+    } catch { toast.error('Failed to save address.'); }
     finally { setSaving(false); }
   }
 
   async function deleteAddress(idx) {
     const newAddrs = addresses.filter((_, i) => i !== idx);
-    await supabase.from('profiles').update({ addresses: newAddrs }).eq('id', currentUser.id);
+    const { error } = await supabase.from('profiles').update({ addresses: newAddrs }).eq('id', currentUser.id);
+    if (error) { toast.error('Failed to remove address.'); return; }
     await refreshProfile();
     toast.success('Address removed.');
   }
