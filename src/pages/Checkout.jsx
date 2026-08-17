@@ -9,6 +9,22 @@ import { getCartDeliveryRange, getShippingCost } from '../utils/delivery';
 import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
+// Loads Razorpay's checkout widget script once and reuses it on later checkouts.
+let razorpayScriptPromise = null;
+function loadRazorpayScript() {
+  if (window.Razorpay) return Promise.resolve(true);
+  if (!razorpayScriptPromise) {
+    razorpayScriptPromise = new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+  return razorpayScriptPromise;
+}
+
 export default function Checkout() {
   const { currentUser, userProfile, refreshProfile } = useAuth();
   const { cart, cartSubtotal, clearCart } = useCart();
@@ -134,98 +150,188 @@ export default function Checkout() {
     return Object.keys(e).length === 0;
   }
 
+  // Shared by both payment paths -- runs only once we're sure real money actually
+  // moved (or, for WhatsApp/COD, was never expected to move here). Creating the
+  // order this late, not before payment, is what makes "Paid" mean something.
+  async function finalizeOrder({ addr, billAddr, orderId, waWindow, status, paymentId, razorpayOrderId }) {
+    // Redeem the applied gift-card balance FIRST -- if the balance changed since
+    // "Apply" was clicked (or the code is no longer valid), abort before any order
+    // exists claiming a discount that was never actually deducted.
+    if (appliedGiftCard && giftCardApplied > 0) {
+      const { error: redeemError } = await supabase.rpc('redeem_gift_card', { p_code: appliedGiftCard.code, p_amount: giftCardApplied });
+      if (redeemError) {
+        waWindow?.close();
+        toast.error('Your gift card balance changed since it was applied -- please remove and re-apply it.');
+        return false;
+      }
+    }
+
+    // Likewise, create any newly-purchased gift card(s) before the order itself --
+    // if this fails, abort rather than charge the customer for a code that was
+    // never actually created.
+    const giftCardItems = cart.filter(i => i.isGiftCard);
+    if (giftCardItems.length > 0) {
+      const { error: gcError } = await supabase.from('gift_cards').insert(giftCardItems.map(i => ({
+        code: i.giftCode, initial_value: i.price, balance: i.price, order_id: orderId,
+        purchaser_email: currentUser?.email || form.email,
+        recipient_name: i.recipientName || null, recipient_email: i.recipientEmail || null, message: i.giftMessage || null,
+      })));
+      if (gcError) {
+        waWindow?.close();
+        throw gcError;
+      }
+    }
+
+    // Save new address if checkbox checked (logged-in users only)
+    const saveCb = document.getElementById('saveAddr');
+    if (saveCb?.checked && !useExisting && currentUser) {
+      const newAddrs = [...(userProfile?.addresses || []), addr];
+      await supabase.from('profiles').update({ addresses: newAddrs }).eq('id', currentUser.id);
+      await refreshProfile();
+    }
+
+    const orderData = {
+      order_id: orderId,
+      user_id: currentUser?.id || null,
+      user_email: currentUser?.email || form.email,
+      user_name: userProfile?.name || form.name,
+      user_phone: addr.phone || form.phone || userProfile?.phone,
+      address: { ...addr, billing: billAddr },
+      items: cart.map(i => ({
+        id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null,
+        ...(i.isGiftCard ? { isGiftCard: true, giftCode: i.giftCode, recipientName: i.recipientName || null, recipientEmail: i.recipientEmail || null, giftMessage: i.giftMessage || null } : {}),
+      })),
+      subtotal: cartSubtotal, shipping, total,
+      coupon_code: appliedCoupon?.code || null, discount,
+      gift_card_code: appliedGiftCard?.code || null, gift_card_applied: giftCardApplied,
+      payment_method: payMethod,
+      status,
+      payment_id: paymentId || null,
+      razorpay_order_id: razorpayOrderId || null,
+      estimated_delivery: deliveryEstimate?.label || null,
+    };
+
+    const { error } = await supabase.from('orders').insert(orderData);
+    if (error) { waWindow?.close(); throw error; }
+
+    localStorage.setItem('tt_last_order', JSON.stringify({ orderId, items: cart, total, addr }));
+    clearCart();
+    navigate('/confirmation');
+    return true;
+  }
+
   async function placeOrder() {
     if (loading) return; // guard against a double-tap firing this twice before the disabled state re-renders
     if (!validate()) { toast.error('Please fill in all required fields.'); return; }
     setLoading(true);
+
+    const addr = useExisting && hasExisting
+      ? userProfile.addresses[selectedAddrIdx]
+      : { name: form.name, phone: form.phone, line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode };
+    const billAddr = billingSame ? addr : { ...billing, phone: billing.phone || addr.phone };
+    const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
+
+    // Open the seller-notification tab synchronously, before any await -- popup
+    // blockers revoke the click's "user activation" the moment an await yields, so
+    // opening it here (closed again if payment fails/is cancelled) is what actually
+    // gets it through instead of being silently swallowed.
+    const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
+    const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
+    const waGift = appliedGiftCard ? `\nGift Card: ${appliedGiftCard.code} (-${fmt(giftCardApplied)})` : '';
+    const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}${waGift}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
+    const waWindow = window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
+
+    if (payMethod === 'whatsapp') {
+      try {
+        const ok = await finalizeOrder({ addr, billAddr, orderId, waWindow, status: 'Pending' });
+        if (!ok) setLoading(false);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to place order. Please try again.');
+        setLoading(false);
+      }
+      return;
+    }
+
+    // ── ONLINE PAYMENT (Razorpay) ──────────────────────────────────────
+    // The order is only ever written to Supabase AFTER the payment signature is
+    // verified server-side (api/razorpay-verify-payment) -- never before.
     try {
-      const addr = useExisting && hasExisting
-        ? userProfile.addresses[selectedAddrIdx]
-        : { name: form.name, phone: form.phone, line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode };
-      const billAddr = billingSame ? addr : { ...billing, phone: billing.phone || addr.phone };
-      const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
-
-      // Open the seller-notification tab synchronously, before any await -- popup
-      // blockers revoke the click's "user activation" the moment an await yields,
-      // so opening it here (filled in once the message is ready) rather than after
-      // several awaited Supabase calls is what actually gets it through.
-      const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
-      const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
-      const waGift = appliedGiftCard ? `\nGift Card: ${appliedGiftCard.code} (-${fmt(giftCardApplied)})` : '';
-      const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}${waGift}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
-      const waWindow = window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
-
-      // Redeem the applied gift-card balance FIRST -- if the balance changed since
-      // "Apply" was clicked (or the code is no longer valid), abort before any order
-      // exists claiming a discount that was never actually deducted.
-      if (appliedGiftCard && giftCardApplied > 0) {
-        const { error: redeemError } = await supabase.rpc('redeem_gift_card', { p_code: appliedGiftCard.code, p_amount: giftCardApplied });
-        if (redeemError) {
-          waWindow?.close();
-          toast.error('Your gift card balance changed since it was applied -- please remove and re-apply it.');
-          setLoading(false);
-          return;
-        }
+      const scriptOk = await loadRazorpayScript();
+      if (!scriptOk || !window.Razorpay) {
+        waWindow?.close();
+        toast.error('Could not load the payment gateway. Please check your connection and try again.');
+        setLoading(false);
+        return;
       }
 
-      // Likewise, create any newly-purchased gift card(s) before the order itself --
-      // if this fails, abort rather than charge the customer for a code that was
-      // never actually created.
-      const giftCardItems = cart.filter(i => i.isGiftCard);
-      if (giftCardItems.length > 0) {
-        const { error: gcError } = await supabase.from('gift_cards').insert(giftCardItems.map(i => ({
-          code: i.giftCode, initial_value: i.price, balance: i.price, order_id: orderId,
-          purchaser_email: currentUser?.email || form.email,
-          recipient_name: i.recipientName || null, recipient_email: i.recipientEmail || null, message: i.giftMessage || null,
-        })));
-        if (gcError) {
-          waWindow?.close();
-          throw gcError;
-        }
+      const orderRes = await fetch('/api/razorpay-create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: total, receipt: orderId }),
+      });
+      const orderJson = await orderRes.json();
+      if (!orderRes.ok) {
+        waWindow?.close();
+        toast.error(orderJson.error || 'Could not start payment. Please try again.');
+        setLoading(false);
+        return;
       }
 
-      // Save new address if checkbox checked (logged-in users only)
-      const saveCb = document.getElementById('saveAddr');
-      if (saveCb?.checked && !useExisting && currentUser) {
-        const newAddrs = [...(userProfile?.addresses || []), addr];
-        await supabase.from('profiles').update({ addresses: newAddrs }).eq('id', currentUser.id);
-        await refreshProfile();
-      }
-
-      const orderData = {
-        order_id: orderId,
-        user_id: currentUser?.id || null,
-        user_email: currentUser?.email || form.email,
-        user_name: userProfile?.name || form.name,
-        user_phone: addr.phone || form.phone || userProfile?.phone,
-        address: { ...addr, billing: billAddr },
-        items: cart.map(i => ({
-          id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null,
-          ...(i.isGiftCard ? { isGiftCard: true, giftCode: i.giftCode, recipientName: i.recipientName || null, recipientEmail: i.recipientEmail || null, giftMessage: i.giftMessage || null } : {}),
-        })),
-        subtotal: cartSubtotal, shipping, total,
-        coupon_code: appliedCoupon?.code || null, discount,
-        gift_card_code: appliedGiftCard?.code || null, gift_card_applied: giftCardApplied,
-        payment_method: payMethod,
-        status: 'Pending',
-        estimated_delivery: deliveryEstimate?.label || null,
-      };
-
-      const { error } = await supabase.from('orders').insert(orderData);
-      if (error) throw error;
-
-      localStorage.setItem('tt_last_order', JSON.stringify({ orderId, items: cart, total, addr }));
-      clearCart();
-
-      if (payMethod === 'razorpay' && process.env.REACT_APP_PAYMENT_URL && !process.env.REACT_APP_PAYMENT_URL.includes('your-link')) {
-        window.location.href = process.env.REACT_APP_PAYMENT_URL;
-      } else {
-        navigate('/confirmation');
-      }
+      const rzp = new window.Razorpay({
+        key: orderJson.key_id,
+        amount: orderJson.amount,
+        currency: orderJson.currency,
+        order_id: orderJson.id,
+        name: brand.brand_name || 'Tamarind Taless',
+        description: `Order ${orderId}`,
+        prefill: { name: addr.name, email: currentUser?.email || form.email, contact: addr.phone },
+        theme: { color: '#211D14' },
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch('/api/razorpay-verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response),
+            });
+            const verifyJson = await verifyRes.json();
+            if (!verifyJson.verified) {
+              waWindow?.close();
+              toast.error('Payment could not be verified. If money was deducted, please contact us with your payment ID: ' + response.razorpay_payment_id);
+              setLoading(false);
+              return;
+            }
+            const ok = await finalizeOrder({
+              addr, billAddr, orderId, waWindow, status: 'Paid',
+              paymentId: response.razorpay_payment_id, razorpayOrderId: response.razorpay_order_id,
+            });
+            if (!ok) setLoading(false);
+          } catch (err) {
+            console.error(err);
+            waWindow?.close();
+            toast.error('Payment succeeded but we could not save your order. Please contact us with your payment ID: ' + response.razorpay_payment_id);
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            waWindow?.close();
+            setLoading(false);
+          },
+        },
+      });
+      rzp.on('payment.failed', function (response) {
+        waWindow?.close();
+        toast.error(response.error?.description || 'Payment failed. Please try again.');
+        setLoading(false);
+      });
+      rzp.open();
     } catch (err) {
       console.error(err);
-      toast.error('Failed to place order. Please try again.');
-    } finally { setLoading(false); }
+      waWindow?.close();
+      toast.error('Failed to start payment. Please try again.');
+      setLoading(false);
+    }
   }
 
   if (cart.length === 0) { navigate('/cart'); return null; }

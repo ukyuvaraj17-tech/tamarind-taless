@@ -47,15 +47,20 @@ REACT_APP_CLOUDINARY_CLOUD_NAME=your_cloud_name
 REACT_APP_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 
 REACT_APP_ADMIN_EMAIL=admin@tamarindtaless.com
-REACT_APP_PAYMENT_URL=https://rzp.io/l/your-payment-link
+
+RAZORPAY_KEY_ID=rzp_test_your_key_id
+RAZORPAY_KEY_SECRET=your_key_secret
 ```
 
 **REACT_APP_ADMIN_EMAIL** — only this email gets admin access.
 Use your Tamarind Taless admin email here.
 
-**REACT_APP_PAYMENT_URL** — your Razorpay Payment Link URL.
-Get this from Razorpay Dashboard → Payment Links → Create.
-Complete KYC first (takes 3–7 days).
+**RAZORPAY_KEY_ID** / **RAZORPAY_KEY_SECRET** — from Razorpay Dashboard → Settings → API Keys.
+No `REACT_APP_` prefix on either — both are read only by the serverless
+functions in `/api`, which create the payment order and verify the payment
+signature server-side before an order is ever marked "Paid". Complete KYC
+first (takes 3–7 days) to get live keys; test keys work immediately for
+development.
 
 ---
 
@@ -141,11 +146,18 @@ Features:
 ## Payment Flow
 
 1. Customer adds items to cart
-2. Must be logged in to proceed to checkout
+2. Can check out as a guest, or logged in
 3. Must enter or select a delivery address (mandatory)
 4. Selects payment method:
-   - **Online (Razorpay)** → redirects to REACT_APP_PAYMENT_URL
-   - **WhatsApp** → order saved, WhatsApp opened with order details
+   - **Online (Razorpay)** → `api/razorpay-create-order` creates a real Razorpay
+     order server-side, the Razorpay Checkout widget opens in the browser, and
+     on success `api/razorpay-verify-payment` verifies the payment signature
+     server-side before anything is saved. The order is only ever written to
+     Supabase — with `status: "Paid"` and the real payment ID — after that
+     verification succeeds. If the widget is cancelled, the payment fails, or
+     verification fails, no order is created.
+   - **WhatsApp** → order saved immediately with `status: "Pending"`, WhatsApp
+     opened with order details, payment arranged manually
 5. Order saved to Supabase
 6. Seller receives WhatsApp notification automatically
 

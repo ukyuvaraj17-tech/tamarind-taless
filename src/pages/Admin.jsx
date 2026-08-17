@@ -23,7 +23,7 @@ const CATS = categories.filter(c => c !== 'All');
 function categoriesFor(groups) {
   return [...groups.flatMap(g => g.items), COLLECTOR_LABEL];
 }
-const STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
+const STATUSES = ['Pending', 'Paid', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 const TABS = ['Dashboard', 'Products', 'Add Product', 'Orders', 'Enquiries', 'Stories', 'Coupons', 'Gift Cards', 'Brand Settings'];
 const EMPTY = { name: '', cat: CATS[0], subtitle: '', origin: '', material: '', dimensions: '', weight: '', price: '', story: '', together: '', badge: '', enquiry_only: false, stock: 1, available: true, featured: false, allow_enquiry: true, bg: 'linear-gradient(145deg,#F2EFE4,#D3CCB9)', images: [], image_position: '50% 50%', pinterest_url: '', variants: [], delivery_min_days: 5, delivery_max_days: 8 };
 
@@ -1188,6 +1188,7 @@ export default function Admin() {
                         <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}>{fmt(o.total)}</div>
                         {o.coupon_code && <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11.5, letterSpacing: '.06em', color: 'var(--success)', marginTop: 2 }}>{o.coupon_code} (-{fmt(o.discount || 0)})</div>}
                         <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: o.payment_method === 'razorpay' ? 'var(--success)' : 'var(--gd)', textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
+                        {o.payment_id && <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 10.5, color: 'rgba(106,99,80,0.6)', marginTop: 2 }}>Pay ID: {o.payment_id}</div>}
                       </div>
                     </div>
                     <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(33,29,20,0.08)' }}>
