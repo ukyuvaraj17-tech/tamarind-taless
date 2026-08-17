@@ -17,15 +17,15 @@ const MORE_LINKS = [
 // property (var(--nav), var(--bg-hover)) — never a low-alpha rgba — so the drawer
 // and its expanded sub-items stay fully opaque and product imagery underneath can
 // never bleed through.
-function MobileLink({ to, external, sub, desc, children }) {
+function MobileLink({ to, external, sub, subsub, desc, children }) {
   const style = {
     display: 'block',
     fontFamily: "'Inter',sans-serif", fontWeight: 600,
-    fontSize: sub ? 12 : 13, letterSpacing: '.17em', textTransform: 'uppercase',
-    color: sub ? 'rgba(106,99,80,.65)' : 'rgba(106,99,80,.75)',
-    padding: sub ? '11px 22px 11px 36px' : '13px 22px',
+    fontSize: subsub ? 11.5 : sub ? 12 : 13, letterSpacing: '.17em', textTransform: 'uppercase',
+    color: subsub ? 'rgba(106,99,80,.6)' : sub ? 'rgba(106,99,80,.65)' : 'rgba(106,99,80,.75)',
+    padding: subsub ? '10px 22px 10px 50px' : sub ? '11px 22px 11px 36px' : '13px 22px',
     borderBottom: '1px solid rgba(211,204,185,.8)',
-    background: sub ? 'var(--bg-hover)' : 'var(--nav)',
+    background: (sub || subsub) ? 'var(--bg-hover)' : 'var(--nav)',
     cursor: 'none', textDecoration: 'none',
   };
   const inner = (
@@ -42,18 +42,18 @@ function MobileLink({ to, external, sub, desc, children }) {
     : <Link to={to} style={style}>{inner}</Link>;
 }
 
-function MobileGroup({ label, open, onToggle, children }) {
+function MobileGroup({ label, open, onToggle, children, sub }) {
   return (
-    <div style={{ background: 'var(--nav)' }}>
+    <div style={{ background: sub ? 'var(--bg-hover)' : 'var(--nav)' }}>
       <button onClick={onToggle} aria-expanded={open} style={{
         display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center',
-        fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.17em', textTransform: 'uppercase',
-        color: open ? 'var(--iv)' : 'rgba(106,99,80,.75)',
-        padding: '13px 22px', borderBottom: '1px solid rgba(211,204,185,.8)',
-        background: 'var(--nav)', border: 'none', cursor: 'none',
+        fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: sub ? 12 : 13, letterSpacing: '.17em', textTransform: 'uppercase',
+        color: open ? 'var(--iv)' : (sub ? 'rgba(106,99,80,.65)' : 'rgba(106,99,80,.75)'),
+        padding: sub ? '11px 22px 11px 36px' : '13px 22px', borderBottom: '1px solid rgba(211,204,185,.8)',
+        background: sub ? 'var(--bg-hover)' : 'var(--nav)', border: 'none', cursor: 'none',
       }}>
         {label}
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>
+        <svg width={sub ? 10 : 11} height={sub ? 10 : 11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
@@ -67,6 +67,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDd, setOpenDd] = useState(null);
   const [openMobileGroup, setOpenMobileGroup] = useState(null);
+  const [openCategoryGroup, setOpenCategoryGroup] = useState(null);
   const { currentUser, logout } = useAuth();
   const { cartCount } = useCart();
   const { brand } = useBrand();
@@ -81,7 +82,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  useEffect(() => { setMenuOpen(false); setOpenDd(null); setOpenMobileGroup(null); }, [location]);
+  useEffect(() => { setMenuOpen(false); setOpenDd(null); setOpenMobileGroup(null); setOpenCategoryGroup(null); }, [location]);
 
   useEffect(() => {
     if (!openDd) return;
@@ -92,6 +93,7 @@ export default function Navbar() {
 
   const toggleDd = (name) => setOpenDd(p => p === name ? null : name);
   const toggleMobileGroup = (name) => setOpenMobileGroup(p => p === name ? null : name);
+  const toggleCategoryGroup = (name) => setOpenCategoryGroup(p => p === name ? null : name);
 
   const linkS = { fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.17em', textTransform: 'uppercase', color: 'rgba(106,99,80,.8)', transition: 'color .2s', textDecoration: 'none', cursor: 'none', whiteSpace: 'nowrap', background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: 5, height: 64, padding: '0 16px' };
 
@@ -230,17 +232,20 @@ export default function Navbar() {
           mega-menu exactly by reading the same `groups` taxonomy, collapsed into an accordion
           instead of one long flat list. */}
       <div style={{ position: 'fixed', top: 64, left: 0, right: 0, background: 'var(--nav)', zIndex: 999, borderBottom: '1px solid var(--line)', transform: menuOpen ? 'translateY(0)' : 'translateY(-110%)', opacity: menuOpen ? 1 : 0, transition: 'transform .35s cubic-bezier(.25,.46,.45,.94), opacity .3s', maxHeight: '80vh', overflowY: 'auto' }}>
-        <MobileLink to="/shop">Shop All</MobileLink>
+        {/* SHOP ALL — every category group nested underneath, one toggle instead
+            of the groups cluttering the top level as separate rows. */}
+        <MobileGroup label="Shop All" open={openMobileGroup === 'shopall'} onToggle={() => toggleMobileGroup('shopall')}>
+          <MobileLink to="/shop" sub>All Pieces</MobileLink>
+          {groups.map(group => (
+            <MobileGroup key={group.label} label={group.label} sub open={openCategoryGroup === group.label} onToggle={() => toggleCategoryGroup(group.label)}>
+              {group.items.map(item => (
+                <MobileLink key={item} to={`/shop?category=${encodeURIComponent(item)}`} subsub>{item}</MobileLink>
+              ))}
+            </MobileGroup>
+          ))}
+        </MobileGroup>
+
         <MobileLink to="/gallery">Gallery</MobileLink>
-
-        {groups.map(group => (
-          <MobileGroup key={group.label} label={group.label} open={openMobileGroup === group.label} onToggle={() => toggleMobileGroup(group.label)}>
-            {group.items.map(item => (
-              <MobileLink key={item} to={`/shop?category=${encodeURIComponent(item)}`} sub>{item}</MobileLink>
-            ))}
-          </MobileGroup>
-        ))}
-
         <MobileLink to={`/shop?collection=${encodeURIComponent(COLLECTOR_LABEL)}`}>{COLLECTOR_LABEL}</MobileLink>
 
         <MobileGroup label="More" open={openMobileGroup === 'more'} onToggle={() => toggleMobileGroup('more')}>
