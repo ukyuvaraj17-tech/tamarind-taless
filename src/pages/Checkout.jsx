@@ -231,17 +231,15 @@ export default function Checkout() {
     const billAddr = billingSame ? addr : { ...billing, phone: billing.phone || addr.phone };
     const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
 
-    // Open the seller-notification tab synchronously, before any await -- popup
-    // blockers revoke the click's "user activation" the moment an await yields, so
-    // opening it here (closed again if payment fails/is cancelled) is what actually
-    // gets it through instead of being silently swallowed.
-    const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
-    const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
-    const waGift = appliedGiftCard ? `\nGift Card: ${appliedGiftCard.code} (-${fmt(giftCardApplied)})` : '';
-    const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}${waGift}\nTotal: ${fmt(total)}\nPayment: ${payMethod === 'razorpay' ? 'Online' : 'WhatsApp/COD'}`;
-    const waWindow = window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
-
     if (payMethod === 'whatsapp') {
+      // This payment method's whole mechanism IS the WhatsApp message -- open it
+      // synchronously, before any await, since popup blockers revoke the click's
+      // "user activation" the moment an await yields.
+      const waItems = cart.map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.qty}`).join(', ');
+      const waCoupon = appliedCoupon ? `\nCoupon: ${appliedCoupon.code} (-${fmt(discount)})` : '';
+      const waGift = appliedGiftCard ? `\nGift Card: ${appliedGiftCard.code} (-${fmt(giftCardApplied)})` : '';
+      const waMsg = `New Order!\nID: ${orderId}\nCustomer: ${addr.name}\nPhone: ${addr.phone}\nItems: ${waItems}${waCoupon}${waGift}\nTotal: ${fmt(total)}\nPayment: WhatsApp/COD`;
+      const waWindow = window.open(`https://wa.me/918796988216?text=${encodeURIComponent(waMsg)}`, '_blank');
       try {
         const ok = await finalizeOrder({ addr, billAddr, orderId, waWindow, status: 'Pending' });
         if (!ok) setLoading(false);
@@ -254,12 +252,13 @@ export default function Checkout() {
     }
 
     // ── ONLINE PAYMENT (Razorpay) ──────────────────────────────────────
+    // No WhatsApp popup here -- the real payment widget is the whole point of this
+    // path, and a paid order already shows up in Admin with its real payment ID.
     // The order is only ever written to Supabase AFTER the payment signature is
     // verified server-side (api/razorpay-verify-payment) -- never before.
     try {
       const scriptOk = await loadRazorpayScript();
       if (!scriptOk || !window.Razorpay) {
-        waWindow?.close();
         toast.error('Could not load the payment gateway. Please check your connection and try again.');
         setLoading(false);
         return;
@@ -272,7 +271,6 @@ export default function Checkout() {
       });
       const orderJson = await orderRes.json();
       if (!orderRes.ok) {
-        waWindow?.close();
         toast.error(orderJson.error || 'Could not start payment. Please try again.');
         setLoading(false);
         return;
@@ -296,39 +294,34 @@ export default function Checkout() {
             });
             const verifyJson = await verifyRes.json();
             if (!verifyJson.verified) {
-              waWindow?.close();
               toast.error('Payment could not be verified. If money was deducted, please contact us with your payment ID: ' + response.razorpay_payment_id);
               setLoading(false);
               return;
             }
             const ok = await finalizeOrder({
-              addr, billAddr, orderId, waWindow, status: 'Paid',
+              addr, billAddr, orderId, waWindow: null, status: 'Paid',
               paymentId: response.razorpay_payment_id, razorpayOrderId: response.razorpay_order_id,
             });
             if (!ok) setLoading(false);
           } catch (err) {
             console.error(err);
-            waWindow?.close();
             toast.error('Payment succeeded but we could not save your order. Please contact us with your payment ID: ' + response.razorpay_payment_id);
             setLoading(false);
           }
         },
         modal: {
           ondismiss: function () {
-            waWindow?.close();
             setLoading(false);
           },
         },
       });
       rzp.on('payment.failed', function (response) {
-        waWindow?.close();
         toast.error(response.error?.description || 'Payment failed. Please try again.');
         setLoading(false);
       });
       rzp.open();
     } catch (err) {
       console.error(err);
-      waWindow?.close();
       toast.error('Failed to start payment. Please try again.');
       setLoading(false);
     }
