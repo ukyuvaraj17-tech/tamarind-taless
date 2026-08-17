@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { supabase } from '../supabase';
 import { knownStock } from '../data/products';
 import toast from 'react-hot-toast';
+import CartToast from '../components/CartToast';
 
 // Split into two contexts so a component that only needs to call addToCart
 // (every ProductCard, ProductPage, GiftCard) never re-renders when the cart's
@@ -83,7 +84,6 @@ export function CartProvider({ children }) {
       toast.error('This piece is no longer available.');
       return;
     }
-    const label = product.name + (product.size ? ` (${product.size})` : '');
     setCart((prev) => {
       const key = lineKey(product);
       const existing = prev.find((i) => lineKey(i) === key);
@@ -92,12 +92,12 @@ export function CartProvider({ children }) {
           toast.error(`Only ${stockNum} available.`);
           return prev;
         }
-        toast.success(`${label} quantity updated.`);
+        toast.custom((t) => <CartToast t={t} product={product} label="Quantity Updated" />, { duration: 4000 });
         return prev.map((i) =>
           lineKey(i) === key ? { ...i, qty: i.qty + 1 } : i
         );
       }
-      toast.success(`${label} added to cart.`);
+      toast.custom((t) => <CartToast t={t} product={product} label="Added to Cart" />, { duration: 4000 });
       return [...prev, { ...product, qty: 1 }];
     });
   }, []);

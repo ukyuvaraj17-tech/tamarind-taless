@@ -52,6 +52,11 @@ body {
   overflow-x: hidden;
   cursor: none;
   -webkit-font-smoothing: antialiased;
+  /* Cormorant Garamond defaults to old-style figures, which read as uneven/
+     slanted (almost letter-like) wherever a number sits in serif text -- dates,
+     dimensions, prices. Forcing lining (upright, uniform-height) numerals here
+     applies everywhere by inheritance, instead of patching each spot by hand. */
+  font-variant-numeric: lining-nums;
 }
 a { text-decoration: none; color: inherit; }
 button, input, select, textarea { font-family: inherit; }
