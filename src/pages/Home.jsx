@@ -168,21 +168,27 @@ export default function Home() {
 
       <hr className="hairline-full" aria-hidden="true" />
 
-      {/* ALL PRODUCTS */}
+      {/* ALL PRODUCTS — capped so the homepage doesn't turn into an endless scroll
+          as the catalogue grows; "View All" hands off to the real Shop page. */}
       {products.length > 0 && (
         <section className="section" style={{ background:'var(--nav)' }}>
           <div className="container">
             <div style={{ textAlign:'center', marginBottom:40 }} ref={addReveal(11)} className="reveal">
-              <p className="section-label">The Full Collection</p>
-              <h2 className="section-title">All <em>{products.length} Pieces</em></h2>
+              <p className="section-label">The Collection</p>
+              <h2 className="section-title">Discover <em>More</em></h2>
             </div>
             <div className="grid-4 home-grid-4">
-              {products.map((p,i) => (
+              {products.slice(0, 12).map((p,i) => (
                 <div key={p.id} ref={addReveal(12+i)} className={`reveal d${(i%4)+1}`}>
                   <ProductCard product={p} />
                 </div>
               ))}
             </div>
+            {products.length > 12 && (
+              <div style={{ textAlign:'center', marginTop:40 }}>
+                <button className="btn btn-outline" onClick={() => navigate('/shop')}>View All {products.length} Pieces</button>
+              </div>
+            )}
           </div>
         </section>
       )}
