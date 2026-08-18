@@ -129,6 +129,15 @@ export default function Account() {
     transition: 'background .18s, color .18s',
   });
 
+  // Mobile-only nav: a compact icon grid instead of the desktop list stretched full-width
+  const navTile = (active) => ({
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 9,
+    padding: '15px 6px', textAlign: 'center', fontFamily: "'Inter',sans-serif", fontWeight: 600,
+    fontSize: 10, letterSpacing: '.03em', lineHeight: 1.25,
+    background: active ? 'rgba(201,162,75,.1)' : 'var(--card)', color: active ? 'var(--gd)' : 'var(--iv)',
+    border: `1px solid ${active ? 'var(--gd)' : 'var(--line)'}`, borderRadius: 9, cursor: 'pointer', textTransform: 'uppercase',
+  });
+
   return (
     <div style={{ paddingTop: 68, minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ background: 'var(--br)', padding: '54px 44px', position: 'relative', overflow: 'hidden' }}>
@@ -145,7 +154,7 @@ export default function Account() {
       <div className="container" style={{ padding: '44px 44px' }}>
         <div className="account-layout" style={{ display: 'grid', gridTemplateColumns: '270px 1fr', gap: 44, alignItems: 'start' }}>
 
-          {/* SIDEBAR */}
+          {/* SIDEBAR — desktop: vertical list, sticky */}
           <div className="account-sidebar" style={{ border: '1px solid var(--line)', background: 'var(--card)', boxShadow: '0 10px 34px rgba(30,27,20,.06)', position: 'sticky', top: 90 }}>
             {NAV_ITEMS.map(n => (
               <button key={n.key} onClick={() => selectTab(n.key)} style={navBtn(tab === n.key)}>
@@ -154,6 +163,22 @@ export default function Account() {
               </button>
             ))}
             <button onClick={handleLogout} style={{ ...navBtn(false), borderBottom: 'none', color: 'var(--tr)' }}>
+              <NavIcon name="logout" />
+              Log Out
+            </button>
+          </div>
+
+          {/* SIDEBAR — mobile: compact icon grid, its own layout instead of the list above stretched full-width */}
+          <div className="account-nav-mobile">
+            <div className="account-nav-grid">
+              {NAV_ITEMS.map(n => (
+                <button key={n.key} onClick={() => selectTab(n.key)} style={navTile(tab === n.key)}>
+                  <NavIcon name={n.key} size={20} />
+                  {n.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', marginTop: 10, padding: '14px', background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 9, color: 'var(--tr)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
               <NavIcon name="logout" />
               Log Out
             </button>
@@ -245,9 +270,15 @@ export default function Account() {
       </div>
 
       <style>{`
+        .account-nav-mobile { display: none; }
         @media (max-width: 768px) {
           .account-layout { grid-template-columns: 1fr !important; }
-          .account-sidebar { position: static !important; }
+          .account-sidebar { display: none !important; }
+          .account-nav-mobile { display: block !important; }
+          .account-nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+        }
+        @media (max-width: 420px) {
+          .account-nav-grid { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
     </div>
