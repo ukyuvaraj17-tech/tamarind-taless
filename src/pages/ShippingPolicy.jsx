@@ -25,7 +25,7 @@ export default function ShippingPolicy() {
             ].map(({ label, value }) => (
               <div key={label} style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '18px 20px' }}>
                 <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 6 }}>{label}</div>
-                <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, color: 'var(--iv)', fontWeight: 400, letterSpacing: '.05em' }}>{value}</div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 15, color: 'var(--iv)', letterSpacing: '.05em' }}>{value}</div>
               </div>
             ))}
           </div>
@@ -40,7 +40,7 @@ export default function ShippingPolicy() {
             { title: '7. Lost or Stolen Shipments', body: 'If your tracking shows delivery but you have not received the item, please contact us within 24 hours. We will initiate an investigation with the courier. Tamarind Taless is not liable for shipments stolen after confirmed delivery.' },
           ].map(({ title, body }) => (
             <div key={title} style={{ marginBottom: 32 }}>
-              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12 }}>{title}</h2>
               <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>{body}</p>
             </div>
           ))}

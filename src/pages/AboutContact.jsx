@@ -75,7 +75,7 @@ export function About() {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)' }} className="stats-grid-r">
             {[['Noida & Coimbatore','Our Locations'],['Women-Led','Brand & Curation'],['Made in India','Curated in India'],['Handpicked','Every Single Piece']].map(([n,l],i) => (
               <div key={i} ref={add(10+i)} className={`reveal d${i+1}`} style={{ textAlign:'center', padding:'2rem 1rem', borderRight: i < 3 ? '1px solid var(--line)' : 'none' }}>
-                <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:'clamp(1rem,2vw,1.4rem)', fontWeight:400, color:'var(--iv)', letterSpacing:'.06em', lineHeight:1, marginBottom:6 }}>{n}</div>
+                <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:400, fontSize:'clamp(1rem,2vw,1.4rem)', color:'var(--iv)', letterSpacing:'.06em', lineHeight:1, marginBottom:6 }}>{n}</div>
                 <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', color:'rgba(106,99,80,.88)' }}>{l}</div>
               </div>
             ))}

@@ -54,7 +54,7 @@ export default function Services() {
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--line)'}
               >
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: 'var(--gd)', marginBottom: 14, lineHeight: 1 }}>{s.icon}</div>
-                <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', marginBottom: 20, fontWeight: 500 }}>{s.title}</h2>
+                <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', marginBottom: 20 }}>{s.title}</h2>
                 <ul style={{ listStyle: 'none', marginBottom: 24 }}>
                   {s.items.map((item, j) => (
                     <li key={j} style={{ display: 'flex', gap: 12, marginBottom: 10, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)', lineHeight: 1.6 }}>
@@ -80,7 +80,7 @@ export default function Services() {
             <p className="section-label">How It Works</p>
             <h2 className="section-title">The Curation <em>Process</em></h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+          <div className="svc-process-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
             {[
               { num: '01', title: 'Connect', desc: 'Reach out via WhatsApp or our enquiry form with your requirements.' },
               { num: '02', title: 'Consult', desc: 'We understand your space, taste, and budget through a detailed conversation.' },
@@ -88,7 +88,7 @@ export default function Services() {
               { num: '04', title: 'Deliver', desc: 'Your chosen piece is carefully packed and delivered to your doorstep.' },
             ].map(({ num, title, desc }) => (
               <div key={num} style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1rem,1.5vw,1.2rem)', fontWeight: 400, fontFamily: "'Inter', sans-serif", fontWeight: 600, color: 'rgba(106,99,80,.88)', lineHeight: 1, marginBottom: 8, opacity: .4 }}>{num}</div>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 'clamp(1rem,1.5vw,1.2rem)', fontWeight: 600, color: 'rgba(106,99,80,.88)', lineHeight: 1, marginBottom: 8, opacity: .4 }}>{num}</div>
                 <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', marginBottom: 10 }}>{title}</h3>
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)', lineHeight: 1.7, fontStyle: 'italic' }}>{desc}</p>
               </div>
@@ -111,6 +111,11 @@ export default function Services() {
           </div>
         </div>
       </section>
+
+      <style>{`
+        @media (max-width: 768px) { .svc-process-grid { grid-template-columns: 1fr 1fr !important; } }
+        @media (max-width: 480px) { .svc-process-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
     </div>
   );
 }

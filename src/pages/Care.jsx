@@ -77,7 +77,7 @@ export default function Care() {
               <div key={g.material} style={{ background: i % 2 === 0 ? 'var(--card)' : 'var(--nav)', border: '1px solid var(--line)', padding: '36px 32px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, color: 'var(--gd)' }}>{g.icon}</div>
-                  <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)', fontWeight: 500 }}>{g.material}</h2>
+                  <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--iv)' }}>{g.material}</h2>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'start' }}>
                   <ul style={{ listStyle: 'none' }}>

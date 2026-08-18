@@ -98,7 +98,7 @@ export default function GiftCard() {
           <div style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: '32px 28px' }}>
             <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 16 }}>Choose an Amount</div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+            <div className="gc-preset-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
               {visiblePresets.map(v => (
                 <button
                   key={v}
@@ -176,6 +176,10 @@ export default function GiftCard() {
           </div>
         </div>
       </section>
+
+      <style>{`
+        @media (max-width: 480px) { .gc-preset-grid { grid-template-columns: 1fr 1fr !important; } }
+      `}</style>
     </div>
   );
 }

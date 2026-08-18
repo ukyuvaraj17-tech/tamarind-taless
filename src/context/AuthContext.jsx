@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
           addresses: []
         });
       }
-    } catch (e) { /* best-effort repair; fetchProfile below will just keep userProfile null */ }
+    } catch (e) { console.error('ensureProfile failed:', e); /* best-effort repair; fetchProfile below will just keep userProfile null */ }
   }
 
   async function loginWithEmail(email, password) {

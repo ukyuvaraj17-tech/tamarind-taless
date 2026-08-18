@@ -510,19 +510,23 @@ function GiftCardsManager() {
     try {
       await updateBrand({ giftcard_enabled: brand.giftcard_enabled === false });
       toast.success(brand.giftcard_enabled === false ? 'Gift cards enabled.' : 'Gift cards disabled.');
-    } catch { toast.error('Failed.'); }
+    } catch (e) { toast.error('Failed: ' + e.message); }
   }
 
   async function saveSettings() {
+    const min = Number(form.giftcard_min);
+    const max = Number(form.giftcard_max);
+    if (!Number.isFinite(min) || min <= 0) { toast.error('Minimum amount must be a positive number.'); return; }
+    if (!Number.isFinite(max) || max <= min) { toast.error('Maximum amount must be greater than the minimum.'); return; }
     setSaving(true);
     try {
       await updateBrand({
-        giftcard_min: Number(form.giftcard_min) || 500,
-        giftcard_max: Number(form.giftcard_max) || 50000,
+        giftcard_min: min,
+        giftcard_max: max,
         giftcard_description: form.giftcard_description,
       });
       toast.success('Gift card settings saved.');
-    } catch { toast.error('Failed. Run the gift card SQL migration in Supabase if this keeps failing.'); }
+    } catch (e) { toast.error('Failed: ' + e.message); }
     finally { setSaving(false); }
   }
 
@@ -617,7 +621,7 @@ function BrandSettings() {
     const v = (url ?? logoUrl).trim();
     if (!v) return;
     try { await updateBrand({ logo_url: v }); toast.success('Logo saved.'); setLogoUrl(''); }
-    catch { toast.error('Failed.'); }
+    catch (e) { toast.error('Failed: ' + e.message); }
   }
 
   async function saveHeroField(field, url) {
@@ -632,12 +636,12 @@ function BrandSettings() {
 
   async function removeHeroField(field) {
     try { await updateBrand({ [field]: '' }); toast.success('Image removed.'); }
-    catch { toast.error('Failed.'); }
+    catch (e) { toast.error('Failed: ' + e.message); }
   }
 
   async function saveGalleryCaption() {
     try { await updateBrand({ gallery_video_caption: form.gallery_video_caption }); toast.success('Caption saved.'); }
-    catch { toast.error('Failed.'); }
+    catch (e) { toast.error('Failed: ' + e.message); }
   }
 
   async function savePositionField(field, val) {
@@ -648,13 +652,13 @@ function BrandSettings() {
   async function saveBrand() {
     setSaving(true);
     try { await updateBrand({ brand_name: form.brand_name, tagline: form.tagline, registered_office: form.registered_office }); toast.success('Brand settings saved.'); }
-    catch { toast.error('Failed.'); }
+    catch (e) { toast.error('Failed: ' + e.message); }
     finally { setSaving(false); }
   }
 
   async function saveFeaturedCount(n) {
     try { await updateBrand({ featured_count: n }); toast.success('Home page showcase updated.'); }
-    catch { toast.error('Failed.'); }
+    catch (e) { toast.error('Failed: ' + e.message); }
   }
 
   async function saveHomeText() {
@@ -1005,7 +1009,10 @@ function OrdersTrendChart({ orders, color }) {
 
 // Sequential single-hue horizontal bars — magnitude comparison across order statuses
 function StatusBreakdownChart({ orders, color }) {
-  const counts = STATUSES.map(s => ({ status: s, count: orders.filter(o => (o.status || 'Pending') === s).length }));
+  const counts = React.useMemo(
+    () => STATUSES.map(s => ({ status: s, count: orders.filter(o => (o.status || 'Pending') === s).length })),
+    [orders]
+  );
   const max = Math.max(1, ...counts.map(c => c.count));
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
@@ -1109,7 +1116,7 @@ export default function Admin() {
   async function deleteProduct(id, name) {
     if (!window.confirm(`Delete "${name}"?`)) return;
     const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) { toast.error('Failed.'); return; }
+    if (error) { toast.error('Failed: ' + error.message); return; }
     toast.success('Deleted.'); await fetchAll();
   }
 
@@ -1127,14 +1134,14 @@ export default function Admin() {
 
   async function updateStatus(id, status, order) {
     const { error } = await supabase.from('orders').update({ status }).eq('id', id);
-    if (error) { toast.error('Failed.'); return; }
+    if (error) { toast.error('Failed: ' + error.message); return; }
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
     toast.success(`Status: ${status}`);
   }
 
   async function updateDelivery(id, date, order) {
     const { error } = await supabase.from('orders').update({ estimated_delivery: date }).eq('id', id);
-    if (error) { toast.error('Failed.'); return; }
+    if (error) { toast.error('Failed: ' + error.message); return; }
     setOrders(prev => prev.map(o => o.id === id ? { ...o, estimated_delivery: date } : o));
     toast.success('Delivery date set.');
   }

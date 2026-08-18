@@ -20,15 +20,6 @@ export const categories = [
   COLLECTOR_LABEL,
 ];
 
-// The fine-art / traditional-painting collections shown on the dedicated Gallery page.
-export const GALLERY_COLLECTIONS = [
-  { name: 'Madhubani', tagline: 'Ritual line and pigment from Mithila' },
-  { name: 'Mural', tagline: 'Temple wall painting, reimagined for the home' },
-  { name: 'Ravi Varma Lithographs', tagline: 'The prints that shaped modern Indian iconography' },
-  { name: 'Tanjore Paintings', tagline: 'Gesso, gold leaf and devotional gem-work' },
-  { name: 'Pichwai Paintings', tagline: 'Nathdwara\'s devotional cloth painting tradition' },
-];
-
 export const fmt = (n) => 'Rs. ' + Number(n).toLocaleString('en-IN');
 
 // The base product.stock field predates variants and isn't kept in sync with them --

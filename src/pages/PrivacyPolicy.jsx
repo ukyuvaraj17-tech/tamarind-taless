@@ -31,7 +31,7 @@ export default function PrivacyPolicy() {
             { title: '9. Contact', body: 'For privacy-related queries, contact us on WhatsApp at +91 87969 88216. We take all privacy concerns seriously and will respond within 3 business days.' },
           ].map(({ title, body }) => (
             <div key={title} style={{ marginBottom: 32 }}>
-              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12 }}>{title}</h2>
               <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>{body}</p>
             </div>
           ))}

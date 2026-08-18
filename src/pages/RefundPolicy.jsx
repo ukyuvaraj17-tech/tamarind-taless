@@ -78,7 +78,7 @@ export default function RefundPolicy() {
             },
           ].map(({ title, body, items, steps, note }) => (
             <div key={title} style={{ marginBottom: 36 }}>
-              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12 }}>{title}</h2>
               {body && <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9 }}>{body}</p>}
               {items && (
                 <ul style={{ listStyle: 'none', paddingLeft: 0 }}>

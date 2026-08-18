@@ -26,6 +26,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { brand } = useBrand();
   const [products, setProducts] = useState([]);
+  const [productsTotal, setProductsTotal] = useState(0);
   const revealRefs = useRef([]);
   const isMobile = useIsMobile(768);
   const heroPosition = isMobile
@@ -33,8 +34,12 @@ export default function Home() {
     : (brand.hero_image_position || 'center');
 
   useEffect(() => {
-    supabase.from('products').select('*').eq('available', true).order('created_at', { ascending: false })
+    // Only the first 12 are ever shown on Home -- fetch just those, and get the true
+    // total separately (cheap head-only count) so "View All N Pieces" stays accurate.
+    supabase.from('products').select('*').eq('available', true).order('created_at', { ascending: false }).limit(12)
       .then(({ data }) => { if (data) setProducts(data); });
+    supabase.from('products').select('id', { count: 'exact', head: true }).eq('available', true)
+      .then(({ count }) => { if (typeof count === 'number') setProductsTotal(count); });
   }, []);
 
   useEffect(() => {
@@ -178,15 +183,15 @@ export default function Home() {
               <h2 className="section-title">Discover <em>More</em></h2>
             </div>
             <div className="grid-4 home-grid-4">
-              {products.slice(0, 12).map((p,i) => (
+              {products.map((p,i) => (
                 <div key={p.id} ref={addReveal(12+i)} className={`reveal d${(i%4)+1}`}>
                   <ProductCard product={p} />
                 </div>
               ))}
             </div>
-            {products.length > 12 && (
+            {productsTotal > 12 && (
               <div style={{ textAlign:'center', marginTop:40 }}>
-                <button className="btn btn-outline" onClick={() => navigate('/shop')}>View All {products.length} Pieces</button>
+                <button className="btn btn-outline" onClick={() => navigate('/shop')}>View All {productsTotal} Pieces</button>
               </div>
             )}
           </div>

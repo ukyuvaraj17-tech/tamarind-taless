@@ -62,7 +62,7 @@ export default function Terms() {
             },
           ].map(({ title, body }) => (
             <div key={title} style={{ marginBottom: 36 }}>
-              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12, fontWeight: 500 }}>{title}</h2>
+              <h2 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--gd)', marginBottom: 12 }}>{title}</h2>
               <p style={{ color: 'rgba(106,99,80,.88)', lineHeight: 1.9, fontSize: 16 }}>{body}</p>
             </div>
           ))}
