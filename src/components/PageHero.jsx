@@ -1,9 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import BlurImage from './BlurImage';
+
+// Tracks the 768px breakpoint so the hero can use a distinct mobile crop
+// instead of the desktop position, which often leaves the subject off to
+// one side once the same wide framing is squeezed into a narrow viewport.
+function useIsMobile(bp = 768) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(`(max-width: ${bp}px)`).matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${bp}px)`);
+    const handler = e => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [bp]);
+  return isMobile;
+}
 
 // Reusable hero banner with optional Cloudinary background image + dark overlay
 // Used on Shop, About, Services, Stories, Care page headers
-export default function PageHero({ image, position, eyebrow, title, subtitle, minHeight = 'clamp(420px, 52vw, 560px)', center = false }) {
+export default function PageHero({ image, position, mobilePosition, eyebrow, title, subtitle, minHeight = 'clamp(420px, 52vw, 560px)', center = false }) {
+  const isMobile = useIsMobile();
+  const effectivePosition = (isMobile && mobilePosition) || position || 'center';
   return (
     <div style={{
       position: 'relative',
@@ -24,7 +42,7 @@ export default function PageHero({ image, position, eyebrow, title, subtitle, mi
           aria-hidden="true"
           style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: position || 'center',
+            objectFit: 'cover', objectPosition: effectivePosition,
             zIndex: 0,
           }}
         />

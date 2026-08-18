@@ -64,6 +64,7 @@ export default function Care() {
       <PageHero
         image={brand.hero_care}
         position={brand.hero_care_position}
+        mobilePosition={brand.hero_care_mobile_position}
         eyebrow="Preservation Guide"
         title={<>Care &amp; <em style={{ fontStyle: 'italic' }}>Preservation</em></>}
         subtitle="Your piece has survived centuries. With the right care, it will survive centuries more."

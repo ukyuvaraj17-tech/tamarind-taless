@@ -903,14 +903,14 @@ function BrandSettings() {
       <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', margin: '32px 0 16px', textTransform: 'uppercase' }}>Per-Page Hero Images</div>
 
       <HeroImageField field="hero_image" title="Home Page Hero" description="Full-screen background behind the main homepage headline." mobileAspect="4/5" />
-      <HeroImageField field="hero_shop" title="Shop Page Hero" description="Background banner at the top of the Shop / Collection page." />
-      <HeroImageField field="hero_gallery" title="Gallery Page Hero" description="Background banner at the top of the Gallery page." />
-      <HeroImageField field="hero_giftcard" title="Gift Card Page Hero" description="Background banner at the top of the Gift Cards page." />
-      <HeroImageField field="hero_about" title="About Page Hero" description="Background banner at the top of the About page." />
+      <HeroImageField field="hero_shop" title="Shop Page Hero" description="Background banner at the top of the Shop / Collection page." mobileAspect="1/1" />
+      <HeroImageField field="hero_gallery" title="Gallery Page Hero" description="Background banner at the top of the Gallery page." mobileAspect="1/1" />
+      <HeroImageField field="hero_giftcard" title="Gift Card Page Hero" description="Background banner at the top of the Gift Cards page." mobileAspect="1/1" />
+      <HeroImageField field="hero_about" title="About Page Hero" description="Background banner at the top of the About page." mobileAspect="1/1" />
       <HeroImageField field="about_image" title="About Page Side Image" description="The image block next to the brand story text on the About page." aspect="3/4" />
-      <HeroImageField field="hero_services" title="Services Page Hero" description="Background banner at the top of the Services page." />
-      <HeroImageField field="hero_stories" title="Stories Page Hero" description="Background banner at the top of the Stories page." />
-      <HeroImageField field="hero_care" title="Care Guide Page Hero" description="Background banner at the top of the Care &amp; Preservation page." />
+      <HeroImageField field="hero_services" title="Services Page Hero" description="Background banner at the top of the Services page." mobileAspect="1/1" />
+      <HeroImageField field="hero_stories" title="Stories Page Hero" description="Background banner at the top of the Stories page." mobileAspect="1/1" />
+      <HeroImageField field="hero_care" title="Care Guide Page Hero" description="Background banner at the top of the Care &amp; Preservation page." mobileAspect="1/1" />
     </div>
   );
 }

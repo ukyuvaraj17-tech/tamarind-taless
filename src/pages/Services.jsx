@@ -38,6 +38,7 @@ export default function Services() {
       <PageHero
         image={brand.hero_services}
         position={brand.hero_services_position}
+        mobilePosition={brand.hero_services_mobile_position}
         eyebrow="What We Offer"
         title={<>Our <em style={{ fontStyle: 'italic' }}>Services</em></>}
         subtitle="Heritage curation, sourcing, and styling for collectors, designers, and spaces that deserve something extraordinary."

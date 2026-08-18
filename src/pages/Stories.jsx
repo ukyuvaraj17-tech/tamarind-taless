@@ -22,6 +22,7 @@ export default function Stories() {
       <PageHero
         image={brand.hero_stories}
         position={brand.hero_stories_position}
+        mobilePosition={brand.hero_stories_mobile_position}
         eyebrow="From Our World"
         title={<em style={{ fontStyle: 'italic' }}>Stories</em>}
         subtitle="Artisan journeys, heritage knowledge, and the stories behind the pieces we curate."

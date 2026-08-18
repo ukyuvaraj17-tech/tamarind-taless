@@ -83,6 +83,7 @@ export default function GiftCard() {
       <PageHero
         image={brand.hero_giftcard}
         position={brand.hero_giftcard_position}
+        mobilePosition={brand.hero_giftcard_mobile_position}
         eyebrow="Give the Gift of Choice"
         title="Gift Cards"
         subtitle="Let them choose their own piece of India's heritage."

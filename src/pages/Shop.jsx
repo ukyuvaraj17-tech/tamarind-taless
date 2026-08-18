@@ -129,6 +129,7 @@ export default function Shop() {
       <PageHero
         image={brand.hero_shop}
         position={brand.hero_shop_position}
+        mobilePosition={brand.hero_shop_mobile_position}
         title="The Collection"
         center
       />

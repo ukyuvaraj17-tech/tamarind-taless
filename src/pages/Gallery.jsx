@@ -155,6 +155,7 @@ export default function Gallery() {
       <PageHero
         image={brand.hero_gallery}
         position={brand.hero_gallery_position}
+        mobilePosition={brand.hero_gallery_mobile_position}
         eyebrow="Galleries by Tamarind Taless"
         title="Fine Art & Traditional Painting"
       />
