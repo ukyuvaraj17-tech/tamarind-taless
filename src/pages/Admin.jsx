@@ -916,6 +916,112 @@ function BrandSettings() {
 }
 
 
+// ── DASHBOARD: ICONS, STAT TILES, CHARTS ──
+const DASH_ICON_PATHS = {
+  box: <><path d="M3 7.5l9-4 9 4-9 4-9-4z" /><path d="M3 7.5v9l9 4 9-4v-9" /><path d="M12 11.5v9" /></>,
+  orders: <><rect x="3.5" y="7.5" width="17" height="13" rx="2" /><path d="M8 7.5V6a4 4 0 0 1 8 0v1.5" /></>,
+  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.2 3.2" /></>,
+  chat: <><path d="M21 11.5a8.4 8.4 0 0 1-8.4 8.4 8.3 8.3 0 0 1-3.9-.96L3 21l1.96-5.7a8.3 8.3 0 0 1-.96-3.9A8.4 8.4 0 0 1 12.5 3a8.4 8.4 0 0 1 8.4 8.4z" /></>,
+};
+function DashIcon({ type, color, size = 22 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {DASH_ICON_PATHS[type]}
+    </svg>
+  );
+}
+function StatTile({ type, color, value, label }) {
+  return (
+    <div style={{ background: '#FFFFFF', border: '1px solid rgba(33,29,20,0.1)', borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', gap: 16, boxShadow: '0 1px 3px rgba(33,29,20,0.05)' }}>
+      <div style={{ width: 46, height: 46, borderRadius: 10, background: color + '1c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <DashIcon type={type} color={color} />
+      </div>
+      <div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 42, color: 'var(--iv)', fontWeight: 500, lineHeight: 1 }}>{value}</div>
+        <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '0.14em', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: 9 }}>{label}</div>
+      </div>
+    </div>
+  );
+}
+
+// Single-series area/line — order volume per day, last 14 days, with a hover crosshair + tooltip
+function OrdersTrendChart({ orders, color }) {
+  const [hoverIdx, setHoverIdx] = React.useState(null);
+  const days = React.useMemo(() => {
+    const arr = [];
+    const now = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      arr.push({ date: d, count: 0 });
+    }
+    orders.forEach(o => {
+      if (!o.created_at) return;
+      const od = new Date(o.created_at);
+      od.setHours(0, 0, 0, 0);
+      const match = arr.find(a => a.date.getTime() === od.getTime());
+      if (match) match.count++;
+    });
+    return arr;
+  }, [orders]);
+
+  const max = Math.max(1, ...days.map(d => d.count));
+  const W = 560, H = 160, padL = 6, padR = 6, padT = 14, padB = 4;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const stepX = plotW / (days.length - 1);
+  const points = days.map((d, i) => ({ x: padL + i * stepX, y: padT + plotH - (d.count / max) * plotH, ...d }));
+  const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+  const areaPath = linePath + ` L${points[points.length - 1].x.toFixed(1)},${(padT + plotH).toFixed(1)} L${points[0].x.toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
+  const hp = hoverIdx != null ? points[hoverIdx] : null;
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block', overflow: 'visible' }} onMouseLeave={() => setHoverIdx(null)}>
+        <line x1={padL} y1={padT + plotH} x2={W - padR} y2={padT + plotH} stroke="rgba(33,29,20,0.12)" strokeWidth="1" />
+        <path d={areaPath} fill={color} opacity="0.12" />
+        <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        {hp && <line x1={hp.x} y1={padT} x2={hp.x} y2={padT + plotH} stroke="rgba(33,29,20,0.22)" strokeWidth="1" />}
+        {points.map((p, i) => (
+          <g key={i}>
+            <rect x={p.x - stepX / 2} y={0} width={stepX} height={H} fill="transparent" onMouseEnter={() => setHoverIdx(i)} style={{ cursor: 'pointer' }} />
+            {i === hoverIdx && <circle cx={p.x} cy={p.y} r="4.5" fill={color} stroke="#fff" strokeWidth="2" />}
+          </g>
+        ))}
+      </svg>
+      {hp && (
+        <div style={{ position: 'absolute', left: `${(hp.x / W) * 100}%`, top: 0, transform: 'translate(-50%,-100%)', marginTop: -8, background: 'var(--iv)', color: '#F2EFE4', padding: '7px 11px', borderRadius: 4, fontSize: 12.5, fontFamily: "'Inter',sans-serif", whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 2 }}>
+          <div style={{ fontWeight: 700 }}>{hp.count} order{hp.count !== 1 ? 's' : ''}</div>
+          <div style={{ opacity: 0.7, fontSize: 11, marginTop: 1 }}>{hp.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+        </div>
+      )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontFamily: "'Inter',sans-serif", fontSize: 10.5, color: 'var(--text-muted)' }}>
+        <span>{points[0].date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+        <span>{points[points.length - 1].date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+      </div>
+    </div>
+  );
+}
+
+// Sequential single-hue horizontal bars — magnitude comparison across order statuses
+function StatusBreakdownChart({ orders, color }) {
+  const counts = STATUSES.map(s => ({ status: s, count: orders.filter(o => (o.status || 'Pending') === s).length }));
+  const max = Math.max(1, ...counts.map(c => c.count));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+      {counts.map(c => (
+        <div key={c.status} style={{ display: 'flex', alignItems: 'center', gap: 10 }} title={`${c.status}: ${c.count}`}>
+          <div style={{ width: 112, flexShrink: 0, fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11.5, letterSpacing: '0.03em', color: 'var(--text-muted)' }}>{c.status}</div>
+          <div style={{ flex: 1, height: 15, background: 'rgba(33,29,20,0.06)', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ width: `${(c.count / max) * 100}%`, minWidth: c.count > 0 ? 6 : 0, height: '100%', background: color, borderRadius: 8, transition: 'width 0.3s ease' }} />
+          </div>
+          <div style={{ width: 24, textAlign: 'right', fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 13, color: 'var(--iv)' }}>{c.count}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── MAIN ADMIN ────────────────────────────────────────────
 export default function Admin() {
   const { isAdmin, logout, currentUser } = useAuth();
@@ -930,6 +1036,9 @@ export default function Admin() {
   const [form, setForm] = useState({ ...EMPTY });
   const [editId, setEditId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [orderStatusFilter, setOrderStatusFilter] = useState('All');
+  const [orderDateFrom, setOrderDateFrom] = useState('');
+  const [orderDateTo, setOrderDateTo] = useState('');
 
   useEffect(() => {
     if (!currentUser) { navigate('/admin/login'); return; }
@@ -1032,10 +1141,16 @@ export default function Admin() {
 
   const lbl = { fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.14em', color: 'rgba(106,99,80,0.4)', textTransform: 'uppercase', display: 'block', marginBottom: 7 };
   const inp = { width: '100%', padding: '10px 12px', background: 'rgba(30,27,20,0.06)', border: '1px solid rgba(33,29,20,0.2)', color: 'var(--iv)', fontFamily: "'Cormorant Garamond',serif", fontSize: 16, outline: 'none', transition: 'border-color 0.25s' };
-  const stats = [['Products', products.length], ['Orders', orders.length], ['Pending', orders.filter(o => o.status === 'Pending').length], ['Enquiries', enquiries.length]];
+  const filteredOrders = orders.filter(o => {
+    if (orderStatusFilter !== 'All' && (o.status || 'Pending') !== orderStatusFilter) return false;
+    if (orderDateFrom && (!o.created_at || o.created_at < orderDateFrom)) return false;
+    if (orderDateTo && (!o.created_at || o.created_at > orderDateTo + 'T23:59:59')) return false;
+    return true;
+  });
+  const ordersFiltered = orderStatusFilter !== 'All' || orderDateFrom || orderDateTo;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--br)', color: 'var(--iv)' }}>
+    <div style={{ minHeight: '100vh', background: '#F8F6EF', color: 'var(--iv)' }}>
       {/* NAV */}
       <div style={{ background: 'rgba(0,0,0,0.25)', borderBottom: '1px solid rgba(33,29,20,0.1)', padding: '15px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -1056,7 +1171,28 @@ export default function Admin() {
         </div>
 
         {/* DASHBOARD */}
-        {tab === 0 && <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>{stats.map(([l, v]) => <div key={l} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: 24 }}><div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 52, color: 'var(--gd)', fontWeight: 300, lineHeight: 1 }}>{v}</div><div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.18em', color: 'rgba(106,99,80,0.55)', textTransform: 'uppercase', marginTop: 6 }}>{l}</div></div>)}</div>}
+        {tab === 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+              <StatTile type="box" color="#6B4E9E" value={products.length} label="Products" />
+              <StatTile type="orders" color="#B8791E" value={orders.length} label="Orders" />
+              <StatTile type="clock" color="#C05A34" value={orders.filter(o => (o.status || 'Pending') === 'Pending').length} label="Pending" />
+              <StatTile type="chat" color="#3F7566" value={enquiries.length} label="Enquiries" />
+            </div>
+            <div className="admin-dash-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20 }}>
+              <div style={{ background: '#FFFFFF', border: '1px solid rgba(33,29,20,0.1)', borderRadius: 10, padding: '22px 24px' }}>
+                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.16em', color: 'var(--iv)', textTransform: 'uppercase' }}>Orders — Last 14 Days</div>
+                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'var(--text-muted)', marginTop: 3, marginBottom: 16 }}>Daily order volume</div>
+                <OrdersTrendChart orders={orders} color="#B8791E" />
+              </div>
+              <div style={{ background: '#FFFFFF', border: '1px solid rgba(33,29,20,0.1)', borderRadius: 10, padding: '22px 24px' }}>
+                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.16em', color: 'var(--iv)', textTransform: 'uppercase' }}>Orders by Status</div>
+                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14.5, fontStyle: 'italic', color: 'var(--text-muted)', marginTop: 3, marginBottom: 18 }}>All-time breakdown</div>
+                <StatusBreakdownChart orders={orders} color="#B8791E" />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* PRODUCTS LIST */}
         {tab === 1 && (
@@ -1174,27 +1310,52 @@ export default function Admin() {
         {tab === 3 && (
           <div>
             <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '0.2em', color: 'var(--gd)', marginBottom: 20, textTransform: 'uppercase' }}>All Orders ({orders.length})</div>
+
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: 20, padding: '16px 18px', background: '#FFFFFF', border: '1px solid rgba(33,29,20,0.1)', borderRadius: 8 }}>
+              <div>
+                <label style={{ ...lbl, marginBottom: 6 }}>Status</label>
+                <select value={orderStatusFilter} onChange={e => setOrderStatusFilter(e.target.value)} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.08em', outline: 'none', cursor: 'pointer' }}>
+                  <option value="All">All Statuses</option>
+                  {STATUSES.map(s => <option key={s} value={s} style={{ background: '#F2EFE4' }}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ ...lbl, marginBottom: 6 }}>From</label>
+                <input type="date" value={orderDateFrom} onChange={e => setOrderDateFrom(e.target.value)} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', colorScheme: 'light' }} />
+              </div>
+              <div>
+                <label style={{ ...lbl, marginBottom: 6 }}>To</label>
+                <input type="date" value={orderDateTo} onChange={e => setOrderDateTo(e.target.value)} style={{ background: 'rgba(242,239,228,0.95)', border: '1px solid rgba(33,29,20,0.25)', color: 'var(--iv)', padding: '8px 12px', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, outline: 'none', colorScheme: 'light' }} />
+              </div>
+              {ordersFiltered && (
+                <button onClick={() => { setOrderStatusFilter('All'); setOrderDateFrom(''); setOrderDateTo(''); }} style={{ background: 'none', border: '1px solid rgba(106,99,80,0.35)', color: 'var(--text-muted)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '8px 14px', cursor: 'pointer' }}>Clear</button>
+              )}
+              <div style={{ marginLeft: 'auto', fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--text-muted)', fontStyle: 'italic', paddingBottom: 8 }}>
+                Showing {filteredOrders.length} of {orders.length}
+              </div>
+            </div>
+
             {loading ? <div style={{ textAlign: 'center', padding: 60 }}>Loading...</div> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {orders.map(o => (
+                {filteredOrders.map(o => (
                   <div key={o.id} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.13)', padding: '22px 24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
                       <div>
                         <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 15, letterSpacing: '0.2em', color: 'var(--gd)' }}>{o.order_id || o.id.slice(-8).toUpperCase()}</div>
-                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.7)', marginTop: 3 }}>{o.user_name}, {o.user_email}</div>
-                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.4)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '-'}</div>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--text-muted)', marginTop: 3 }}>{o.user_name}, {o.user_email}</div>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--text-muted)', marginTop: 2 }}>{o.user_phone} | {o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN') : '-'}</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, color: 'var(--iv)', fontWeight: 500 }}>{fmt(o.total)}</div>
                         {o.coupon_code && <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11.5, letterSpacing: '.06em', color: 'var(--success)', marginTop: 2 }}>{o.coupon_code} (-{fmt(o.discount || 0)})</div>}
                         <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: o.payment_method === 'razorpay' ? 'var(--success)' : 'var(--gd)', textTransform: 'uppercase', marginTop: 4 }}>{o.payment_method === 'razorpay' ? 'Online' : 'WhatsApp/COD'}</div>
-                        {o.payment_id && <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 10.5, color: 'rgba(106,99,80,0.6)', marginTop: 2 }}>Pay ID: {o.payment_id}</div>}
+                        {o.payment_id && <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2 }}>Pay ID: {o.payment_id}</div>}
                       </div>
                     </div>
                     <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(33,29,20,0.08)' }}>
                       {o.items?.map((item, i) => (
                         <div key={i} style={{ display: 'inline-block', marginRight: 12 }}>
-                          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.5)' }}>{item.name} ×{item.qty}</span>
+                          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--text-muted)' }}>{item.name} ×{item.qty}</span>
                           {item.isGiftCard && (
                             <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.04em', color: 'var(--gd)', background: 'rgba(33,29,20,.08)', padding: '2px 8px', marginLeft: 6 }}>
                               {item.giftCode}{item.recipientName ? ` → ${item.recipientName} (${item.recipientEmail})` : ''}
@@ -1203,7 +1364,7 @@ export default function Admin() {
                         </div>
                       ))}
                     </div>
-                    {o.address && <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'rgba(106,99,80,0.4)', lineHeight: 1.6 }}>{o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state}, {o.address.pincode}</div>}
+                    {o.address && <div style={{ marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontSize: 16, color: 'var(--text-muted)', lineHeight: 1.6 }}>{o.address.line1}{o.address.line2 ? ', ' + o.address.line2 : ''}, {o.address.city}, {o.address.state}, {o.address.pincode}</div>}
                     <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                       <div>
                         <label style={{ ...lbl, marginBottom: 6 }}>Status</label>
@@ -1222,7 +1383,11 @@ export default function Admin() {
                     </div>
                   </div>
                 ))}
-                {orders.length === 0 && <div style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(106,99,80,0.2)' }}>No orders yet</div>}
+                {filteredOrders.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: 60, fontStyle: 'italic', color: 'rgba(106,99,80,0.4)' }}>
+                    {ordersFiltered ? 'No orders match this filter.' : 'No orders yet'}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1239,7 +1404,7 @@ export default function Admin() {
                     <td style={{ padding: '12px', color: 'rgba(106,99,80,0.7)', fontSize: 16, borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.product || '-'}</td>
                     <td style={{ padding: '12px', fontSize: 16, color: 'rgba(106,99,80,0.6)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.user_name}<br /><span style={{ opacity: 0.5, fontSize: 15 }}>{e.user_email}</span></td>
                     <td style={{ padding: '12px', fontSize: 16, color: 'rgba(106,99,80,0.5)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.message || '-'}</td>
-                    <td style={{ padding: '12px', fontSize: 16, color: 'rgba(106,99,80,0.4)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '-'}</td>
+                    <td style={{ padding: '12px', fontSize: 16, color: 'var(--text-muted)', borderBottom: '1px solid rgba(33,29,20,0.06)' }}>{e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '-'}</td>
                     <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(107,142,80,0.1)', color: 'var(--success)', padding: '2px 8px', fontSize: 12, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.type || 'Email'}</span></td>
                     <td style={{ padding: '12px', borderBottom: '1px solid rgba(33,29,20,0.06)' }}><span style={{ background: 'rgba(33,29,20,0.1)', color: 'var(--gd)', padding: '2px 8px', fontSize: 12, fontFamily: "'Inter',sans-serif", fontWeight: 600, textTransform: 'uppercase' }}>{e.status || 'Received'}</span></td>
                   </tr>
@@ -1267,6 +1432,7 @@ export default function Admin() {
         @media (max-width: 768px) {
           .admin-body-pad { padding: 20px 16px 44px !important; }
           .admin-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+          .admin-dash-grid { grid-template-columns: 1fr !important; }
           .admin-form-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 480px) {
