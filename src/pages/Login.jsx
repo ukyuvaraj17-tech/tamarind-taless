@@ -116,7 +116,7 @@ export default function Login() {
           </form>
 
           <div style={{ textAlign: 'center', marginTop: 22, fontFamily: "'Cormorant Garamond', serif", fontSize: 15.5, color: 'rgba(106,99,80,.88)' }}>
-            New collector? <Link to="/register" style={{ color: 'var(--gd)', fontStyle: 'italic', cursor: 'none', textDecoration: 'none' }}>Create an account</Link>
+            New collector? <Link to="/register" state={location.state} style={{ color: 'var(--gd)', fontStyle: 'italic', cursor: 'none', textDecoration: 'none' }}>Create an account</Link>
           </div>
         </div>
       </div>

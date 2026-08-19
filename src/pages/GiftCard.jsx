@@ -28,7 +28,7 @@ export default function GiftCard() {
   const min = brand.giftcard_min ?? 500;
   const max = brand.giftcard_max ?? 50000;
   const activeAmount = custom ? Number(custom) : amount;
-  const valid = activeAmount >= min && activeAmount <= max;
+  const valid = Number.isInteger(activeAmount) && activeAmount >= min && activeAmount <= max;
   const visiblePresets = PRESETS.filter(v => v >= min && v <= max);
 
   function selectPreset(v) {
@@ -38,11 +38,17 @@ export default function GiftCard() {
 
   function handleAddToCart() {
     if (!valid) {
-      toast.error(`Please enter an amount between ${fmt(min)} and ${fmt(max)}.`);
+      toast.error(Number.isInteger(activeAmount)
+        ? `Please enter an amount between ${fmt(min)} and ${fmt(max)}.`
+        : 'Please enter a whole number amount (no paise/decimals).');
       return;
     }
     if (forSomeoneElse && (!recipientName.trim() || !recipientEmail.trim())) {
       toast.error("Please enter the recipient's name and email.");
+      return;
+    }
+    if (forSomeoneElse && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail.trim())) {
+      toast.error("Please enter a valid recipient email address.");
       return;
     }
     const giftCode = makeGiftCode();

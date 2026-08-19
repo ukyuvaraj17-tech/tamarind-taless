@@ -31,12 +31,16 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await supabase.from('profiles').select('id').eq('id', user.id).single();
       if (!data) {
-        await supabase.from('profiles').insert({
+        const { error: insertErr } = await supabase.from('profiles').insert({
           id: user.id,
           name: user.user_metadata?.name || user.email?.split('@')[0] || '',
           phone: user.user_metadata?.phone || '',
           addresses: []
         });
+        // Supabase resolves with {error}, it doesn't throw -- without this, an RLS
+        // denial or constraint failure here was invisible, not even reaching the
+        // catch below, leaving a user permanently profile-less with no trace at all.
+        if (insertErr) console.error('ensureProfile insert failed:', insertErr, 'for user', user.id);
       }
     } catch (e) { console.error('ensureProfile failed:', e); /* best-effort repair; fetchProfile below will just keep userProfile null */ }
   }

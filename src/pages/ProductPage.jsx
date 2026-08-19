@@ -5,7 +5,7 @@ import { supabase } from '../supabase';
 import { useCartActions } from '../context/CartContext';
 import { useBrand } from '../context/BrandContext';
 import { useAuth } from '../context/AuthContext';
-import { fmt, CATEGORY_GROUPS } from '../data/products';
+import { fmt, CATEGORY_GROUPS, knownStock } from '../data/products';
 import { isSaved, toggleSaved } from '../utils/wishlist';
 import { getDeliveryRange } from '../utils/delivery';
 import ProductCard from '../components/ProductCard';
@@ -69,7 +69,12 @@ export default function ProductPage() {
       // instead of forcing a click before showing real numbers. Selecting by index (not
       // name) keeps this unambiguous even if two options happen to share the same name.
       if (data?.variants?.length) {
-        let idx = data.variants.findIndex(v => Number(v.stock) > 0);
+        // Untracked stock (null/'') means "unknown, assume available," never "sold out" --
+        // knownStock() is the app-wide contract for this (src/data/products.js). Prefer a
+        // definitely-in-stock variant first, then any non-sold-out (including untracked)
+        // variant, before falling back to just the first option regardless.
+        let idx = data.variants.findIndex(v => knownStock(v.stock) > 0);
+        if (idx === -1) idx = data.variants.findIndex(v => knownStock(v.stock) !== 0);
         if (idx === -1) idx = 0;
         setSelectedVariantIdx(idx);
       }
@@ -179,7 +184,7 @@ export default function ProductPage() {
   const isEnquiryOnly = product.enquiry_only || product.enquiryOnly;
   const hasVariants = (product.variants || []).length > 0;
   const chosenVariant = hasVariants && selectedVariantIdx !== null ? product.variants[selectedVariantIdx] : null;
-  const allVariantsSoldOut = hasVariants && product.variants.every(v => Number(v.stock) === 0);
+  const allVariantsSoldOut = hasVariants && product.variants.every(v => knownStock(v.stock) === 0);
   const isSoldOut = hasVariants ? (chosenVariant ? Number(chosenVariant.stock) === 0 : allVariantsSoldOut) : product.stock === 0;
   const displayPrice = chosenVariant ? chosenVariant.price : product.price;
   const displayWeight = chosenVariant ? chosenVariant.weight : product.weight;
@@ -298,7 +303,7 @@ export default function ProductPage() {
               <div style={{ ...S.label, marginBottom: 10 }}>Select an Option</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {product.variants.map((v, i) => {
-                  const sizeSoldOut = Number(v.stock) === 0;
+                  const sizeSoldOut = knownStock(v.stock) === 0;
                   const active = selectedVariantIdx === i;
                   return (
                     <button

@@ -100,8 +100,8 @@ export default async function handler(req, res) {
         // A gift card's value is a customer choice, not a catalog price -- verify it
         // falls inside the admin-configured range instead of looking it up.
         const price = Number(item.price);
-        if (!Number.isFinite(price) || price < giftcardMin || price > giftcardMax) {
-          res.status(400).json({ error: `Gift card amount must be between Rs. ${giftcardMin} and Rs. ${giftcardMax}.` });
+        if (!Number.isFinite(price) || !Number.isInteger(price) || price < giftcardMin || price > giftcardMax) {
+          res.status(400).json({ error: `Gift card amount must be a whole number between Rs. ${giftcardMin} and Rs. ${giftcardMax}.` });
           return;
         }
         verifiedCart.push({ id: item.id, price, qty: item.qty, isGiftCard: true });

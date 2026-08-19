@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,11 @@ export default function Register() {
   const [gLoading, setGLoading] = useState(false);
   const { registerWithEmail, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Same redirect-back contract as Login.jsx -- a guest sent here via /checkout ->
+  // /login -> "Create an account" should land back at checkout after registering,
+  // not always at /account.
+  const from = location.state?.from?.pathname || '/account';
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); }
 
@@ -31,7 +36,7 @@ export default function Register() {
     try {
       await registerWithEmail(form.name, form.email, form.password, form.phone);
       toast.success(`Welcome, ${form.name}!`);
-      navigate('/account');
+      navigate(from);
     } catch (err) {
       if (err.message?.includes('already registered')) {
         setErrors(e => ({ ...e, email: 'An account with this email already exists.' }));
