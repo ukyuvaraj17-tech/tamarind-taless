@@ -287,7 +287,12 @@ export default function Account() {
         @media (max-width: 768px) {
           .account-layout { grid-template-columns: 1fr !important; }
           .account-sidebar { display: none !important; }
-          .account-nav-mobile { display: block !important; }
+          /* min-width: 0 overrides the grid item's default auto min-width, which is based
+             on its content's min-content size -- without it, the horizontally-scrolling nav
+             strip's true (wider-than-screen) content width forces this whole grid column,
+             and the page along with it, into horizontal overflow instead of staying
+             contained with its own internal scrollbar. */
+          .account-nav-mobile { display: block !important; min-width: 0; }
         }
       `}</style>
     </div>
