@@ -201,7 +201,7 @@ export default async function handler(req, res) {
       if (data && Number(data.balance) > 0) giftCard = data;
     }
 
-    const shipping = getShippingCost(cartSubtotal);
+    const shipping = getShippingCost(verifiedCart);
     const giftCardApplied = giftCardAppliedOf(giftCard, cartSubtotal, shipping, discount);
     const total = Math.max(0, cartSubtotal + shipping - discount - giftCardApplied);
 

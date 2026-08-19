@@ -10,7 +10,7 @@ export default function Cart() {
   const { cart, removeFromCart, updateQty, cartSubtotal } = useCart();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const shipping = getShippingCost(cartSubtotal);
+  const shipping = getShippingCost(cart);
 
   return (
     <div style={{ paddingTop: 68, minHeight: '80vh', background: 'var(--bg)' }}>

@@ -10,8 +10,17 @@ const fmtDate = (d) => d.toLocaleDateString('en-IN', { day: 'numeric', month: 's
 // separately in Cart.jsx and Checkout.jsx, which could silently drift apart.
 export const FREE_SHIPPING_THRESHOLD = 50000;
 export const SHIPPING_COST = 500;
-export function getShippingCost(subtotal) {
-  return subtotal > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+
+// Takes the cart itself, not a subtotal number -- a gift card is a code, never a
+// physical parcel, so it must never be charged shipping. The free-shipping threshold
+// is also judged only against physical items: gift-card value shouldn't count toward
+// "spend more to ship free" on things that were never going to cost anything to ship.
+export function getShippingCost(cart) {
+  const physicalSubtotal = (cart || [])
+    .filter(i => !i.isGiftCard)
+    .reduce((s, i) => s + (Number(i.price) || 0) * i.qty, 0);
+  if (physicalSubtotal <= 0) return 0;
+  return physicalSubtotal > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
 }
 
 export function isMetroCity(city, brand) {

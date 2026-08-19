@@ -49,7 +49,7 @@ export default function Checkout() {
   const [applyingGiftCard, setApplyingGiftCard] = useState(false);
 
   const hasExisting = (userProfile?.addresses?.length || 0) > 0;
-  const shipping = getShippingCost(cartSubtotal);
+  const shipping = getShippingCost(cart);
   const shippingCity = (useExisting && hasExisting) ? userProfile.addresses[selectedAddrIdx]?.city : form.city;
   const deliveryEstimate = getCartDeliveryRange(cart, brand, shippingCity);
   // Client-side numbers, used ONLY to show the customer what they're about to pay --
