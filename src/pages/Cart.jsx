@@ -93,7 +93,7 @@ export default function Cart() {
             </div>
 
             {/* SUMMARY */}
-            <div className="card-white" style={{ position: 'sticky', top: 86 }}>
+            <div className="card-white cart-summary-sticky" style={{ position: 'sticky', top: 86 }}>
               <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--iv)', marginBottom: 20 }}>ORDER SUMMARY</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 9, fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: 'rgba(106,99,80,.88)' }}>
                 <span>Subtotal</span><span>{fmt(cartSubtotal)}</span>
@@ -126,6 +126,10 @@ export default function Cart() {
       <style>{`
         @media (max-width: 768px) {
           .cart-grid { grid-template-columns: 1fr !important; }
+          /* Same reasoning as Checkout's summary card -- sticky only makes sense next to
+             the two-column desktop layout; once it collapses to one stacked column, it
+             just pins the card instead of letting it scroll with the page. */
+          .cart-summary-sticky { position: static !important; }
         }
       `}</style>
     </div>

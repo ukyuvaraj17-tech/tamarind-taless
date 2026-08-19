@@ -45,7 +45,7 @@ export function About() {
       <section className="section" style={{ background:'var(--bg)' }}>
         <div className="container">
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:72, alignItems:'start' }} className="about-grid">
-            <div ref={add(0)} className="reveal" style={{ aspectRatio:'3/4', background: brand.about_image ? `url(${brand.about_image})` : 'linear-gradient(145deg,#F2EFE4,#E2DCC8 50%,#D3CCB9)', backgroundSize:'cover', backgroundPosition: brand.about_image_position || 'center', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', position:'sticky', top:96 }}>
+            <div ref={add(0)} className="reveal about-story-img" style={{ aspectRatio:'3/4', background: brand.about_image ? `url(${brand.about_image})` : 'linear-gradient(145deg,#F2EFE4,#E2DCC8 50%,#D3CCB9)', backgroundSize:'cover', backgroundPosition: brand.about_image_position || 'center', border:'1px solid var(--line)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', position:'sticky', top:96 }}>
               {!brand.about_image && (
                 <div style={{ textAlign:'center', padding:32 }}>
                   <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:600, fontSize:11, letterSpacing:'.2em', textTransform:'uppercase', color:'rgba(33,29,20,.5)', marginBottom:10 }}>No Image Set</div>
@@ -111,7 +111,7 @@ export function About() {
       </section>
 
       <style>{`
-        @media (max-width:768px){.about-grid{grid-template-columns:1fr!important}.stats-grid-r{grid-template-columns:1fr 1fr!important}}
+        @media (max-width:768px){.about-grid{grid-template-columns:1fr!important}.stats-grid-r{grid-template-columns:1fr 1fr!important}.about-story-img{position:static!important}}
       `}</style>
     </>
   );

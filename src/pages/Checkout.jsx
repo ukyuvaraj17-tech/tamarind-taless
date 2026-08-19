@@ -486,7 +486,7 @@ export default function Checkout() {
           </div>
 
           {/* ORDER SUMMARY */}
-          <div className="card-white" style={{ position: 'sticky', top: 86 }}>
+          <div className="card-white checkout-summary-sticky" style={{ position: 'sticky', top: 86 }}>
             <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '0.2em', color: 'var(--iv)', marginBottom: 18, textTransform: 'uppercase' }}>Your Order</div>
             {cart.map(item => (
               <div key={item.id + (item.size ? '::' + item.size : '')} style={{ display: 'flex', gap: 11, marginBottom: 12 }}>
@@ -582,6 +582,11 @@ export default function Checkout() {
         @media (max-width: 768px) {
           .checkout-grid { grid-template-columns: 1fr !important; }
           .checkout-addr-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+          /* The summary card sticks alongside the form in the two-column desktop layout --
+             once the grid collapses to one stacked column on mobile, sticky has nothing
+             meaningful to stay beside and just pins the card in place instead of letting
+             it scroll normally with the rest of the page. */
+          .checkout-summary-sticky { position: static !important; }
         }
       `}</style>
     </div>
