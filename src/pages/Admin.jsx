@@ -290,7 +290,7 @@ function StoriesManager() {
 }
 
 // ── COUPONS ────────────────────────────────────────────────
-const EMPTY_COUPON = { code: '', type: 'percent', value: '', applies_to: 'all', product_ids: [], active: true };
+const EMPTY_COUPON = { code: '', type: 'percent', value: '', applies_to: 'all', product_ids: [], active: true, max_uses: '' };
 const APPLIES_TO_LABEL = { all: 'All products', products: 'Specific product(s)', bundle: 'Bundle — buy together' };
 
 function CouponsManager() {
@@ -317,7 +317,7 @@ function CouponsManager() {
 
   function setF(key, val) { setForm(f => ({ ...f, [key]: val })); }
   function startNew() { setForm({ ...EMPTY_COUPON }); setEditId(null); setView('edit'); }
-  function startEdit(c) { setForm({ ...EMPTY_COUPON, ...c, value: String(c.value), product_ids: c.product_ids || [] }); setEditId(c.id); setView('edit'); }
+  function startEdit(c) { setForm({ ...EMPTY_COUPON, ...c, value: String(c.value), product_ids: c.product_ids || [], max_uses: c.max_uses ? String(c.max_uses) : '' }); setEditId(c.id); setView('edit'); }
 
   function toggleProduct(id) {
     setForm(f => ({ ...f, product_ids: f.product_ids.includes(id) ? f.product_ids.filter(x => x !== id) : [...f.product_ids, id] }));
@@ -332,8 +332,10 @@ function CouponsManager() {
     const code = form.code.trim().toUpperCase();
     if (!code) { toast.error('Coupon code is required.'); return; }
     if (!form.value || Number(form.value) <= 0) { toast.error('Enter a discount value greater than 0.'); return; }
+    if (form.type === 'percent' && Number(form.value) > 100) { toast.error('Percentage off can\'t be more than 100%.'); return; }
     if (form.applies_to !== 'all' && form.product_ids.length === 0) { toast.error('Select at least one product.'); return; }
     if (form.applies_to === 'bundle' && form.product_ids.length < 2) { toast.error('A bundle coupon needs at least 2 products selected.'); return; }
+    if (form.max_uses !== '' && (!Number.isInteger(Number(form.max_uses)) || Number(form.max_uses) <= 0)) { toast.error('Max uses must be a whole number greater than 0, or left blank for unlimited.'); return; }
     setSaving(true);
     try {
       const payload = {
@@ -341,6 +343,7 @@ function CouponsManager() {
         applies_to: form.applies_to, product_ids: form.applies_to === 'all' ? [] : form.product_ids,
         min_products: form.applies_to === 'bundle' ? form.product_ids.length : 1,
         active: form.active,
+        max_uses: form.max_uses === '' ? null : Number(form.max_uses),
       };
       if (editId) {
         const { error } = await supabase.from('coupons').update(payload).eq('id', editId);
@@ -401,6 +404,7 @@ function CouponsManager() {
                     {c.type === 'percent' ? `${c.value}% off` : `Rs. ${Number(c.value).toLocaleString('en-IN')} off`} — {APPLIES_TO_LABEL[c.applies_to]}
                   </div>
                   {c.applies_to !== 'all' && <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'rgba(106,99,80,0.6)', fontStyle: 'italic', marginTop: 2 }}>{productNames(c.product_ids)}</div>}
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13.5, color: 'rgba(106,99,80,0.55)', fontStyle: 'italic', marginTop: 2 }}>{c.max_uses ? `Used ${c.times_used || 0} of ${c.max_uses}` : 'Unlimited uses'}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button onClick={() => toggleActive(c)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.3)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>{c.active ? 'Deactivate' : 'Activate'}</button>
@@ -470,6 +474,12 @@ function CouponsManager() {
             </div>
           </div>
         )}
+
+        <div>
+          <label style={lbl}>Max Uses (optional)</label>
+          <input style={{ ...inp, maxWidth: 200 }} type="number" min="1" value={form.max_uses} onChange={e => setF('max_uses', e.target.value)} onWheel={e => e.currentTarget.blur()} placeholder="Unlimited" onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
+          <div style={{ ...helpText, marginTop: 6 }}>Leave blank for unlimited uses. {editId && form.max_uses ? `Used ${form.times_used || 0} of ${form.max_uses} so far.` : ''}</div>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <input type="checkbox" checked={form.active} onChange={e => setF('active', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--gd)', cursor: 'pointer' }} />

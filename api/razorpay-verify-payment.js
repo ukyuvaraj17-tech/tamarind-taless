@@ -27,6 +27,9 @@ export default async function handler(req, res) {
     .update(`${razorpay_order_id}|${razorpay_payment_id}`)
     .digest('hex');
 
-  const verified = expected === razorpay_signature;
+  // Timing-safe comparison -- see the identical note in verify-free-order.js.
+  const expectedBuf = Buffer.from(expected, 'hex');
+  const givenBuf = Buffer.from(String(razorpay_signature), 'hex');
+  const verified = expectedBuf.length === givenBuf.length && crypto.timingSafeEqual(expectedBuf, givenBuf);
   res.status(verified ? 200 : 400).json({ verified });
 }

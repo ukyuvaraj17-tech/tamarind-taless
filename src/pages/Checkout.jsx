@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useBrand } from '../context/BrandContext';
 import { fmt } from '../data/products';
 import { getCartDeliveryRange, getShippingCost } from '../utils/delivery';
+import { couponDiscountOf, giftCardAppliedOf } from '../utils/pricing';
 import { cldThumb } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
@@ -51,22 +52,12 @@ export default function Checkout() {
   const shipping = getShippingCost(cartSubtotal);
   const shippingCity = (useExisting && hasExisting) ? userProfile.addresses[selectedAddrIdx]?.city : form.city;
   const deliveryEstimate = getCartDeliveryRange(cart, brand, shippingCity);
-  // A coupon scoped to specific products/a bundle should only discount those items'
-  // share of the cart, not the whole subtotal (which may include unrelated pieces).
-  const couponBase = appliedCoupon
-    ? (appliedCoupon.applies_to === 'products' || appliedCoupon.applies_to === 'bundle'
-        ? cart.filter(i => !i.isGiftCard && (appliedCoupon.product_ids || []).includes(i.id))
-            .reduce((s, i) => s + i.price * i.qty, 0)
-        : cartSubtotal)
-    : 0;
-  const discount = appliedCoupon
-    ? (appliedCoupon.type === 'percent'
-        ? Math.round(couponBase * (Number(appliedCoupon.value) / 100))
-        : Math.min(Number(appliedCoupon.value), couponBase))
-    : 0;
-  const giftCardApplied = appliedGiftCard
-    ? Math.min(Number(appliedGiftCard.balance), Math.max(cartSubtotal + shipping - discount, 0))
-    : 0;
+  // Client-side numbers, used ONLY to show the customer what they're about to pay --
+  // the actual charge is always re-derived from scratch server-side in
+  // api/razorpay-create-order.js, which is the real source of truth. See finalizeOrder
+  // below for why the order record itself uses the server's numbers, not these.
+  const discount = couponDiscountOf(cart, appliedCoupon, cartSubtotal);
+  const giftCardApplied = giftCardAppliedOf(appliedGiftCard, cartSubtotal, shipping, discount);
 
   async function applyCoupon() {
     const code = couponCode.trim().toUpperCase();
@@ -75,6 +66,10 @@ export default function Checkout() {
     try {
       const { data, error } = await supabase.from('coupons').select('*').eq('code', code).eq('active', true).maybeSingle();
       if (error || !data) { toast.error('Invalid or expired coupon code.'); setAppliedCoupon(null); return; }
+      const maxUses = Number(data.max_uses);
+      if (Number.isFinite(maxUses) && maxUses > 0 && Number(data.times_used || 0) >= maxUses) {
+        toast.error('This coupon has reached its usage limit.'); setAppliedCoupon(null); return;
+      }
       const cartProductIds = cart.filter(i => !i.isGiftCard).map(i => i.id);
       if (data.applies_to === 'products') {
         const matches = (data.product_ids || []).some(id => cartProductIds.includes(id));
@@ -150,24 +145,30 @@ export default function Checkout() {
   }
 
   // Shared by both payment paths -- runs only once we're sure real money actually
-  // moved (or, for WhatsApp/COD, was never expected to move here). Creating the
-  // order this late, not before payment, is what makes "Paid" mean something.
-  async function finalizeOrder({ addr, billAddr, orderId, waWindow, status, paymentId, razorpayOrderId }) {
-    // Redeem the applied gift-card balance FIRST -- if the balance changed since
-    // "Apply" was clicked (or the code is no longer valid), abort before any order
-    // exists claiming a discount that was never actually deducted.
-    if (appliedGiftCard && giftCardApplied > 0) {
-      const { error: redeemError } = await supabase.rpc('redeem_gift_card', { p_code: appliedGiftCard.code, p_amount: giftCardApplied });
-      if (redeemError) {
-        waWindow?.close();
-        toast.error('Your gift card balance changed since it was applied -- please remove and re-apply it.');
-        return false;
-      }
-    }
+  // moved (or the server confirmed none was needed). Creating the order this late,
+  // not before payment, is what makes "Paid" mean something.
+  //
+  // `computed` is the server's re-derived totals from api/razorpay-create-order.js --
+  // the order record is always written using THESE numbers, never the client-side
+  // `total`/`discount`/`giftCardApplied` above (which exist only to render the page
+  // before payment). This closes the loop: whatever Razorpay actually charged is
+  // exactly what ends up on the order.
+  //
+  // Redeeming the gift card and counting the coupon use both happen AFTER the order
+  // is written, not before: if either fails now, the customer already has a real,
+  // correctly-priced order -- the failure just means a discount that was granted
+  // didn't get deducted from its source, which is a fixable bookkeeping gap, not a
+  // customer silently losing money with nothing to show for it (the old ordering).
+  async function finalizeOrder({ addr, billAddr, orderId, waWindow, status, paymentId, razorpayOrderId, computed }) {
+    const { computedSubtotal, computedShipping, computedDiscount, computedGiftCardApplied, computedTotal, verifiedItems } = computed;
+    // Look up each cart line's server-verified price so the order record's line items
+    // agree with the server-computed subtotal, instead of whatever price the client's
+    // cart happened to be holding (which could be stale if a price changed after the
+    // item was added).
+    const verifiedByKey = new Map((verifiedItems || []).map(v => [v.isGiftCard ? `gc:${v.id}` : `${v.id}::${v.size || ''}`, v]));
 
-    // Likewise, create any newly-purchased gift card(s) before the order itself --
-    // if this fails, abort rather than charge the customer for a code that was
-    // never actually created.
+    // Newly-purchased gift card(s) still need to exist before the order references
+    // them -- if this fails, abort rather than charge for a code that was never created.
     const giftCardItems = cart.filter(i => i.isGiftCard);
     if (giftCardItems.length > 0) {
       const { error: gcError } = await supabase.from('gift_cards').insert(giftCardItems.map(i => ({
@@ -196,13 +197,17 @@ export default function Checkout() {
       user_name: userProfile?.name || form.name,
       user_phone: addr.phone || form.phone || userProfile?.phone,
       address: { ...addr, billing: billAddr },
-      items: cart.map(i => ({
-        id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat, size: i.size || null,
-        ...(i.isGiftCard ? { isGiftCard: true, giftCode: i.giftCode, recipientName: i.recipientName || null, recipientEmail: i.recipientEmail || null, giftMessage: i.giftMessage || null } : {}),
-      })),
-      subtotal: cartSubtotal, shipping, total,
-      coupon_code: appliedCoupon?.code || null, discount,
-      gift_card_code: appliedGiftCard?.code || null, gift_card_applied: giftCardApplied ? 1 : 0,
+      items: cart.map(i => {
+        const key = i.isGiftCard ? `gc:${i.id}` : `${i.id}::${i.size || ''}`;
+        const verified = verifiedByKey.get(key);
+        return {
+          id: i.id, name: verified?.name || i.name, qty: i.qty, price: verified ? verified.price : i.price, cat: verified?.cat || i.cat, size: i.size || null,
+          ...(i.isGiftCard ? { isGiftCard: true, giftCode: i.giftCode, recipientName: i.recipientName || null, recipientEmail: i.recipientEmail || null, giftMessage: i.giftMessage || null } : {}),
+        };
+      }),
+      subtotal: computedSubtotal, shipping: computedShipping, total: computedTotal,
+      coupon_code: computedDiscount > 0 ? (appliedCoupon?.code || null) : null, discount: computedDiscount,
+      gift_card_code: computedGiftCardApplied > 0 ? (appliedGiftCard?.code || null) : null, gift_card_applied: computedGiftCardApplied > 0 ? 1 : 0,
       payment_method: 'razorpay',
       status,
       payment_id: paymentId || null,
@@ -213,7 +218,21 @@ export default function Checkout() {
     const { error } = await supabase.from('orders').insert(orderData);
     if (error) { waWindow?.close(); throw error; }
 
-    localStorage.setItem('tt_last_order', JSON.stringify({ orderId, items: cart, total, addr }));
+    // The order now exists with the correct, server-verified numbers. Gift-card
+    // redemption is the one remaining best-effort step -- a failure here is logged,
+    // not fatal, and never blocks the customer from reaching their confirmation.
+    // (Coupon use is no longer redeemed here at all -- api/razorpay-create-order.js
+    // now reserves it atomically, before payment, closing the race two concurrent
+    // checkouts could otherwise both win.)
+    if (appliedGiftCard && computedGiftCardApplied > 0) {
+      const { error: redeemError } = await supabase.rpc('redeem_gift_card', { p_code: appliedGiftCard.code, p_amount: computedGiftCardApplied });
+      if (redeemError) {
+        console.error('Gift card redemption failed after order was placed:', redeemError, orderId);
+        toast('Order placed -- your gift card balance may need a manual check.', { icon: '⚠️' });
+      }
+    }
+
+    localStorage.setItem('tt_last_order', JSON.stringify({ orderId, items: cart, total: computedTotal, addr }));
     clearCart();
     navigate('/confirmation');
     return true;
@@ -228,15 +247,70 @@ export default function Checkout() {
       ? userProfile.addresses[selectedAddrIdx]
       : { name: form.name, phone: form.phone, line1: form.line1, line2: form.line2, city: form.city, state: form.state, pincode: form.pincode };
     const billAddr = billingSame ? addr : { ...billing, phone: billing.phone || addr.phone };
-    const orderId = 'TT' + Date.now().toString().slice(-8).toUpperCase();
+    // A timestamp suffix alone repeats every ~27.8 hours (only the last 8 digits of
+    // Date.now() were kept) and is otherwise fully predictable from the client's own
+    // clock -- this ID is reused as both the Razorpay receipt and the free-order
+    // token's signing input, so it needs real entropy, not just recency.
+    const orderId = 'TT' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
 
-    // A coupon and/or gift card can cover the entire order -- Razorpay (like every
-    // payment gateway) can't process a ₹0 charge, so there's nothing to actually
-    // pay for. Confirm the order directly instead of opening a payment widget that
-    // would just reject the amount.
-    if (total <= 0) {
+    // Every checkout -- paid or fully covered by a coupon/gift card -- starts by
+    // asking the server what this cart actually costs. The client's own `total`
+    // above is only ever used to render the page before this call; it is never
+    // trusted for the charge or the order record. See api/razorpay-create-order.js.
+    let orderJson;
+    try {
+      const itemsPayload = cart.map(i => ({ id: i.id, qty: i.qty, size: i.size || null, isGiftCard: !!i.isGiftCard, price: i.price }));
+      const orderRes = await fetch('/api/razorpay-create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsPayload, couponCode: appliedCoupon?.code || null, giftCardCode: appliedGiftCard?.code || null, receipt: orderId }),
+      });
+      orderJson = await orderRes.json();
+      if (!orderRes.ok) {
+        toast.error(orderJson.error || 'Could not start checkout. Please try again.');
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not start checkout. Please check your connection and try again.');
+      setLoading(false);
+      return;
+    }
+
+    const computed = {
+      computedSubtotal: orderJson.computedSubtotal, computedShipping: orderJson.computedShipping,
+      computedDiscount: orderJson.computedDiscount, computedGiftCardApplied: orderJson.computedGiftCardApplied,
+      computedTotal: orderJson.computedTotal, verifiedItems: orderJson.verifiedItems,
+    };
+
+    // The page's own `total` was computed from what the browser had on hand and is
+    // only ever a preview -- if it doesn't match what the server just verified (a
+    // price changed, a coupon expired or hit its cap, a gift card's balance moved),
+    // say so now rather than let the customer discover a different number inside the
+    // Razorpay widget with no explanation.
+    if (Math.abs(computed.computedTotal - total) >= 1) {
+      toast(`Your total was updated to ${fmt(computed.computedTotal)} based on current pricing.`, { icon: 'ℹ️', duration: 5000 });
+    }
+
+    // ── FULLY COVERED BY COUPON/GIFT CARD ──────────────────────────────
+    // Razorpay (like every payment gateway) can't process a ₹0 charge -- the server
+    // already confirmed the total is zero and issued a signed authorization instead
+    // of a Razorpay order.
+    if (orderJson.free) {
       try {
-        const ok = await finalizeOrder({ addr, billAddr, orderId, waWindow: null, status: 'Paid' });
+        const verifyRes = await fetch('/api/verify-free-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ receipt: orderId, freeToken: orderJson.freeToken }),
+        });
+        const verifyJson = await verifyRes.json();
+        if (!verifyJson.verified) {
+          toast.error('Could not confirm your order total. Please try again.');
+          setLoading(false);
+          return;
+        }
+        const ok = await finalizeOrder({ addr, billAddr, orderId, waWindow: null, status: 'Paid', computed });
         if (!ok) setLoading(false);
       } catch (err) {
         console.error(err);
@@ -255,18 +329,6 @@ export default function Checkout() {
       const scriptOk = await loadRazorpayScript();
       if (!scriptOk || !window.Razorpay) {
         toast.error('Could not load the payment gateway. Please check your connection and try again.');
-        setLoading(false);
-        return;
-      }
-
-      const orderRes = await fetch('/api/razorpay-create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: total, receipt: orderId }),
-      });
-      const orderJson = await orderRes.json();
-      if (!orderRes.ok) {
-        toast.error(orderJson.error || 'Could not start payment. Please try again.');
         setLoading(false);
         return;
       }
@@ -296,6 +358,7 @@ export default function Checkout() {
             const ok = await finalizeOrder({
               addr, billAddr, orderId, waWindow: null, status: 'Paid',
               paymentId: response.razorpay_payment_id, razorpayOrderId: response.razorpay_order_id,
+              computed,
             });
             if (!ok) setLoading(false);
           } catch (err) {

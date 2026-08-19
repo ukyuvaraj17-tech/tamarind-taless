@@ -92,6 +92,15 @@ export default function Account() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
+  // `tab` only ever read the URL once, on mount -- clicking a section link from
+  // somewhere else on the page (the Navbar account dropdown) while already on
+  // /account changes the URL but never re-synced the visible tab. This keeps them
+  // in step whenever the URL's own tab param changes.
+  useEffect(() => {
+    const key = searchParams.get('tab');
+    setTab(NAV_ITEMS.some(n => n.key === key) ? key : 'dashboard');
+  }, [searchParams]);
+
   useEffect(() => {
     if (!currentUser) return;
     Promise.all([
@@ -129,13 +138,13 @@ export default function Account() {
     transition: 'background .18s, color .18s',
   });
 
-  // Mobile-only nav: a compact icon grid instead of the desktop list stretched full-width
-  const navTile = (active) => ({
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 9,
-    padding: '15px 6px', textAlign: 'center', fontFamily: "'Inter',sans-serif", fontWeight: 600,
-    fontSize: 10, letterSpacing: '.03em', lineHeight: 1.25,
-    background: active ? 'rgba(201,162,75,.1)' : 'var(--card)', color: active ? 'var(--gd)' : 'var(--iv)',
-    border: `1px solid ${active ? 'var(--gd)' : 'var(--line)'}`, borderRadius: 9, cursor: 'pointer', textTransform: 'uppercase',
+  // Mobile-only nav: a horizontally scrollable pill strip instead of the desktop list stretched full-width
+  const navPill = (active) => ({
+    display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0, padding: '10px 15px',
+    borderRadius: 20, border: `1px solid ${active ? 'var(--gd)' : 'var(--line)'}`,
+    background: active ? 'var(--gd)' : 'var(--card)', color: active ? 'var(--text-dark)' : 'var(--iv)',
+    fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.04em',
+    textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap',
   });
 
   return (
@@ -168,18 +177,20 @@ export default function Account() {
             </button>
           </div>
 
-          {/* SIDEBAR — mobile: compact icon grid, its own layout instead of the list above stretched full-width */}
+          {/* SIDEBAR — mobile: horizontally scrollable pill strip, its own layout instead of the list above stretched full-width.
+              Log Out stays outside the scroll strip and always visible -- buried as the last pill in a strip whose scrollbar
+              is hidden, it could go undiscovered on a phone. */}
           <div className="account-nav-mobile">
-            <div className="account-nav-grid">
+            <div className="account-nav-scroll">
               {NAV_ITEMS.map(n => (
-                <button key={n.key} onClick={() => selectTab(n.key)} style={navTile(tab === n.key)}>
-                  <NavIcon name={n.key} size={20} />
+                <button key={n.key} onClick={() => selectTab(n.key)} style={navPill(tab === n.key)}>
+                  <NavIcon name={n.key} size={15} />
                   {n.label}
                 </button>
               ))}
             </div>
-            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', marginTop: 10, padding: '14px', background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 9, color: 'var(--tr)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              <NavIcon name="logout" />
+            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', marginTop: 10, padding: '10px 15px', borderRadius: 20, border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--tr)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              <NavIcon name="logout" size={15} />
               Log Out
             </button>
           </div>
@@ -271,14 +282,12 @@ export default function Account() {
 
       <style>{`
         .account-nav-mobile { display: none; }
+        .account-nav-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+        .account-nav-scroll::-webkit-scrollbar { display: none; }
         @media (max-width: 768px) {
           .account-layout { grid-template-columns: 1fr !important; }
           .account-sidebar { display: none !important; }
           .account-nav-mobile { display: block !important; }
-          .account-nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
-        }
-        @media (max-width: 420px) {
-          .account-nav-grid { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
     </div>

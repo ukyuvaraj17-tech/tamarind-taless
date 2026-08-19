@@ -5,6 +5,17 @@ import { useCart } from '../context/CartContext';
 import { useBrand } from '../context/BrandContext';
 import { CATEGORY_GROUPS, COLLECTOR_LABEL } from '../data/products';
 
+const ACCOUNT_MENU_ITEMS = [
+  { label: 'Dashboard', tab: null },
+  { label: 'Orders', tab: 'orders' },
+  { label: 'Wishlist', tab: 'wishlist' },
+  { label: 'Gift Cards', tab: 'giftcards' },
+  { label: 'Coupons', tab: 'coupons' },
+  { label: 'Enquiries', tab: 'enquiries' },
+  { label: 'Addresses', tab: 'addresses' },
+  { label: 'Account Details', tab: 'details' },
+];
+
 const MORE_LINKS = [
   { label: 'Stories', path: '/stories', desc: 'Artisan journeys & heritage notes' },
   { label: 'Care Guide', path: '/care', desc: 'How to preserve your pieces' },
@@ -212,8 +223,31 @@ export default function Navbar() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
             {cartCount > 0 && <span style={{ position: 'absolute', top: -5, right: -5, minWidth: 15, height: 15, background: 'var(--crimson)', color: 'var(--text-dark)', borderRadius: 10, fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{cartCount}</span>}
           </div>
-          <div onClick={() => navigate(currentUser ? '/account' : '/login')} style={{ cursor: 'none', color: 'rgba(106,99,80,.8)', lineHeight: 0, transition: 'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--gd)'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(106,99,80,.8)'}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <div className="tt-nav-dd" style={{ position: 'relative', lineHeight: 0 }}>
+            <div
+              onClick={() => currentUser ? toggleDd('account') : navigate('/login')}
+              style={{ cursor: 'none', color: openDd === 'account' ? 'var(--gd)' : 'rgba(106,99,80,.8)', lineHeight: 0, transition: 'color .2s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--gd)'}
+              onMouseLeave={e => { if (openDd !== 'account') e.currentTarget.style.color = 'rgba(106,99,80,.8)'; }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            {openDd === 'account' && currentUser && (
+              <div style={{ position: 'absolute', top: 'calc(100% + 14px)', right: 0, background: 'var(--nav)', border: '1px solid var(--line)', minWidth: 210, boxShadow: '0 12px 40px rgba(30,27,20,.14)', animation: 'fadeIn .15s ease', zIndex: 200 }}>
+                {ACCOUNT_MENU_ITEMS.map(({ label, tab }) => (
+                  <Link key={tab || 'dashboard'} to={tab ? `/account?tab=${tab}` : '/account'} style={{ ...ddItemS, display: 'block' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--gd)'; e.currentTarget.style.background = 'rgba(33,29,20,.05)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(106,99,80,.75)'; e.currentTarget.style.background = 'transparent'; }}
+                  >{label}</Link>
+                ))}
+                <div
+                  onClick={async () => { await logout(); navigate('/'); }}
+                  style={{ ...ddItemS, borderBottom: 'none', color: 'var(--tr)' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(138,78,54,.08)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >Log Out</div>
+              </div>
+            )}
           </div>
           <Link to="/contact" className="nav-enquire-pill" style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: '10px', letterSpacing: '.17em', textTransform: 'uppercase', background: 'var(--crimson)', color: 'var(--text-dark)', padding: '7px 14px', borderRadius: 100, cursor: 'none', textDecoration: 'none', transition: 'background .2s' }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--cr-h)'}
