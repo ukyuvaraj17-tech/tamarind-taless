@@ -178,8 +178,7 @@ export default function Account() {
           </div>
 
           {/* SIDEBAR — mobile: horizontally scrollable pill strip, its own layout instead of the list above stretched full-width.
-              Log Out stays outside the scroll strip and always visible -- buried as the last pill in a strip whose scrollbar
-              is hidden, it could go undiscovered on a phone. */}
+              Log Out isn't in this strip at all -- it's a separate, always-visible button at the bottom of the page. */}
           <div className="account-nav-mobile">
             <div className="account-nav-scroll">
               {NAV_ITEMS.map(n => (
@@ -189,10 +188,6 @@ export default function Account() {
                 </button>
               ))}
             </div>
-            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', marginTop: 10, padding: '10px 15px', borderRadius: 20, border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--tr)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              <NavIcon name="logout" size={15} />
-              Log Out
-            </button>
           </div>
 
           {/* CONTENT */}
@@ -278,6 +273,12 @@ export default function Account() {
             {tab === 'details' && <AccountDetailsTab userProfile={userProfile} currentUser={currentUser} updateProfile={updateProfile} />}
           </div>
         </div>
+
+        {/* Mobile-only: Log Out at the very bottom of the page, below all tab content -- not mixed in with section navigation. */}
+        <button onClick={handleLogout} className="account-logout-bottom" style={{ display: 'none', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', marginTop: 32, padding: '13px 15px', borderRadius: 20, border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--tr)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+          <NavIcon name="logout" size={15} />
+          Log Out
+        </button>
       </div>
 
       <style>{`
@@ -293,6 +294,7 @@ export default function Account() {
              and the page along with it, into horizontal overflow instead of staying
              contained with its own internal scrollbar. */
           .account-nav-mobile { display: block !important; min-width: 0; }
+          .account-logout-bottom { display: flex !important; }
         }
       `}</style>
     </div>

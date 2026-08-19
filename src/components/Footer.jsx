@@ -107,7 +107,7 @@ export default function Footer() {
 
       <style>{`
         @media (max-width: 900px) { .footer-grid-r { grid-template-columns: 1fr 1fr !important; } }
-        @media (max-width: 580px) { .footer-grid-r { grid-template-columns: 1fr !important; } }
+        @media (max-width: 340px) { .footer-grid-r { grid-template-columns: 1fr !important; } }
         @media (hover: hover) and (pointer: fine) {
           .footer-social-icon:hover { background: var(--gl) !important; transform: translateY(-2px); }
         }
