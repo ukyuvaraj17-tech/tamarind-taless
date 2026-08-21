@@ -365,7 +365,23 @@ export default function ProductPage() {
             <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: 24, whiteSpace: 'pre-line' }}>{product.together}</p>
           )}
 
-          {/* SHIPPING / RETURNS / CARE — sits under the description paragraph */}
+          {(product.material || displayDimensions || displayWeight || product.origin) && (
+            <div style={{ background: 'var(--card)', padding: '18px 20px', marginBottom: 26, border: '1px solid var(--line)' }}>
+              <div style={{ ...S.label, marginBottom: 12 }}>Specifications</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <tbody>
+                  {[['Material', product.material], ['Dimensions', displayDimensions], ['Weight', displayWeight], ['Source', product.origin]].filter(([, v]) => v).map(([k, v]) => (
+                    <tr key={k} style={{ borderBottom: '1px solid var(--line)' }}>
+                      <td style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '.1em', color: 'var(--gd)', padding: '9px 0', textTransform: 'uppercase', width: '36%' }}>{k}</td>
+                      <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', padding: '9px 0' }}>{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* SHIPPING / RETURNS / CARE — sits under Specifications */}
           <div style={{ marginBottom: 26, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {[
               { to: '/shipping-policy', icon: (
@@ -387,22 +403,6 @@ export default function ProductPage() {
               </Link>
             ))}
           </div>
-
-          {(product.material || displayDimensions || displayWeight || product.origin) && (
-            <div style={{ background: 'var(--card)', padding: '18px 20px', marginBottom: 26, border: '1px solid var(--line)' }}>
-              <div style={{ ...S.label, marginBottom: 12 }}>Specifications</div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  {[['Material', product.material], ['Dimensions', displayDimensions], ['Weight', displayWeight], ['Source', product.origin]].filter(([, v]) => v).map(([k, v]) => (
-                    <tr key={k} style={{ borderBottom: '1px solid var(--line)' }}>
-                      <td style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 10.5, letterSpacing: '.1em', color: 'var(--gd)', padding: '9px 0', textTransform: 'uppercase', width: '36%' }}>{k}</td>
-                      <td style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', padding: '9px 0' }}>{v}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
       </div>
 
