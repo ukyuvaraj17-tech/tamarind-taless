@@ -115,7 +115,7 @@ function ImagePositionPicker({ image, value, onChange, aspect = '1/1', width = 3
         Image Focal Point — which part of the photo should stay visible when cropped
       </label>
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <div onClick={() => image && setExpanded(true)} style={{ width, aspectRatio: aspect, position: 'relative', border: '1px solid rgba(33,29,20,0.2)', flexShrink: 0, overflow: 'hidden', background: 'var(--card)', cursor: image ? 'zoom-in' : 'default' }}>
+        <div onClick={() => image && setExpanded(true)} style={{ width: `min(${width}px, 100%)`, aspectRatio: aspect, position: 'relative', border: '1px solid rgba(33,29,20,0.2)', overflow: 'hidden', background: 'var(--card)', cursor: image ? 'zoom-in' : 'default' }}>
           {image ? (
             <img src={image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: pos }} />
           ) : (
@@ -220,7 +220,7 @@ function StoriesManager() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {stories.map(s => (
-              <div key={s.id} style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div key={s.id} className="admin-story-row" style={{ background: 'rgba(30,27,20,0.04)', border: '1px solid rgba(33,29,20,0.15)', padding: '16px 18px', display: 'flex', gap: 16, alignItems: 'center' }}>
                 {s.images?.[0] && <img src={cldThumb(s.images[0], 130)} alt="" loading="lazy" decoding="async" style={{ width: 64, height: 64, objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(33,29,20,0.2)' }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
@@ -230,7 +230,7 @@ function StoriesManager() {
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: 'var(--iv)', marginBottom: 2 }}>{s.title}</div>
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'rgba(106,99,80,0.5)', fontStyle: 'italic' }}>{s.author} · {new Date(s.created_at).toLocaleDateString()}</div>
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <div className="admin-story-actions" style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button onClick={() => togglePublish(s)} style={{ background: 'none', border: '1px solid rgba(33,29,20,0.3)', color: 'rgba(106,99,80,0.6)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>{s.published ? 'Unpublish' : 'Publish'}</button>
                   <button onClick={() => startEdit(s)} style={{ background: 'var(--gd)', border: 'none', color: '#F2EFE4', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Edit</button>
                   <button onClick={() => deleteStory(s.id)} style={{ background: 'none', border: '1px solid rgba(192,120,64,.4)', color: 'var(--error)', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '7px 12px', cursor: 'pointer' }}>Delete</button>
@@ -1451,6 +1451,8 @@ export default function Admin() {
           .admin-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
           .admin-dash-grid { grid-template-columns: 1fr !important; }
           .admin-form-grid { grid-template-columns: 1fr !important; }
+          .admin-story-row { flex-wrap: wrap !important; }
+          .admin-story-row .admin-story-actions { width: 100% !important; justify-content: flex-end !important; }
         }
         @media (max-width: 480px) {
           .admin-stats-grid { grid-template-columns: 1fr !important; }

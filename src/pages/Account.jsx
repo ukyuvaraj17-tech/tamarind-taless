@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useAuth } from '../context/AuthContext';
@@ -91,6 +91,7 @@ export default function Account() {
   const [enquiries, setEnquiries] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+  const navScrollRef = useRef(null);
 
   // `tab` only ever read the URL once, on mount -- clicking a section link from
   // somewhere else on the page (the Navbar account dropdown) while already on
@@ -112,6 +113,21 @@ export default function Account() {
       setLoadingOrders(false);
     }).catch(() => setLoadingOrders(false)); // a network-level failure rejects instead of resolving with {error} -- without this the tab spins forever
   }, [currentUser]);
+
+  // Deep-linking straight to a tab past the first few (e.g. /account?tab=coupons) left the
+  // mobile pill strip scrolled to its start, with no pill visibly active -- scroll the active
+  // pill into view within the strip itself (never the page) whenever the tab changes.
+  useEffect(() => {
+    const strip = navScrollRef.current;
+    if (!strip) return;
+    const activePill = strip.querySelector(`[data-tab="${tab}"]`);
+    if (!activePill) return;
+    const stripRect = strip.getBoundingClientRect();
+    const pillRect = activePill.getBoundingClientRect();
+    if (pillRect.left < stripRect.left || pillRect.right > stripRect.right) {
+      strip.scrollLeft += (pillRect.left - stripRect.left) - (stripRect.width - pillRect.width) / 2;
+    }
+  }, [tab]);
 
   function selectTab(key) {
     setTab(key);
@@ -180,9 +196,9 @@ export default function Account() {
           {/* SIDEBAR — mobile: horizontally scrollable pill strip, its own layout instead of the list above stretched full-width.
               Log Out isn't in this strip at all -- it's a separate, always-visible button at the bottom of the page. */}
           <div className="account-nav-mobile">
-            <div className="account-nav-scroll">
+            <div className="account-nav-scroll" ref={navScrollRef}>
               {NAV_ITEMS.map(n => (
-                <button key={n.key} onClick={() => selectTab(n.key)} style={navPill(tab === n.key)}>
+                <button key={n.key} data-tab={n.key} onClick={() => selectTab(n.key)} style={navPill(tab === n.key)}>
                   <NavIcon name={n.key} size={15} />
                   {n.label}
                 </button>
