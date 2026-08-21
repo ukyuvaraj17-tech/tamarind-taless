@@ -1,17 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cldThumb } from '../utils/cloudinary';
+import { uploadToStorage } from '../utils/supabaseStorage';
 import toast from 'react-hot-toast';
 
-// ── CLOUDINARY IMAGE UPLOADER ─────────────────────────────
+// ── IMAGE UPLOADER ─────────────────────────────
 // Two modes:
-// 1. Direct upload to Cloudinary (needs REACT_APP_CLOUDINARY_CLOUD_NAME + REACT_APP_CLOUDINARY_UPLOAD_PRESET)
-// 2. Paste URL manually (works always, no config needed)
+// 1. Direct upload to Supabase Storage (always available -- same project as the rest of the site)
+// 2. Paste URL manually (works always, no config needed -- also how pre-migration Cloudinary URLs get added)
 
-export default function ImageUploader({ images = [], onChange }) {
+export default function ImageUploader({ images = [], onChange, folder = 'products' }) {
   const [urlInput, setUrlInput] = useState('');
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [mode, setMode] = useState('url'); // 'url' or 'upload'
+  const [mode, setMode] = useState('upload'); // 'url' or 'upload'
   const fileRef = useRef();
   // A multi-file upload takes several seconds; if the admin removes/reorders an
   // existing image via its own onChange call while the loop is still running, the
@@ -19,10 +20,6 @@ export default function ImageUploader({ images = [], onChange }) {
   // the latest value in a ref so the final merge doesn't silently revert that edit.
   const imagesRef = useRef(images);
   useEffect(() => { imagesRef.current = images; }, [images]);
-
-  const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
-  const canUpload = cloudName && uploadPreset && cloudName !== 'your_cloud_name';
 
   // ── ADD URL MANUALLY ──
   function addUrl() {
@@ -36,7 +33,7 @@ export default function ImageUploader({ images = [], onChange }) {
     setUrlInput('');
   }
 
-  // ── UPLOAD TO CLOUDINARY ──
+  // ── UPLOAD TO SUPABASE STORAGE ──
   async function handleFileUpload(e) {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -48,21 +45,7 @@ export default function ImageUploader({ images = [], onChange }) {
       const file = files[i];
       setProgress(Math.round((i / files.length) * 100));
       try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', uploadPreset);
-        formData.append('folder', 'tamarind-tales/products');
-
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          { method: 'POST', body: formData }
-        );
-        const data = await res.json();
-        if (data.secure_url) {
-          uploaded.push(data.secure_url);
-        } else {
-          failed.push(file.name);
-        }
+        uploaded.push(await uploadToStorage(file, folder));
       } catch (err) {
         console.error('Upload failed for', file.name, err);
         failed.push(file.name);
@@ -143,14 +126,12 @@ export default function ImageUploader({ images = [], onChange }) {
         >
           Paste URL
         </button>
-        {canUpload && (
-          <button
-            onClick={() => setMode('upload')}
-            style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'upload' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'upload' ? 'var(--br)' : 'var(--iv)' }}
-          >
-            Upload File
-          </button>
-        )}
+        <button
+          onClick={() => setMode('upload')}
+          style={{ padding: '7px 14px', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid rgba(33,29,20,0.2)', borderLeft: 'none', cursor: 'pointer', transition: 'all 0.2s', background: mode === 'upload' ? 'var(--gd)' : 'rgba(30,27,20,0.04)', color: mode === 'upload' ? 'var(--br)' : 'var(--iv)' }}
+        >
+          Upload File
+        </button>
       </div>
 
       {/* PASTE URL MODE */}
@@ -174,13 +155,13 @@ export default function ImageUploader({ images = [], onChange }) {
             </button>
           </div>
           <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 13, color: 'var(--iv)', fontStyle: 'italic', marginTop: 7, lineHeight: 1.6 }}>
-            Upload image to cloudinary.com → right click image → Copy image address → paste above. Press Enter or click Add.
+            Paste a link to an image already hosted elsewhere. Press Enter or click Add.
           </div>
         </div>
       )}
 
-      {/* CLOUDINARY UPLOAD MODE */}
-      {mode === 'upload' && canUpload && (
+      {/* UPLOAD MODE */}
+      {mode === 'upload' && (
         <div>
           <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
           <button

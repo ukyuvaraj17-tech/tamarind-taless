@@ -271,7 +271,7 @@ function StoriesManager() {
           <textarea style={{ ...inp, minHeight: 180, resize: 'vertical', lineHeight: 1.7 }} value={form.story} onChange={e => setF('story', e.target.value)} placeholder="Write the full story here..." onFocus={e => e.target.style.borderColor = 'var(--gd)'} onBlur={e => e.target.style.borderColor = 'rgba(33,29,20,0.25)'} />
         </div>
 
-        <ImageUploader images={form.images} onChange={imgs => setF('images', imgs)} />
+        <ImageUploader images={form.images} onChange={imgs => setF('images', imgs)} folder="stories" />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <input type="checkbox" checked={form.published} onChange={e => setF('published', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--gd)' }} />
