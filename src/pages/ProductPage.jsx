@@ -235,6 +235,41 @@ export default function ProductPage() {
             </div>
           )}
 
+          {/* DELIVERY + BUY BOX — directly below the product image/thumbnails, so the purchase
+              action is visible immediately without scrolling past share/policy/description first. */}
+          {!isSoldOut && !isEnquiryOnly && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 24 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+              </svg>
+              <div>
+                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)' }}>Estimated delivery: </span>
+                <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontStyle: 'italic', color: 'var(--text-muted)' }}>{delivery.label}</span>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+            {isSoldOut ? (
+              <>
+                <button className="btn btn-full" style={{ background: 'var(--card)', color: 'var(--text-muted)', cursor: 'not-allowed', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', padding: 15, border: '1px solid var(--line)' }} disabled>Sold Out</button>
+                <button className="btn btn-full btn-wa" onClick={() => handleEnquire('soldOut')}>Enquire on WhatsApp</button>
+              </>
+            ) : isEnquiryOnly ? (
+              <button className="btn btn-full btn-wa" onClick={() => handleEnquire('priceOnEnquiry')}>Enquire on WhatsApp</button>
+            ) : (
+              <>
+                <button className="btn btn-full btn-dark" onClick={() => {
+                  if (hasVariants && !chosenVariant) { toast.error('Please select an option.'); return; }
+                  addToCart(hasVariants
+                    ? { ...product, price: chosenVariant.price, weight: chosenVariant.weight, dimensions: chosenVariant.dimensions, stock: chosenVariant.stock, size: chosenVariant.size }
+                    : product);
+                }}>Add to Cart</button>
+                {product.allow_enquiry !== false && <button className="btn btn-full btn-wa" onClick={() => handleEnquire('inStock')}>Enquire on WhatsApp</button>}
+              </>
+            )}
+          </div>
+
           {/* SHARE — directly below the product image, on the image side of the layout */}
           <div className="pp-share-row" style={{ marginTop: 24, borderTop: '1px solid var(--line)', borderLeft: '1px solid var(--line)', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
             {[
@@ -252,29 +287,6 @@ export default function ProductPage() {
                 </span>
                 <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 12.5, color: 'var(--iv)' }}>{label}</span>
               </a>
-            ))}
-          </div>
-
-          {/* SHIPPING / RETURNS / CARE — policy summary */}
-          <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[
-              { to: '/shipping-policy', icon: (
-                  <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                ), title: 'Shipping Information', body: 'See delivery timelines and charges' },
-              { to: '/refund-policy', icon: (
-                  <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8M3 3v5h5" />
-                ), title: 'Returns & Refunds', body: 'See our return eligibility and process' },
-              { to: '/care', icon: (
-                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" />
-                ), title: 'Care & Preservation Guide', body: 'How to look after this piece' },
-            ].map(({ to, icon, title, body }) => (
-              <Link key={to} to={to} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', textDecoration: 'none' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>{icon}</svg>
-                <div>
-                  <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)' }}>{title}</div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>{body}</div>
-                </div>
-              </Link>
             ))}
           </div>
         </div>
@@ -353,6 +365,29 @@ export default function ProductPage() {
             <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, color: 'var(--iv)', lineHeight: 1.7, fontStyle: 'italic', marginBottom: 24, whiteSpace: 'pre-line' }}>{product.together}</p>
           )}
 
+          {/* SHIPPING / RETURNS / CARE — sits under the description paragraph */}
+          <div style={{ marginBottom: 26, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[
+              { to: '/shipping-policy', icon: (
+                  <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                ), title: 'Shipping Information', body: 'See delivery timelines and charges' },
+              { to: '/refund-policy', icon: (
+                  <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8M3 3v5h5" />
+                ), title: 'Returns & Refunds', body: 'See our return eligibility and process' },
+              { to: '/care', icon: (
+                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" />
+                ), title: 'Care & Preservation Guide', body: 'How to look after this piece' },
+            ].map(({ to, icon, title, body }) => (
+              <Link key={to} to={to} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', textDecoration: 'none' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>{icon}</svg>
+                <div>
+                  <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)' }}>{title}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>{body}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
           {(product.material || displayDimensions || displayWeight || product.origin) && (
             <div style={{ background: 'var(--card)', padding: '18px 20px', marginBottom: 26, border: '1px solid var(--line)' }}>
               <div style={{ ...S.label, marginBottom: 12 }}>Specifications</div>
@@ -368,39 +403,6 @@ export default function ProductPage() {
               </table>
             </div>
           )}
-
-          {!isSoldOut && !isEnquiryOnly && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-              </svg>
-              <div>
-                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--iv)' }}>Estimated delivery: </span>
-                <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontStyle: 'italic', color: 'var(--text-muted)' }}>{delivery.label}</span>
-              </div>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {isSoldOut ? (
-              <>
-                <button className="btn btn-full" style={{ background: 'var(--card)', color: 'var(--text-muted)', cursor: 'not-allowed', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', padding: 15, border: '1px solid var(--line)' }} disabled>Sold Out</button>
-                <button className="btn btn-full btn-wa" onClick={() => handleEnquire('soldOut')}>Enquire on WhatsApp</button>
-              </>
-            ) : isEnquiryOnly ? (
-              <button className="btn btn-full btn-wa" onClick={() => handleEnquire('priceOnEnquiry')}>Enquire on WhatsApp</button>
-            ) : (
-              <>
-                <button className="btn btn-full btn-dark" onClick={() => {
-                  if (hasVariants && !chosenVariant) { toast.error('Please select an option.'); return; }
-                  addToCart(hasVariants
-                    ? { ...product, price: chosenVariant.price, weight: chosenVariant.weight, dimensions: chosenVariant.dimensions, stock: chosenVariant.stock, size: chosenVariant.size }
-                    : product);
-                }}>Add to Cart</button>
-                {product.allow_enquiry !== false && <button className="btn btn-full btn-wa" onClick={() => handleEnquire('inStock')}>Enquire on WhatsApp</button>}
-              </>
-            )}
-          </div>
         </div>
       </div>
 
